@@ -7,7 +7,6 @@ dependencies = [
     'setuptools',
     'flake8==7.1.0',
     'mypy >= 1.7',
-    'pynput',
     'pyqt6',
     'pyqtgraph',
     'pyqtdarktheme',
