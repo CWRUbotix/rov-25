@@ -53,7 +53,6 @@ class Logger(QWidget):
     def print_log(self, message: Log) -> None:
         """Print message to log widget if user is viewing message's type."""
         # Message severities are 0, 10, 20, etc.
-        # We divide by 10 to get index for checkboxes
         severity_key = LoggingSeverity(message.level)
         # Make sure we've chosen to view this message type
         if not self.checkboxes[severity_key].isChecked():

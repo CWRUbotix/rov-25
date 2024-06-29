@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>pixhawk_communication</name>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <description>Manages Pixhawk</description>
   <maintainer email="rmc170@case.edu">Michael Carlstrom</maintainer>
   <license>Apache License 2.0</license>
@@ -10,10 +10,23 @@
   <exec_depend>ros2launch</exec_depend>
 
   <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_mypy</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <depend>mavros</depend>
+
+  <!-- Dependencies for mavproxy -->
+  <depend>python3</depend>
+  <depend>python3-yaml</depend>
+  <depend>python3-opencv</depend>
+  <depend>python3-pip</depend>
+  <depend>python3-matplotlib</depend>
+  <depend>python3-lxml</depend>
+  <depend>python3-pygame</depend>
+
+  <!-- Dependencies for pymavlink -->
+  <depend>python3-future</depend>
 
   <export>
     <build_type>ament_python</build_type>

@@ -1,5 +1,7 @@
 # True to start an automation task, false to stop
-bool start
+bool START = false
+bool STOP = true
+
+bool state
 ---
-# True if automation task is now running, false otherwise
-bool is_running
+bool current_state

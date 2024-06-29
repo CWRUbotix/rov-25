@@ -1,84 +1,39 @@
 // SURFACE TRANSCEIVER sketch originally built from:
 //  rf95_client.pde
 //  -*- mode: C++ -*-
-// Example sketch showing how to create a simple messageing client
-// with the RH_RF95 class. RH_RF95 class does not provide for addressing or
-// reliability, so you should only use RH_RF95 if you do not need the higher
-// level messaging abilities.
-// It is designed to work with the other example rf95_server
-// Tested with Anarduino MiniWirelessLoRa, Rocket Scream Mini Ultra Pro with
-// the RFM95W, Adafruit Feather M0 with RFM95
+//
+// REQUIRED LIBRARIES:
+// RadioHead v1.122.1 by Mike McCauley
+// Blue Robotics MS5837 Library v1.1.1 by BlueRobotics
 
-#include <SPI.h>
 #include <RH_RF95.h>
+#include <SPI.h>
 
-#if defined (__AVR_ATmega32U4__)  // Feather 32u4 w/Radio
-  #define RFM95_CS    8
-  #define RFM95_INT   7
-  #define RFM95_RST   4
+#include "rov_common.hpp"
 
-#elif defined(ADAFRUIT_FEATHER_M0) || defined(ADAFRUIT_FEATHER_M0_EXPRESS) || defined(ARDUINO_SAMD_FEATHER_M0)  // Feather M0 w/Radio
-  #define RFM95_CS    8
-  #define RFM95_INT   3
-  #define RFM95_RST   4
+const uint8_t COMMAND_SPAM_TIMES = 5;
+const uint32_t COMMAND_SPAM_DELAY = 500;
+const uint32_t SURFACE_PKT_RX_TIMEOUT = 1000;
+const uint8_t MAX_RESPONSE_LEN = RH_RF95_MAX_MESSAGE_LEN >> 1;  // Max length for ACKs/NACKs
 
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040_RFM)  // Feather RP2040 w/Radio
-  #define RFM95_CS   16
-  #define RFM95_INT  21
-  #define RFM95_RST  17
-
-#elif defined (__AVR_ATmega328P__)  // Feather 328P w/wing
-  #define RFM95_CS    4  //
-  #define RFM95_INT   3  //
-  #define RFM95_RST   2  // "A"
-
-#elif defined(ESP8266)  // ESP8266 feather w/wing
-  #define RFM95_CS    2  // "E"
-  #define RFM95_INT  15  // "B"
-  #define RFM95_RST  16  // "D"
-
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_ESP32S2) || defined(ARDUINO_NRF52840_FEATHER) || defined(ARDUINO_NRF52840_FEATHER_SENSE)
-  #define RFM95_CS   10  // "B"
-  #define RFM95_INT   9  // "A"
-  #define RFM95_RST  11  // "C"
-
-#elif defined(ESP32)  // ESP32 feather w/wing
-  #define RFM95_CS   33  // "B"
-  #define RFM95_INT  27  // "A"
-  #define RFM95_RST  13
-
-#elif defined(ARDUINO_NRF52832_FEATHER)  // nRF52832 feather w/wing
-  #define RFM95_CS   11  // "B"
-  #define RFM95_INT  31  // "C"
-  #define RFM95_RST   7  // "A"
-
-#endif
-
-/************ Radio Setup ***************/
-
-// here lies the glorious encryption key, lost to the transition to RF95 :(
-uint8_t key[] = { 
-                  0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE,
-                  0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE
-                };
-
-// Change to 434.0 or other frequency, must match float's freq!
-#define RF95_FREQ 877.0
+bool printRFStatus = true;
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
+const uint8_t LEGAL_COMMANDS_LEN = 5;
+const String LEGAL_COMMANDS[LEGAL_COMMANDS_LEN] = {"submerge", "suck", "pump", "stop", "return"};
+
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial) ;
+  while (!Serial) {}
 
   Serial.println("Surface Transceiver");
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
-  Serial.println("Feather RFM95 RX Test!");
-  Serial.println();
+  Serial.println("Feather RFM95 RX Test!\n");
 
   digitalWrite(RFM95_RST, LOW);
   delay(10);
@@ -87,7 +42,7 @@ void setup() {
 
   if (!rf95.init()) {
     Serial.println("RFM95 radio init failed");
-    while (1);
+    while (1) {}
   }
   Serial.println("RFM95 radio init OK!");
 
@@ -96,67 +51,147 @@ void setup() {
   // But we override frequency
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
-    while (1);
+    while (1) {}
   }
 
   // The default transmitter power is 13dBm, using PA_BOOST.
   // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
   // you can set transmitter powers from 5 to 23 dBm:
-  rf95.setTxPower(20, true);  
+  rf95.setTxPower(23, false);
 
-  Serial.print("RFM95 radio @");
-  Serial.print((int) RF95_FREQ);
-  Serial.println(" MHz");
+  serialPrintf("RFM95 radio @ %d MHz\n", static_cast<int>(RF95_FREQ));
 }
-
 
 void loop() {
-  receiveTime();
+  receivePacket();
 
-  if (Serial.available() == 1) {
-    String command;
-    command = Serial.readString();
-    Serial.println(command);
-    if (command == "submerge" || command == "submerge\n") {
-      sendControlSignal("submerge");
-    } else {
-      char command_arr[command.length() + 1];
-      command.toCharArray(command_arr, command.length() + 1);
-      sendControlSignal(command_arr);
+  if (Serial.available() >= 1) {
+    Serial.println("Getting serial command...");
+    String command = Serial.readString();
+
+    if (command.startsWith("submerge")) {
+      printRFStatus = false;
     }
-    // else if (command == "extend") {
-    //   sendControlSignal("extend");
-    // }
-    // else if (command == "retract") {
-    //   sendControlSignal("retract");
-    // }
 
+    for (int i = 0; i < LEGAL_COMMANDS_LEN; i++) {
+      if (command.startsWith(LEGAL_COMMANDS[i])) {
+        sendCommand(LEGAL_COMMANDS[i]);
+        return;
+      }
+    }
+
+    Serial.println("Invalid command; not sending");
   }
 }
 
-void receiveTime() {
-  if (rf95.available()) {
-    uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-    uint8_t len = sizeof(buf);
-    if (rf95.recv(buf, &len)) {
-      if (!len) return;
-      buf[len] = 0;
-      Serial.print("Received [");
-      Serial.print(len);
-      Serial.print("]: ");
-      Serial.println((char*) buf);
-      // Serial.print("RSSI: ");
-      // Serial.println(rf95.lastRssi(), DEC);
+/**
+ * Try to receive a packet for SURFACE_PKT_RX_TIMEOUT ms.
+ * Return true if a packet was received and it was an ACK/NACK packet; else return false.
+ * Print data from data packets (note we return false if data packets are successfully received).
+ */
+bool receivePacket() {
+#ifdef DO_DEBUGGING
+  Serial.println("Attempting to receive");
+#endif  // DO_DEBUGGING
+
+  if (!rf95.waitAvailableTimeout(SURFACE_PKT_RX_TIMEOUT)) {
+    if (printRFStatus) {
+      Serial.println("RF95 not available");
+    }
+    return false;
+  }
+
+  if (printRFStatus) {
+    Serial.println("RF95 available");
+  }
+  byte byteBuffer[RH_RF95_MAX_MESSAGE_LEN];
+  byte len = sizeof(byteBuffer);
+
+  if (!rf95.recv(byteBuffer, &len)) {
+    Serial.println("Receive failed");
+    return false;
+  }
+
+  if (!len) {
+    Serial.println("Message length 0, dropping");
+    return false;
+  }
+
+  if (len < MAX_RESPONSE_LEN) {
+    // This packet is probably an ACK/NACK, but could be a simple packet for judges
+    byteBuffer[len] = '\0';
+    char* charBuffer = reinterpret_cast<char*>(byteBuffer);
+    // If this is a "single" judge/calibration packet
+    if (strncmp(byteBuffer, "ROS:SINGLE:", 11) == 0) {
+      Serial.println(charBuffer);
     }
     else {
-      Serial.println("Receive failed");
+      serialPrintf("Got pkt w/len %d, str '%s' & vals: ", len, charBuffer);
+      for (int i = 0; i < len; i++) {
+        serialPrintf("%d, ", byteBuffer[i]);
+      }
+      Serial.println();
     }
+
+    bool isACK = (strncmp(byteBuffer, "ACK", 3) == 0);
+    bool isNACK = (strncmp(byteBuffer, "NACK", 4) == 0);
+
+    return isACK || isNACK;
   }
+  else {
+    // This packet is probably a data packet
+    uint8_t numDatapoints = static_cast<uint8_t>(len - (PKT_HEADER_LEN >> 2));
+
+#ifdef DO_DEBUGGING
+    serialPrintf(
+      "Received packet for team %d on profile %d half %d with length %d (%d datapoints): ",
+      byteBuffer[PKT_IDX_TEAM_NUM], byteBuffer[PKT_IDX_PROFILE_NUM],
+      byteBuffer[PKT_IDX_PROFILE_HALF], len, numDatapoints);
+
+    for (int i = 0; i < len; i++) {
+      serialPrintf("%d, ", byteBuffer[i]);
+    }
+    Serial.println();
+#endif  // DO_DEBUGGING
+
+    serialPrintf(
+      "ROS:%d,%d,%d:", byteBuffer[PKT_IDX_TEAM_NUM], byteBuffer[PKT_IDX_PROFILE_NUM],
+      byteBuffer[PKT_IDX_PROFILE_HALF]);
+    for (int i = PKT_HEADER_LEN; i < len;) {
+      // Wonky pointer casting to convert four bytes into a long (time)
+      serialPrintf("%l,", *reinterpret_cast<uint32_t*>(byteBuffer + i));
+      i += sizeof(uint32_t);
+
+      // Same thing for a float (pressure)
+      Serial.print(*reinterpret_cast<float*>(byteBuffer + i));
+      i += sizeof(float);
+
+      if (i < len - 1) {
+        Serial.print(";");
+      }
+    }
+    Serial.println();
+  }
+
+  return false;
 }
 
-void sendControlSignal(char* message) {
-  rf95.send(message, sizeof(message));
-  rf95.waitPacketSent();
-  Serial.print(message);
-  Serial.println(" signal sent!");
+void sendCommand(String command) {
+  byte commandBytes[command.length() + 1];
+  command.getBytes(commandBytes, command.length() + 1);
+
+  for (int i = 0; i < COMMAND_SPAM_TIMES; i++) {
+    rf95.send(commandBytes, command.length() + 1);
+    rf95.waitPacketSent();
+
+    serialPrintf(
+      "'%s' (len=%d) command sent! Iteration: %d\n", commandBytes, command.length() + 1, i);
+
+    bool receivedACK = receivePacket();
+    if (receivedACK) {
+      break;
+    }
+
+    delay(COMMAND_SPAM_DELAY);
+  }
 }

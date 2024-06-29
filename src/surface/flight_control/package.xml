@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>flight_control</name>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <description>Mate ROV sub movement controllers</description>
   <maintainer email="bwp18@case.edu">Benjamin</maintainer>
   <license>Apache License 2.0</license>
@@ -15,6 +15,7 @@
   <exec_depend>ros2launch</exec_depend>
 
   <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_mypy</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
   <test_depend>launch_testing</test_depend>

@@ -25,7 +25,7 @@ def generate_launch_description() -> LaunchDescription:
             # receive a signal from a GCS.
             {"system_id": 255},
             # plugin_allowlist allows which mavros nodes get launched. The default is all of them.
-            {"plugin_allowlist": ["sys_status", "rc_io", "command", "param"]},
+            {"plugin_allowlist": ["sys_status", "rc_io", "command"]},
             {"fcu_url": "/dev/ttyPixhawk"}
         ],
         remappings=[

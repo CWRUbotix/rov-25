@@ -47,8 +47,8 @@ class Arm(QWidget):
         self.arm_button.clicked.connect(self.arm_clicked)
         self.disarm_button.clicked.connect(self.disarm_clicked)
 
-        layout.addWidget(self.arm_button)
         layout.addWidget(self.disarm_button)
+        layout.addWidget(self.arm_button)
 
         self.command_response_signal.connect(self.arm_status)
 

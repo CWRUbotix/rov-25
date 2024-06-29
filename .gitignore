@@ -32,3 +32,6 @@ eeprom.bin
 
 # Mac Files @Georgia
 *.DS_Store
+
+# Mavproxy Files
+*.parm

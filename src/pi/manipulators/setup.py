@@ -8,7 +8,7 @@ PACKAGE_NAME = 'manipulators'
 
 setup(
     name=PACKAGE_NAME,
-    version='1.1.0',
+    version='1.2.0',
     packages=[PACKAGE_NAME],
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -28,7 +28,11 @@ setup(
     entry_points={
         'console_scripts': [
             'manipulators = manipulators.manipulator_node:main',
-            'test_manipulators = manipulators.manipulator_test:main'
+            'dry_run_manipulators = manipulators.manipulator_dry_run:main',
+            'valve_manipulator = manipulators.valve_manipulator_node:main',
+            'dry_run_valve_manipulator = manipulators.valve_manipulator_dry_run:main',
+            'lgpio_manipulator = manipulators.lgpio_manipulator:main',
+            'dry_run_lgpio_manipulator = manipulators.lgpio_manipulator_dry_run:main'
         ],
     },
 )

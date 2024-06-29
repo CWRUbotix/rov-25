@@ -1,6 +1,6 @@
 # MATE ROV 2023-24
 
-<a href="https://github.com/cwruRobotics/rov-24/actions"><img src="https://github.com/cwruRobotics/rov-24/workflows/Continuous Integration/badge.svg" alt="Build Status"></a>
+[![Continuous Integration](https://github.com/cwruRobotics/rov-25/actions/workflows/industrial_ci_action.yml/badge.svg)](https://github.com/cwruRobotics/rov-25/actions/workflows/industrial_ci_action.yml)
 <a href=" https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache License"></a>
 
 # Table of Contents
@@ -24,7 +24,7 @@
 Start by opening up a terminal and navigating to where you want the code to be saved and entering the following command.
 
 ```bash
-git clone --recurse-submodules git@github.com:cwruRobotics/rov-24.git
+git clone --recurse-submodules git@github.com:cwruRobotics/rov-25.git
 ```
 
 If you've never contributed to a git repository before, you might receive an error message saying you don't have access. In that case visit [this tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh) to set up SSH for local GitHub access.
@@ -47,7 +47,7 @@ To open the container use `F1` or `ctrl+shift+p` to open the command bar and use
 
 For gui apps run `xhost + local:docker` before launching docker or add to `.bashrc`.
 
-To reopen after a build Go to File > Open Recent /stuff/rov-24 \[Dev Container]
+To reopen after a build Go to File > Open Recent /stuff/rov-25 \[Dev Container]
 
 #### Bare Metal
 
@@ -79,13 +79,13 @@ Then open up Command Prompt and type `ipconfig`.
 
 Then in the terminal of the docker container use `export DISPLAY={IPV4 of WSL}:0.0` where the IPV4 is from the `ipconfig` command.
 
-To reopen after a build Go to File > Open Recent /stuff/rov-24 \[Dev Container]
+To reopen after a build Go to File > Open Recent /stuff/rov-25 \[Dev Container]
 
 #### WSL
 
 Follow [this](https://learn.microsoft.com/en-us/windows/wsl/install) guide to install WSL.
 
-After WSL has been installed follow [this](https://code.visualstudio.com/docs/remote/wsl) guide to get VSCode and WSL to properly communicate and navigate to the rov-24 folder.
+After WSL has been installed follow [this](https://code.visualstudio.com/docs/remote/wsl) guide to get VSCode and WSL to properly communicate and navigate to the rov-25 folder.
 
 Then run the install script.
 
@@ -120,7 +120,7 @@ Make the settings look like this:
 
 To open the container use `F1` or `ctrl+shift+p` to open the command bar and use `Tasks: Runs Task`. Then from the Task selection choose `Docker Rebuild`. This will build and run the docker container. Make sure to choose `ROV macOS` for which type to run.
 
-To reopen after a build Go to File > Open Recent /stuff/rov-24 \[Dev Container]
+To reopen after a build Go to File > Open Recent /stuff/rov-25 \[Dev Container]
 
 <!-- https://gist.github.com/cschiewek/246a244ba23da8b9f0e7b11a68bf3285 -->
 

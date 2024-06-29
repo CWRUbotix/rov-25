@@ -1,6 +1,7 @@
 import rclpy
-from rclpy.parameter import Parameter
 from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.qos import qos_profile_system_default
 from rov_msgs.msg import Manip
 from tca9555 import TCA9555
 
@@ -17,7 +18,7 @@ class Manipulator(Node):
             Manip,
             'manipulator_control',
             self.manip_callback,
-            100
+            qos_profile_system_default
         )
 
         self.declare_parameters(
@@ -35,16 +36,17 @@ class Manipulator(Node):
         self.i2c.set_direction(0, bits=ALL_BITS)
         self.i2c.unset_bits(bits=ALL_BITS)
 
-    def manip_callback(self, request: Manip) -> None:
-        manip_id = request.manip_id
-        activated = request.activated
+    def manip_callback(self, message: Manip) -> None:
+        manip_id = message.manip_id
+        activated = message.activated
 
-        pin = self._parameters[manip_id].get_parameter_value().integer_value
+        if manip_id != "valve":
+            pin = self.get_parameter(manip_id).get_parameter_value().integer_value
 
-        if activated:
-            self.i2c.set_bits(bits=(pin))
-        else:
-            self.i2c.unset_bits(bits=(pin))
+            if activated:
+                self.i2c.set_bits(bits=(pin))
+            else:
+                self.i2c.unset_bits(bits=(pin))
 
 
 def main() -> None:

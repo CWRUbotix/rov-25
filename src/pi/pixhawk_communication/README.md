@@ -14,6 +14,24 @@ We communicate to the Pixhawk by using [mavros](https://github.com/mavlink/mavro
 
 To set up a Pixhawk USB port use [this](https://docs.px4.io/main/en/companion_computer/pixhawk_companion.html) guide.
 
+To remotely use QGroundControl ssh into the pi and run the following.
+
+```bash
+mavproxy.py --out {Your IP adress}:14550
+```
+
+If you get this error:
+
+```
+LSM303D _read_data_transaction_accel: _reg7_expected unexpected
+```
+
+Try uninstalling and reinstalling the package:
+```bash
+pip uninstall mavproxy
+pip install mavproxy
+```
+
 ## Installation
 
 Install geographiclib dependencies.

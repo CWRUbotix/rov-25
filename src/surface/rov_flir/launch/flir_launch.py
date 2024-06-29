@@ -2,17 +2,24 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description import LaunchDescription
-from launch_ros.actions import Node
+from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.parameter_descriptions import Parameter
+from launch.substitutions.launch_configuration import LaunchConfiguration
+from launch.conditions import IfCondition
+from launch.actions import GroupAction
 
 
 def generate_launch_description() -> LaunchDescription:
+    front_arg = LaunchConfiguration('launch_front', default=True)
+    bottom_arg = LaunchConfiguration('launch_bottom', default=True)
+    ns_arg = LaunchConfiguration('ns', default='')
 
     parameter_file = os.path.join(get_package_share_directory('rov_flir'), 'config',
                                   'blackfly_s.yaml')
 
     parameters = {
         'debug': False,
+        'acquisition_timeout': 0.5,
         'compute_brightness': False,
         'adjust_timestamp': True,
         'dump_node_map': False,
@@ -52,11 +59,13 @@ def generate_launch_description() -> LaunchDescription:
         package='spinnaker_camera_driver',
         executable='camera_driver_node',
         name='front_cam',
+        exec_name='front_cam',
         emulate_tty=True,
         output='screen',
-        parameters=[Parameter('serial_number', '23473577'),
+        parameters=[Parameter('serial_number', '23473566'),
                     Parameter('parameter_file', parameter_file),
-                    parameters]
+                    parameters],
+        condition=IfCondition(front_arg)
     )
 
     # launches node to run bottom flir camera
@@ -64,14 +73,21 @@ def generate_launch_description() -> LaunchDescription:
         package='spinnaker_camera_driver',
         executable='camera_driver_node',
         name='bottom_cam',
+        exec_name='bottom_cam',
         emulate_tty=True,
         output='screen',
-        parameters=[Parameter('serial_number', '23473566'),
+        parameters=[Parameter('serial_number', '23473577'),
                     Parameter('parameter_file', parameter_file),
-                    parameters]
+                    parameters],
+        condition=IfCondition(bottom_arg)
     )
 
-    return LaunchDescription([
-        front_cam,
-        bottom_cam
-    ])
+    namespace_launch = GroupAction(
+        actions=[
+            PushRosNamespace(ns_arg),
+            front_cam,
+            bottom_cam
+        ]
+    )
+
+    return LaunchDescription([namespace_launch])

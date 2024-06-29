@@ -1,0 +1,8 @@
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/home/rov/rov-25/src/pi/pi_main/scripts/pi_main.sh
+[Install]
+WantedBy=multi-user.target

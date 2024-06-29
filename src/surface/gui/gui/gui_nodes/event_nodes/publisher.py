@@ -11,7 +11,7 @@ MsgT = TypeVar('MsgT')
 class GUIEventPublisher(Node, Generic[MsgT]):
     """Publisher for sending messages from the GUI."""
 
-    def __init__(self, msg_type: MsgT, topic: str,
+    def __init__(self, msg_type: type[MsgT], topic: str,
                  qos_profile: QoSProfile = qos_profile_system_default) -> None:
         # Name this node with a sanitized version of the topic
         name = f'publisher_{re.sub(r"[^a-zA-Z0-9_]", "_", topic)}'

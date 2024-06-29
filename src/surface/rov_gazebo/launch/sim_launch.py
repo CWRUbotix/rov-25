@@ -66,9 +66,9 @@ def generate_launch_description() -> LaunchDescription:
     keyboard_control_node = Node(
         package="flight_control",
         executable="keyboard_control_node",
+        namespace="surface",
         output="screen",
         name="keyboard_control_node",
-        remappings=[(f"/{NAMESPACE}/mavros/rc/override", "/tether/mavros/rc/override")],
         emulate_tty=True
     )
 
@@ -105,13 +105,13 @@ def generate_launch_description() -> LaunchDescription:
             mav_ros_node,
             heartbeat_node,
             cam_bridge_node,
-            keyboard_control_node,
             ip_node
         ]
     )
 
     return LaunchDescription(
         [
+            keyboard_control_node,
             start_gazebo,
             start_ardusub,
             namespace_launch,

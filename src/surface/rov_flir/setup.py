@@ -7,7 +7,7 @@ PACKAGE_NAME = 'rov_flir'
 
 setup(
     name=PACKAGE_NAME,
-    version='1.1.0',
+    version='1.2.0',
     packages=[PACKAGE_NAME],
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -26,5 +26,9 @@ setup(
     description='Boilerplate for calling standard flir launch file.',
     license='Apache License 2.0',
     tests_require=['pytest'],
-    entry_points={},
+    entry_points={
+        'console_scripts': [
+            'flir_watchdog = rov_flir.flir_watchdog:main',
+        ],
+    },
 )

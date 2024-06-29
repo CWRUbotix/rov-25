@@ -4,6 +4,7 @@ import cv2
 from cv2.typing import MatLike
 from cv_bridge import CvBridge
 from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
@@ -144,7 +145,7 @@ class SwitchableVideoWidget(VideoWidget):
 
         self.button: QPushButton = QPushButton(camera_descriptions[self.active_cam].label)
         self.button.setMaximumWidth(self.BUTTON_WIDTH)
-        self.button.clicked.connect(lambda: self.camera_switch(True))
+        self.button.clicked.connect(self.gui_camera_switch)
 
         layout = self.layout()
         if isinstance(layout, QVBoxLayout):
@@ -154,6 +155,8 @@ class SwitchableVideoWidget(VideoWidget):
 
         if controller_button_topic is not None:
             self.controller_signal.connect(self.controller_camera_switch)
+            self.controller_publisher = GUIEventPublisher(CameraControllerSwitch,
+                                                          controller_button_topic)
             self.controller_subscriber = GUIEventSubscriber(CameraControllerSwitch,
                                                             controller_button_topic,
                                                             self.controller_signal)
@@ -161,6 +164,9 @@ class SwitchableVideoWidget(VideoWidget):
     @pyqtSlot(CameraControllerSwitch)
     def controller_camera_switch(self, switch: CameraControllerSwitch) -> None:
         self.camera_switch(switch.toggle_right)
+
+    def gui_camera_switch(self) -> None:
+        self.controller_publisher.publish(CameraControllerSwitch(toggle_right=True))
 
     def camera_switch(self, toggle_right: bool) -> None:
         if toggle_right:

@@ -2,12 +2,13 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>ps5_controller</name>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <description>Boilerplate for calling standard joystick launch file.</description>
   <maintainer email="rmc170@case.edu">Michael Carlstrom</maintainer>
   <license>Apache License 2.0</license>
 
   <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_mypy</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 

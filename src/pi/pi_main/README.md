@@ -24,26 +24,42 @@ nmcli connection up ethernet-eth0
 
 ### Setup Pi SSH access over Ethernet
 
-1. Using a monitor keyboard, connect to the Pi and edit `/etc/netplan/50-cloud-init.yaml`. Either use a flash drive to replace that file with the version below or type it out by hand (sorry):
+1. Using a monitor keyboard, connect to the Pi and edit `/etc/netplan/50-cloud-init.yaml`. Either use a flash drive to replace that file with the version below or in `network_config/50-cloud-init.yaml`
 
-    ```yaml
-    network:
-        ethernets:
-            eth0:
-                dhcp4: no
-                addresses: [192.168.2.1/24]
-                optional: true
-                nameservers:
-                    addresses: [8.8.8.8]
-                routes:
-                - to: default
-                    via: 192.168.2.2
-        version: 2
-    ```
+```yaml
+# This file is generated from information provided by the datasource.  Changes
+# to it will not persist across an instance reboot.  To disable cloud-init's
+# network configuration capabilities, write a file
+# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
+# network: {config: disabled}
+network:
+    ethernets:
+        eth0:
+# Settings for static ip
+            dhcp4: false
+            dhcp6: false
+            addresses:
+            - 192.168.1.2/24
+            routes:
+            - to: default
+            via: 192.168.1.1
+            nameservers:
+            addresses: [8.8.8.8, 8.8.4.4, 192.168.1.1]
+# Settings for dhcp below
+#            dhcp4: true
+#            optional: true
+    version: 2
+```
 
-2. On the Pi, run `sudo netplan try`, then press enter to accept the changes.
+2. Then run the following command to set network configuration to manual.
 
-3. Connect the Pi to your PC with an ethernet cable
+```bash
+sudo bash -c 'echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg'
+```
+
+3. On the Pi, run `sudo netplan apply`, then press enter to accept the changes.
+
+4. Connect the Pi to your PC with an ethernet cable
 
 #### Linux
 
@@ -113,34 +129,42 @@ This should automatically be done by the prior command `ros2 run pi_main install
 
 ## Usage
 
-[Tutorial followed](https://roboticsbackend.com/make-ros-launch-start-on-boot-with-robot_upstart/)
-
 ### Testing without Rebooting
 
-Installing & setting up this package creates a startup task called `cwrubotix_pi`. You can manually start and stop this task.
+Installing & setting up this package creates a startup task called `pi_main`. You can manually start and stop this task. I had the `pi_main.service` located in `/etc/systemd/system/pi_main.service`.
 
-You should run the `cwrubotix_pi` task in the foreground for testing (**make sure to kill the background task first - see below**):
+To run the `pi_main` task in the background (happens on Pi startup):
 
 ```bash
-sudo cwrubotix_pi-start
+sudo systemctl start pi_main.service
 ```
 
-To run the `cwrubotix_pi` task in the background (happens on Pi startup):
+To kill the `pi_main` background task (**do this before starting the foreground task**):
+```bash
+sudo systemctl stop pi_main.service
+```
+To run the `pi_main` task in the foreground runs the shell scripst in the pi_main/scripts folder.
 
 ```bash
-sudo systemctl start cwrubotix_pi.service
+source pi_main.sh
 ```
 
-To kill the `cwrubotix_pi` background task (**do this before starting the foreground task**):
+To get output of task
 
 ```bash
-sudo systemctl stop cwrubotix_pi.service
+sudo journalctl -f -u pi_main.service
 ```
 
-To completely uninstall the `cwrubotix_pi` task:
+### Slow Boot Times?
+
+This occurs because the below service waits for internet before allowing boot. 
+
+Note `systemctl disable systemd-networkd-wait-online` does not work. The disable option is really more of a suggestion than an actual disable.
+
+[![pensivecowboybread](https://cdn3.emoji.gg/emojis/4111-pensivecowboybread.png)](https://emoji.gg/emoji/4111-pensivecowboybread)
 
 ```bash
-ros2 run robot_upstart uninstall cwrubotix_pi
+systemctl mask systemd-networkd-wait-online
 ```
 
 ## Nodes

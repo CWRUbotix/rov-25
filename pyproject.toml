@@ -1,21 +1,23 @@
 [project]
-name = "rov-24"
+name = "rov-25"
 # I know Ben hates this but this required lol
-version = "1.1.0"
+version = "1.2.0"
 
 dependencies = [
     'setuptools',
-    'flake8==7.0.0',
+    'flake8==7.1.0',
     'mypy >= 1.7',
     'pyqt6',
+    'pyqtgraph',
     'pyqtdarktheme',
     'opencv-python>=4.8.1',
-    'numpy>=1.26',
+    'numpy < 2.0.0',
     'pytest-qt',
     'pytest-xvfb',
-    'Pyside2',  # can be removed when ament_pep257 is gone
-    'serial',
-    'TCA9555@git+https://github.com/InvincibleRMC/TCA9555'
+    'TCA9555@git+https://github.com/InvincibleRMC/TCA9555',
+    'bluerobotics-tsys01@git+https://github.com/bluerobotics/tsys01-python',
+    'pymavlink',
+    'mavproxy'
 ]
 
 [tool]

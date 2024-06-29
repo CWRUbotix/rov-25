@@ -41,15 +41,6 @@ def generate_launch_description() -> LaunchDescription:
         ]),
     )
 
-    namespace_launch = GroupAction(
-        actions=[
-            PushRosNamespace("surface"),
-            gui_launch,
-            flight_control_launch,
-            vehicle_manager_launch
-        ]
-    )
-
     # Launches Transceiver
     transceiver_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -59,7 +50,16 @@ def generate_launch_description() -> LaunchDescription:
         ]),
     )
 
+    namespace_launch = GroupAction(
+        actions=[
+            PushRosNamespace("surface"),
+            gui_launch,
+            flight_control_launch,
+            vehicle_manager_launch,
+            transceiver_launch
+        ]
+    )
+
     return LaunchDescription([
-        namespace_launch,
-        transceiver_launch,
+        namespace_launch
     ])

@@ -2,9 +2,13 @@ from gui.app import App
 from gui.widgets.logger import Logger
 from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.float_comm import FloatComm
-from gui.widgets.task_selector import TaskSelector
 from gui.widgets.timer import InteractiveTimer
-from PyQt6.QtWidgets import QGridLayout, QTabWidget, QWidget, QVBoxLayout
+from gui.widgets.task_selector import TaskSelector
+from gui.widgets.flood_warning import FloodWarning
+from gui.widgets.temperature import TemperatureSensor
+from gui.widgets.heartbeat import HeartbeatWidget
+from gui.widgets.ip_widget import IPWidget
+from PyQt6.QtWidgets import QTabWidget, QWidget, QVBoxLayout, QHBoxLayout
 
 
 class OperatorApp(App):
@@ -15,20 +19,28 @@ class OperatorApp(App):
 
         # Main tab
         main_tab = QWidget()
-        main_layout = QGridLayout()
+        main_layout = QHBoxLayout()
         main_tab.setLayout(main_layout)
 
-        timer = InteractiveTimer()
-        main_layout.addWidget(timer, 0, 1)
+        left_pane = QVBoxLayout()
+        right_pane = QVBoxLayout()
 
-        task_selector = TaskSelector()
-        main_layout.addWidget(task_selector, 1, 1)
+        main_layout.addLayout(left_pane)
+        main_layout.addLayout(right_pane)
 
         self.float_comm: FloatComm = FloatComm()
-        main_layout.addWidget(self.float_comm, 0, 0)
+        left_pane.addWidget(self.float_comm)
 
         logger = Logger()
-        main_layout.addWidget(logger, 1, 0)
+        left_pane.addWidget(logger)
+
+        right_pane.addWidget(InteractiveTimer())
+        right_pane.addWidget(HeartbeatWidget())
+        right_pane.addWidget(FloodWarning())
+        right_pane.addWidget(TemperatureSensor())
+        right_pane.addWidget(IPWidget())
+        right_pane.addStretch()
+        right_pane.addWidget(TaskSelector())
 
         # Add tabs to root
         root_layout = QVBoxLayout()

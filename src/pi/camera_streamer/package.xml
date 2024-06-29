@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>camera_streamer</name>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <description>Capture video from usb and pi cameras and send it as MJPEG streams on ROS topics</description>
   <maintainer email="noah@mollerstuen.com">Noah Mollerstuen</maintainer>
   <license>Apches License 2.0</license>

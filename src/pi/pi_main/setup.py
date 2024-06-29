@@ -9,7 +9,7 @@ PACKAGE_NAME = 'pi_main'
 
 setup(
     name=PACKAGE_NAME,
-    version='1.1.0',
+    version='1.2.0',
     packages=[PACKAGE_NAME],
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -19,7 +19,9 @@ setup(
         (os.path.join('share', PACKAGE_NAME, 'launch'),
          glob('launch/*launch.[pxy][yma]*')),
         (os.path.join('share', PACKAGE_NAME, 'udev_rules'),
-         glob('udev_rules/*'))
+         glob('udev_rules/*')),
+        (os.path.join('share', PACKAGE_NAME, 'services'),
+         glob('services/*'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,

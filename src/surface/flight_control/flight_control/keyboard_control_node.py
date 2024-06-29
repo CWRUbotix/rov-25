@@ -1,13 +1,12 @@
 from typing import Optional
 
 import rclpy.utilities
-from mavros_msgs.msg import OverrideRCIn
 from rclpy.publisher import Publisher
 from pynput.keyboard import Key, KeyCode, Listener
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 
-from flight_control.pixhawk_instruction import PixhawkInstruction
+from rov_msgs.msg import PixhawkInstruction
 
 # key bindings
 FORWARD = "w"
@@ -57,8 +56,8 @@ class KeyboardListenerNode(Node):
         super().__init__('keyboard_listener_node', parameter_overrides=[])
 
         self.rc_pub: Publisher = self.create_publisher(
-            OverrideRCIn,
-            'mavros/rc/override',
+            PixhawkInstruction,
+            'uninverted_pixhawk_control',
             qos_profile_system_default
         )
 
@@ -126,15 +125,16 @@ class KeyboardListenerNode(Node):
 
     def pub_rov_control(self) -> None:
         instruction = PixhawkInstruction(
-            pitch=self.status[PITCH_DOWN] - self.status[PITCH_UP],
-            roll=self.status[ROLL_RIGHT] - self.status[ROLL_LEFT],
-            vertical=self.status[UP] - self.status[DOWN],
-            forward=self.status[FORWARD] - self.status[BACKWARD],
-            lateral=self.status[RIGHT] - self.status[LEFT],
-            yaw=self.status[YAW_RIGHT] - self.status[YAW_LEFT]
+            pitch=float(self.status[PITCH_UP] - self.status[PITCH_DOWN]),
+            roll=float(self.status[ROLL_LEFT] - self.status[ROLL_RIGHT]),
+            vertical=float(self.status[UP] - self.status[DOWN]),
+            forward=float(self.status[FORWARD] - self.status[BACKWARD]),
+            lateral=float(self.status[LEFT] - self.status[RIGHT]),
+            yaw=float(self.status[YAW_LEFT] - self.status[YAW_RIGHT]),
+            author=PixhawkInstruction.KEYBOARD_CONTROL
         )
 
-        self.rc_pub.publish(instruction.to_override_rc_in())
+        self.rc_pub.publish(instruction)
 
     def spin(self) -> None:
         with Listener(

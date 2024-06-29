@@ -1,0 +1,31 @@
+---
+# Start based off ament_clang_formats .yaml
+Language: Cpp
+BasedOnStyle: Google
+
+IndentPPDirectives: BeforeHash
+
+AlignConsecutiveMacros: true
+AlignArrayOfStructures: Left
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
+
+AccessModifierOffset: -2
+AlignAfterOpenBracket: AlwaysBreak
+BraceWrapping:
+  AfterClass: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterEnum: false
+  BeforeElse: true
+  BeforeCatch: true
+  BeforeWhile: true
+BreakBeforeBraces: Custom
+ColumnLimit: 100
+ConstructorInitializerIndentWidth: 0
+ContinuationIndentWidth: 2
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReflowComments: false
+...

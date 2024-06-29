@@ -1,11 +1,12 @@
 import rclpy
-from mavros_msgs.msg import OverrideRCIn
 from flight_control.manual_control_node import ManualControlNode
-from flight_control.pixhawk_instruction import (
-    PixhawkInstruction, FORWARD_CHANNEL, THROTTLE_CHANNEL,
-    LATERAL_CHANNEL, PITCH_CHANNEL, YAW_CHANNEL, ROLL_CHANNEL,
-    ZERO_SPEED, RANGE_SPEED
-)
+from flight_control.multiplexer import (FORWARD_CHANNEL, LATERAL_CHANNEL,
+                                        PITCH_CHANNEL, RANGE_SPEED,
+                                        ROLL_CHANNEL, THROTTLE_CHANNEL,
+                                        YAW_CHANNEL, ZERO_SPEED,
+                                        MultiplexerNode)
+
+from rov_msgs.msg import PixhawkInstruction
 
 
 def test_manual_control_instantiation() -> None:
@@ -29,7 +30,7 @@ def test_joystick_profiles() -> None:
         roll=0.92
     )
 
-    msg: OverrideRCIn = instruction.to_override_rc_in()
+    msg = MultiplexerNode.to_override_rc_in(instruction)
 
     assert msg.channels[FORWARD_CHANNEL] == ZERO_SPEED
     assert msg.channels[THROTTLE_CHANNEL] == (ZERO_SPEED + RANGE_SPEED)
