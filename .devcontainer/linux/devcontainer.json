@@ -1,6 +1,6 @@
 {
     "name" : "ROV Linux",
-    "image": "ghcr.io/cwrurobotics/rov-24:iron",
+    "image": "ghcr.io/cwrurobotics/rov-25:iron",
     "containerEnv": {
         "DISPLAY": "${localEnv:DISPLAY}"
     },
@@ -12,7 +12,7 @@
         // gitconfig
         "type=bind,source=/home/${localEnv:USER}/.gitconfig,target=/home/rov/.gitconfig,readonly"
     ],
-    "workspaceFolder": "/home/rov/rov-24",
+    "workspaceFolder": "/home/rov/rov-25",
     "customizations": {
         "vscode" : {
             "extensions": ["ms-python.flake8", "ms-azuretools.vscode-docker",

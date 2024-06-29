@@ -43,7 +43,7 @@ jobs:
         env: # either pass all entries explicitly
           # Added back so testing without Dockerfile can be done
           ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-          DOCKER_IMAGE: ghcr.io/cwrurobotics/rov-24:iron
+          DOCKER_IMAGE: ghcr.io/cwrurobotics/rov-25:iron
           # Done to avoid permssion errors in the ros-industrial ci.
           DOCKER_RUN_OPTS: -u root
           ROS_REPO: ${{ matrix.ROS_REPO }}
@@ -51,6 +51,6 @@ jobs:
           # https://pytest-qt.readthedocs.io/en/latest/troubleshooting.html
           ADDITIONAL_DEBS: 'libxcb-cursor0 xvfb'
           # Crazy one liner for install python dependencies
-          AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install --upgrade pip && pip install /root/target_ws/src/rov-24 --user && rm -r /root/target_ws/src/rov-24/build'
+          AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install --upgrade pip && pip install /root/target_ws/src/rov-25 --user && rm -r /root/target_ws/src/rov-25/build'
           # Used for running our CI but don't necessarily want to run others failing unit tests (ej. ament_pep257)
           UPSTREAM_WORKSPACE: 'github:InvincibleRMC/ament_pep257#main'
