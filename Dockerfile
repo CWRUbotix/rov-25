@@ -60,7 +60,7 @@ RUN ./ardupilot_gazebo.sh \
 # Update Pip
 RUN pip install --no-cache-dir --upgrade  pip==24.0 
 
-WORKDIR /home/${USER_NAME}/rov-24
+WORKDIR /home/${USER_NAME}/rov-25
 
 # One might wonder why the following is done.
 # It is done so that the dependencies can be cached without needing to be reinstalled
