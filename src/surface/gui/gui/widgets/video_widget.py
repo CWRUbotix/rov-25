@@ -87,7 +87,7 @@ class VideoWidget(QWidget):
 
     @pyqtSlot(Image)
     def handle_frame(self, frame: Image) -> None:
-        cv_image: MatLike = self.cv_bridge.imgmsg_to_cv2(
+        cv_image = self.cv_bridge.imgmsg_to_cv2(
             frame, desired_encoding='passthrough')
 
         qt_image: QImage = self.convert_cv_qt(cv_image,
@@ -96,7 +96,7 @@ class VideoWidget(QWidget):
 
         self.video_frame_label.setPixmap(QPixmap.fromImage(qt_image))
 
-    def convert_cv_qt(self, cv_img: MatLike, width: int = 0, height: int = 0) -> QImage:
+    def convert_cv_qt(self, cv_img, width: int = 0, height: int = 0) -> QImage:
         """Convert from an opencv image to QPixmap."""
         if self.camera_description.type == CameraType.ETHERNET:
             # Switches ethernet's color profile from BayerBGR to BGR
