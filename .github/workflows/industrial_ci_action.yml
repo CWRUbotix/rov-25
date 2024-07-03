@@ -43,7 +43,8 @@ jobs:
         env: # either pass all entries explicitly
           # Added back so testing without Dockerfile can be done
           ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-          DOCKER_IMAGE: ghcr.io/cwrurobotics/rov-25:${{ matrix.ROS_REPO}}
+          # Only pulls docker for iron since jazzy one is not built yet
+          DOCKER_IMAGE: ${{ matrix.ROS_DISTRO == 'iron' && format('ghcr.io/cwrurobotics/rov-25:{0}', matrix.ROS_DISTRO)}}
           # Done to avoid permssion errors in the ros-industrial ci.
           DOCKER_RUN_OPTS: -u root
           ROS_REPO: ${{ matrix.ROS_REPO }}
