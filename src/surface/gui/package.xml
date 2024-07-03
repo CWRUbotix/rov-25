@@ -17,6 +17,8 @@
   <exec_depend>rov_msgs</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
 
+  <test_depend>python3-numpy<test_depend>
+
   <depend>mavros</depend>
 
   <export>
