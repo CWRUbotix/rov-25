@@ -1,16 +1,21 @@
+from enum import IntEnum
 from typing import NamedTuple, Optional
 
 import cv2
+import numpy
 from cv_bridge import CvBridge
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from numpy.typing import NDArray
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 from sensor_msgs.msg import Image
-from enum import IntEnum
 
 from rov_msgs.msg import CameraControllerSwitch
+
+# Our own implementation of cv2.typing.MatLike for now
+MatLike = NDArray[numpy.generic]
 
 WIDTH = 721
 HEIGHT = 541
@@ -96,7 +101,7 @@ class VideoWidget(QWidget):
 
         self.video_frame_label.setPixmap(QPixmap.fromImage(qt_image))
 
-    def convert_cv_qt(self, cv_img, width: int = 0, height: int = 0) -> QImage:
+    def convert_cv_qt(self, cv_img: MatLike, width: int = 0, height: int = 0) -> QImage:
         """Convert from an opencv image to QPixmap."""
         if self.camera_description.type == CameraType.ETHERNET:
             # Switches ethernet's color profile from BayerBGR to BGR
