@@ -8,7 +8,6 @@ dependencies = [
     # Ubuntu 24 has 1.9 so should be fine when we upgrade
     'mypy >= 1.7',
     'pyqt6',
-    'pyqtgraph',
     'pyqtdarktheme',
     'pytest-qt',
     'pytest-xvfb',
