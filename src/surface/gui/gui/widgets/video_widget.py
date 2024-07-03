@@ -1,7 +1,6 @@
 from typing import NamedTuple, Optional
 
 import cv2
-from cv2.typing import MatLike
 from cv_bridge import CvBridge
 from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
@@ -80,7 +79,7 @@ class VideoWidget(QWidget):
         self.label.setStyleSheet('QLabel { font-size: 35px; }')
         layout.addWidget(self.label, Qt.AlignmentFlag.AlignHCenter)
 
-        self.cv_bridge: CvBridge = CvBridge()
+        self.cv_bridge = CvBridge()
 
         self.handle_frame_signal.connect(self.handle_frame)
         self.camera_subscriber: GUIEventSubscriber = GUIEventSubscriber(
