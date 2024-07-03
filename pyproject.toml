@@ -10,6 +10,7 @@ dependencies = [
     'pyqt6',
     'pyqtdarktheme',
     'opencv-python>=4.8.1',
+    'numpy < 2.0.0',
     'pytest-qt',
     'pytest-xvfb',
     'TCA9555@git+https://github.com/InvincibleRMC/TCA9555',
