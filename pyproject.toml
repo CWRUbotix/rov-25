@@ -4,6 +4,8 @@ name = "rov-25"
 version = "1.2.0"
 
 dependencies = [
+    # Need since mypy < 0.981 does not work with type stubs. Surely ubuntu 24 will fix
+    'mypy >= 1.7',
     'pyqt6',
     'pyqtgraph',
     'pyqtdarktheme',
