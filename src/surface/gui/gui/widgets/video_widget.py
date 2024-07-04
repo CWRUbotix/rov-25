@@ -15,6 +15,8 @@ from sensor_msgs.msg import Image
 from rov_msgs.msg import CameraControllerSwitch
 
 # Our own implementation of cv2.typing.MatLike for now
+# MatLike = cv2.mat_wrapper.Mat | NDArray[numpy.integer[Any] | numpy.floating[Any]]
+# MatLike = NDArray[numpy.integer[Any] | numpy.floating[Any]]/
 MatLike = NDArray[numpy.generic]
 
 WIDTH = 721
