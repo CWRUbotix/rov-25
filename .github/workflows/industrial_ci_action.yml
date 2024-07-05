@@ -52,7 +52,10 @@ jobs:
           # https://pytest-qt.readthedocs.io/en/latest/troubleshooting.html
           ADDITIONAL_DEBS: 'libxcb-cursor0 xvfb'
           # Crazy one liner for install python dependencies
-          AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install --upgrade pip && pip install /root/target_ws/src/rov-25 --user && rm -r /root/target_ws/src/rov-25/build'
+          
+        # Need since mypy < 0.981 does not work with type stubs.
+        # Ubuntu 24 has 1.9 so should be fine when we upgrade
+          AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install --upgrade pip && pip install /root/target_ws/src/rov-25 --user && pip install mypy>=1.7  rm -r /root/target_ws/src/rov-25/build'
           # Used for running our CI but don't necessarily want to run others failing unit tests (ej. ament_pep257)
           UPSTREAM_WORKSPACE: 'github:InvincibleRMC/ament_pep257#main'
 
@@ -69,6 +72,6 @@ jobs:
             # https://pytest-qt.readthedocs.io/en/latest/troubleshooting.html
             ADDITIONAL_DEBS: 'libxcb-cursor0 xvfb'
             # Crazy one liner for install python dependencies
-            AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install /root/target_ws/src/rov-25 --user --break-system-packages && pip uninstall mypy --break-system-packages && rm -r /root/target_ws/src/rov-25/build'
+            AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install /root/target_ws/src/rov-25 --user --break-system-packages && rm -r /root/target_ws/src/rov-25/build'
             # Used for running our CI but don't necessarily want to run others failing unit tests (ej. ament_pep257)
             UPSTREAM_WORKSPACE: 'github:InvincibleRMC/ament_pep257#main'
