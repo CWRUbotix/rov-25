@@ -1,6 +1,6 @@
-# MATE ROV 2023-24
+# MATE ROV 2024-25
 
-[![Continuous Integration](https://github.com/cwruRobotics/rov-25/actions/workflows/industrial_ci_action.yml/badge.svg)](https://github.com/cwruRobotics/rov-25/actions/workflows/industrial_ci_action.yml)
+[![Continuous Integration](https://github.com/CWRUbotix/rov-25/actions/workflows/industrial_ci_action.yml/badge.svg)](https://github.com/CWRUbotix/rov-25/actions/workflows/industrial_ci_action.yml)
 <a href=" https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache License"></a>
 
 # Table of Contents
@@ -24,7 +24,7 @@
 Start by opening up a terminal and navigating to where you want the code to be saved and entering the following command.
 
 ```bash
-git clone --recurse-submodules git@github.com:cwruRobotics/rov-25.git
+git clone --recurse-submodules git@github.com:CWRUbotix/rov-25.git
 ```
 
 If you've never contributed to a git repository before, you might receive an error message saying you don't have access. In that case visit [this tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh) to set up SSH for local GitHub access.

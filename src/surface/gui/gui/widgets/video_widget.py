@@ -1,17 +1,26 @@
+from enum import IntEnum
 from typing import NamedTuple, Optional
 
 import cv2
-from cv2.typing import MatLike
+import numpy
 from cv_bridge import CvBridge
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from numpy.typing import NDArray
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 from sensor_msgs.msg import Image
-from enum import IntEnum
 
 from rov_msgs.msg import CameraControllerSwitch
+
+# TODO: Ubuntu26+
+# Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release
+# This what is actually implemented in cv2.typing:
+# MatLike = cv2.mat_wrapper.Mat | NDArray[numpy.integer[Any] | numpy.floating[Any]]
+# This should be possible in a newer version of mypy:
+# MatLike = NDArray[numpy.integer[Any] | numpy.floating[Any]]
+MatLike = NDArray[numpy.generic]
 
 WIDTH = 721
 HEIGHT = 541
@@ -80,7 +89,7 @@ class VideoWidget(QWidget):
         self.label.setStyleSheet('QLabel { font-size: 35px; }')
         layout.addWidget(self.label, Qt.AlignmentFlag.AlignHCenter)
 
-        self.cv_bridge: CvBridge = CvBridge()
+        self.cv_bridge = CvBridge()
 
         self.handle_frame_signal.connect(self.handle_frame)
         self.camera_subscriber: GUIEventSubscriber = GUIEventSubscriber(
@@ -88,7 +97,7 @@ class VideoWidget(QWidget):
 
     @pyqtSlot(Image)
     def handle_frame(self, frame: Image) -> None:
-        cv_image: MatLike = self.cv_bridge.imgmsg_to_cv2(
+        cv_image = self.cv_bridge.imgmsg_to_cv2(
             frame, desired_encoding='passthrough')
 
         qt_image: QImage = self.convert_cv_qt(cv_image,
