@@ -1,6 +1,6 @@
 {
     "name" : "ROV Linux",
-    "image": "ghcr.io/cwrurobotics/rov-25:iron",
+    "image": "ghcr.io/CWRUbotix/rov-25:iron",
     "containerEnv": {
         "DISPLAY": "${localEnv:DISPLAY}"
     },
