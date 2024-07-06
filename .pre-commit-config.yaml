@@ -1,11 +1,27 @@
 repos:
--  repo: https://github.com/pycqa/flake8
-   rev: 7.1.0
-   hooks:
-   -  id: flake8
-   args: ["--config", ".flake8"]
+# -  repo: https://github.com/pycqa/flake8
+#    rev: 7.1.0
+#    hooks:
+#    -  id: flake8
+#       additional_dependencies: [flake8-import-order, flake8-quotes]
+  
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.5.1
+  hooks:
+    # Run the linter.
+    - id: ruff
+    # Run the formatter.
+    - id: ruff-format
+
+
+-   repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
 -  repo: https://github.com/pre-commit/mirrors-clang-format
    rev: v14.0.6 # TODO update with clang version
    hooks:
    -  id: clang-format
-   args: ["--config", "src/float/.clangformat.yaml"]
+    # args: ["--config", "src/float/.clangformat.yaml"]
