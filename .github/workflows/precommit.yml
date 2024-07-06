@@ -1,3 +1,4 @@
+# https://pre-commit.ci/lite.html
 name: pre-commit
 
 on:
