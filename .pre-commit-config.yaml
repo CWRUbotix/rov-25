@@ -3,7 +3,9 @@ repos:
    rev: 7.1.0
    hooks:
    -  id: flake8
+   args: ["--config", ".flake8"]
 -  repo: https://github.com/pre-commit/mirrors-clang-format
    rev: v14.0.6 # TODO update with clang version
    hooks:
    -  id: clang-format
+   args: ["--config", "src/float/.clangformat.yaml"]
