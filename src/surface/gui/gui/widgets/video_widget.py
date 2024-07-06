@@ -14,9 +14,10 @@ from sensor_msgs.msg import Image
 
 from rov_msgs.msg import CameraControllerSwitch
 
-# Our own implementation of cv2.typing.MatLike for now
-# MatLike = cv2.mat_wrapper.Mat | NDArray[numpy.integer[Any] | numpy.floating[Any]]
-# MatLike = NDArray[numpy.integer[Any] | numpy.floating[Any]]/
+# TODO: Ubuntu26+
+# Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release
+# This what is actual in cv2.typing, MatLike = cv2.mat_wrapper.Mat | NDArray[numpy.integer[Any] | numpy.floating[Any]]
+# This should be posiible in a newer version of mypy, MatLike = NDArray[numpy.integer[Any] | numpy.floating[Any]]
 MatLike = NDArray[numpy.generic]
 
 WIDTH = 721
