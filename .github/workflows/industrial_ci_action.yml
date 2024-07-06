@@ -43,7 +43,7 @@ jobs:
         # Only pulls docker for iron since jazzy one is not built yet
         if: matrix.ROS_DISTRO == 'iron'
         env: # either pass all entries explicitly
-          DOCKER_IMAGE: ghcr.io/CWRUbotix/rov-25:${{matrix.ROS_DISTRO}}
+          DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
           ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           # Done to avoid permssion errors in the ros-industrial ci.
           DOCKER_RUN_OPTS: -u root
@@ -57,7 +57,7 @@ jobs:
       - uses: 'ros-industrial/industrial_ci@master' # run industrial_ci
         if: matrix.ROS_DISTRO != 'iron'
         env: # either pass all entries explicitly
-            # DOCKER_IMAGE: ghcr.io/CWRUbotix/rov-25:${{matrix.ROS_DISTRO}}
+            # DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
             ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
             # Done to avoid permssion errors in the ros-industrial ci.
             # DOCKER_RUN_OPTS: -u root

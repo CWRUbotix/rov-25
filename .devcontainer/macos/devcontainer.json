@@ -1,6 +1,6 @@
 {
     "name" : "ROV macOS",
-    "image": "ghcr.io/CWRUbotix/rov-25:iron",
+    "image": "ghcr.io/cwrubotix/rov-25:iron",
     "containerEnv": {
         "DISPLAY": "unix:0"
     },
