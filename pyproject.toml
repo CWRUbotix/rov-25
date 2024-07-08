@@ -50,5 +50,5 @@ extension-pkg-whitelist = ["PyQt6", "cv2"]
 # For precommit CI
 [tool.ruff]
 format.quote-style = 'single'
-lint.select = ["I"]
+extend-select = ["I"]
 line-length = 100
