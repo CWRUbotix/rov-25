@@ -1,14 +1,14 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
-from gui.widgets.circle import CircleIndicator
 from PyQt6.QtCore import QUrl, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtMultimedia import QSoundEffect
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
-
 from rov_msgs.msg import Flooding
+
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from gui.widgets.circle import CircleIndicator
 
 # The 'Loop' enum has int values, not 'Loop', unbeknownst to mypy
 Q_SOUND_EFFECT_LOOP_FOREVER: int = QSoundEffect.Loop.Infinite.value  # type: ignore

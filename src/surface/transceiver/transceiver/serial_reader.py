@@ -5,10 +5,9 @@ from threading import Thread
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
+from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 from serial import Serial
 from serial.serialutil import SerialException
-
-from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
 MILLISECONDS_TO_SECONDS = 1 / 1000
 SECONDS_TO_MINUTES = 1 / 60

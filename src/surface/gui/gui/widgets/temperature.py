@@ -1,11 +1,10 @@
 from collections import deque
 
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
-from PyQt6.QtWidgets import (QLabel, QLineEdit, QPushButton, QVBoxLayout,
-                             QWidget)
-
+from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 from rov_msgs.msg import Temperature
+
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
 MIN_TEMP_C = 0
 MAX_TEMP_C = 200

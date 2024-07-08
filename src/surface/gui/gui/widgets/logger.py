@@ -1,10 +1,10 @@
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QColor, QTextCursor
-from PyQt6.QtWidgets import (QCheckBox, QHBoxLayout, QTextEdit, QVBoxLayout,
-                             QWidget)
+from PyQt6.QtWidgets import QCheckBox, QHBoxLayout, QTextEdit, QVBoxLayout, QWidget
 from rcl_interfaces.msg import Log
 from rclpy.impl.logging_severity import LoggingSeverity
+
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
 # Dictionary linking LoggingSeverity to a QColor
 SEVERITY_LEVELS_DICT = {

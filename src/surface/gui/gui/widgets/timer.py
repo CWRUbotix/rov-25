@@ -1,12 +1,12 @@
-from gui.gui_nodes.event_nodes.client import GUIEventClient
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QGridLayout, QLabel, QPushButton, QWidget
 from rclpy.duration import Duration
-
 from rov_msgs.msg import MissionTimerTick
 from rov_msgs.srv import MissionTimerSet
+
+from gui.gui_nodes.event_nodes.client import GUIEventClient
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
 RESET_SECONDS = (
     15 * 60

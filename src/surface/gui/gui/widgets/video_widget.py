@@ -4,15 +4,15 @@ from typing import NamedTuple, Optional
 import cv2
 import numpy
 from cv_bridge import CvBridge
-from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from numpy.typing import NDArray
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from rov_msgs.msg import CameraControllerSwitch
 from sensor_msgs.msg import Image
 
-from rov_msgs.msg import CameraControllerSwitch
+from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
 # TODO: Ubuntu26+
 # Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release

@@ -1,11 +1,16 @@
 import rclpy
 from flight_control.manual_control_node import ManualControlNode
-from flight_control.multiplexer import (FORWARD_CHANNEL, LATERAL_CHANNEL,
-                                        PITCH_CHANNEL, RANGE_SPEED,
-                                        ROLL_CHANNEL, THROTTLE_CHANNEL,
-                                        YAW_CHANNEL, ZERO_SPEED,
-                                        MultiplexerNode)
-
+from flight_control.multiplexer import (
+    FORWARD_CHANNEL,
+    LATERAL_CHANNEL,
+    PITCH_CHANNEL,
+    RANGE_SPEED,
+    ROLL_CHANNEL,
+    THROTTLE_CHANNEL,
+    YAW_CHANNEL,
+    ZERO_SPEED,
+    MultiplexerNode,
+)
 from rov_msgs.msg import PixhawkInstruction
 
 
