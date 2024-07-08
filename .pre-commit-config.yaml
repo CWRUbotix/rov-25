@@ -14,4 +14,4 @@ repos:
    rev: v14.0.6
    hooks:
    -  id: clang-format
-      args: [-style=file, src/float/.clang-format.yaml]
+      args: [-style=file:src/float/.clang-format.yaml]
