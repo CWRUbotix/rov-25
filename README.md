@@ -1,6 +1,6 @@
 # MATE ROV 2024-25
 
-[![Continuous Integration](https://github.com/CWRUbotix/rov-25/actions/workflows/industrial_ci_action.yml/badge.svg)](https://github.com/CWRUbotix/rov-25/actions/workflows/industrial_ci_action.yml)
+[![Continuous Integration](https://github.com/CWRUbotix/rov-25/actions/workflows/industrial_ci_action.yml/badge.svg)](https://github.com/CWRUbotix/rov-25/actions/workflows/industrial_ci_action.yml) [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/CWRUbotix/rov-25/main.svg)](https://results.pre-commit.ci/latest/github/CWRUbotix/rov-25/main)
 <a href=" https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache License"></a>
 
 # Table of Contents
