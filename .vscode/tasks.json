@@ -1,144 +1,151 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "🏃‍♂️ ROS All",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "${workspaceFolder}/.vscode/easy_all.sh"
-            ],
-            "presentation": {
-                "reveal": "silent",
-                "revealProblems": "onProblem"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "🏃‍♂️ ROS Quick Build",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "${workspaceFolder}/.vscode/easy_build.sh"
-            ],
-            "presentation": {
-                "reveal": "silent",
-                "revealProblems": "onProblem"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Run Unit Tests",
-            "type": "shell",
-            "command": "colcon test --event-handlers=console_direct+",
-            "presentation": {
-                "reveal": "silent",
-                "revealProblems": "onProblem"
-            },
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            }
-        }, 
-        {
-            "label": "Docker Pull",
-            "type": "shell",
-            "command": "sudo docker pull ghcr.io/cwrubotix/rov-25:iron",
-            "windows": {
-                "command": "docker pull ghcr.io/cwrubotix/rov-25:iron"
-            },
-            "hide": true
-        },
-        {
-            "label": "Docker Build",
-            "command": "${command:remote-containers.rebuildNoCacheAndReopenInContainer}",
-            "hide": true
-        },
-        {
-            // Runs Docker Pull and then Docker Build
-            // This is done because the default behavior of Docker Build
-            // does not repull the docker image from github.
-            "label": "Docker Rebuild",
-            "dependsOrder": "sequence",
-            "dependsOn": ["Docker Pull", "Docker Build"],
-            "presentation": {
-                "reveal": "silent",
-                "revealProblems": "onProblem"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Install ROS",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "${workspaceFolder}/.vscode/ros2_install.sh"
-            ],
-            "presentation": {
-                "revealProblems": "onProblem"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Install Dependencies",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "${workspaceFolder}/.vscode/install_dependencies.sh"
-            ],
-            "presentation": {
-                "revealProblems": "onProblem"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Setup MATE ROV Environment",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "${workspaceFolder}/.vscode/rov_setup.sh"
-            ],
-            "hide": true
-        },
-        {
-            "label": "Setup Surface Environment",
-            "dependsOrder": "sequence",
-            "dependsOn": ["Install ROS", "Install Dependencies", "Setup MATE ROV Environment"],
-            "presentation": {
-                "revealProblems": "onProblem"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Setup Pi Environment",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "${workspaceFolder}/.vscode/pi_setup.sh"
-            ],
-            "presentation": {
-                "revealProblems": "onProblem"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Setup Simulation",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "${workspaceFolder}/src/surface/rov_gazebo/scripts/add_models_and_worlds.sh",
-                "&&",
-                "${workspaceFolder}/src/surface/rov_gazebo/scripts/ardupilot_gazebo.sh",
-                "&&",
-                "${workspaceFolder}/src/surface/rov_gazebo/scripts/ardusub.sh"
-            ],
-            "presentation": {
-                "revealProblems": "onProblem"
-            },
-            "problemMatcher": []
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🏃‍♂️ ROS All",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/.vscode/easy_all.sh"
+      ],
+      "presentation": {
+        "reveal": "silent",
+        "revealProblems": "onProblem"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🏃‍♂️ ROS Quick Build",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/.vscode/easy_build.sh"
+      ],
+      "presentation": {
+        "reveal": "silent",
+        "revealProblems": "onProblem"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run Unit Tests",
+      "type": "shell",
+      "command": "colcon test --event-handlers=console_direct+",
+      "presentation": {
+        "reveal": "silent",
+        "revealProblems": "onProblem"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Docker Pull",
+      "type": "shell",
+      "command": "sudo docker pull ghcr.io/cwrubotix/rov-25:iron",
+      "windows": {
+        "command": "docker pull ghcr.io/cwrubotix/rov-25:iron"
+      },
+      "hide": true
+    },
+    {
+      "label": "Docker Build",
+      "command": "${command:remote-containers.rebuildNoCacheAndReopenInContainer}",
+      "hide": true
+    },
+    {
+      // Runs Docker Pull and then Docker Build
+      // This is done because the default behavior of Docker Build
+      // does not repull the docker image from github.
+      "label": "Docker Rebuild",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Docker Pull",
+        "Docker Build"
+      ],
+      "presentation": {
+        "reveal": "silent",
+        "revealProblems": "onProblem"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install ROS",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/.vscode/ros2_install.sh"
+      ],
+      "presentation": {
+        "revealProblems": "onProblem"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Dependencies",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/.vscode/install_dependencies.sh"
+      ],
+      "presentation": {
+        "revealProblems": "onProblem"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup MATE ROV Environment",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/.vscode/rov_setup.sh"
+      ],
+      "hide": true
+    },
+    {
+      "label": "Setup Surface Environment",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Install ROS",
+        "Install Dependencies",
+        "Setup MATE ROV Environment"
+      ],
+      "presentation": {
+        "revealProblems": "onProblem"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup Pi Environment",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/.vscode/pi_setup.sh"
+      ],
+      "presentation": {
+        "revealProblems": "onProblem"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup Simulation",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/src/surface/rov_gazebo/scripts/add_models_and_worlds.sh",
+        "&&",
+        "${workspaceFolder}/src/surface/rov_gazebo/scripts/ardupilot_gazebo.sh",
+        "&&",
+        "${workspaceFolder}/src/surface/rov_gazebo/scripts/ardusub.sh"
+      ],
+      "presentation": {
+        "revealProblems": "onProblem"
+      },
+      "problemMatcher": []
+    }
+  ]
 }

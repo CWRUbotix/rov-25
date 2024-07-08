@@ -1,19 +1,23 @@
 {
-    "name" : "ROV macOS",
-    "image": "ghcr.io/cwrubotix/rov-25:iron",
-    "containerEnv": {
-        "DISPLAY": "unix:0"
-    },
-    "mounts": [
-        "type=bind,source=/Users/${localEnv:USER}/.ssh,target=/home/rov/.ssh,readonly",
-    ],
-    "workspaceFolder": "/home/rov/rov-25",
-    "customizations": {
-        "vscode" : {
-            "extensions": ["ms-python.flake8", "ms-azuretools.vscode-docker",
-                           "streetsidesoftware.code-spell-checker", "ms-python.isort",
-                           "ms-python.mypy-type-checker"]
-        }
-    },
-    "privileged": true
+  "name": "ROV macOS",
+  "image": "ghcr.io/cwrubotix/rov-25:iron",
+  "containerEnv": {
+    "DISPLAY": "unix:0"
+  },
+  "mounts": [
+    "type=bind,source=/Users/${localEnv:USER}/.ssh,target=/home/rov/.ssh,readonly",
+  ],
+  "workspaceFolder": "/home/rov/rov-25",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.flake8",
+        "ms-azuretools.vscode-docker",
+        "streetsidesoftware.code-spell-checker",
+        "ms-python.isort",
+        "ms-python.mypy-type-checker"
+      ]
+    }
+  },
+  "privileged": true
 }

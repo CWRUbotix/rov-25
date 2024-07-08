@@ -1,24 +1,28 @@
 {
-    "name" : "ROV Linux",
-    "image": "ghcr.io/cwrubotix/rov-25:iron",
-    "containerEnv": {
-        "DISPLAY": "${localEnv:DISPLAY}"
-    },
-    "mounts": [
-        // SSH Keys
-        "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/rov/.ssh,readonly",
-        // X11 for guis
-        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
-        // gitconfig
-        "type=bind,source=/home/${localEnv:USER}/.gitconfig,target=/home/rov/.gitconfig,readonly"
-    ],
-    "workspaceFolder": "/home/rov/rov-25",
-    "customizations": {
-        "vscode" : {
-            "extensions": ["ms-python.flake8", "ms-azuretools.vscode-docker",
-                           "streetsidesoftware.code-spell-checker", "ms-python.isort",
-                           "ms-python.mypy-type-checker"]
-        }
-    },
-    "privileged": true
+  "name": "ROV Linux",
+  "image": "ghcr.io/cwrubotix/rov-25:iron",
+  "containerEnv": {
+    "DISPLAY": "${localEnv:DISPLAY}"
+  },
+  "mounts": [
+    // SSH Keys
+    "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/rov/.ssh,readonly",
+    // X11 for guis
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+    // gitconfig
+    "type=bind,source=/home/${localEnv:USER}/.gitconfig,target=/home/rov/.gitconfig,readonly"
+  ],
+  "workspaceFolder": "/home/rov/rov-25",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.flake8",
+        "ms-azuretools.vscode-docker",
+        "streetsidesoftware.code-spell-checker",
+        "ms-python.isort",
+        "ms-python.mypy-type-checker"
+      ]
+    }
+  },
+  "privileged": true
 }

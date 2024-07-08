@@ -3,47 +3,48 @@
 
 #include <RH_RF95.h>
 
-#if defined(__AVR_ATmega32U4__)  // Feather 32u4 w/Radio
+#if defined(__AVR_ATmega32U4__) // Feather 32u4 w/Radio
 const uint8_t RFM95_CS = 8;
 const uint8_t RFM95_INT = 7;
 const uint8_t RFM95_RST = 4;
 
-#elif defined(ADAFRUIT_FEATHER_M0) || defined(ADAFRUIT_FEATHER_M0_EXPRESS) || \
-  defined(ARDUINO_SAMD_FEATHER_M0)  // Feather M0 w/Radio
+#elif defined(ADAFRUIT_FEATHER_M0) || defined(ADAFRUIT_FEATHER_M0_EXPRESS) ||  \
+    defined(ARDUINO_SAMD_FEATHER_M0) // Feather M0 w/Radio
 const uint8_t RFM95_CS = 8;
 const uint8_t RFM95_INT = 3;
 const uint8_t RFM95_RST = 4;
 
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040_RFM)  // Feather RP2040 w/Radio
+#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040_RFM) // Feather RP2040 w/Radio
 const uint8_t RFM95_CS = 16;
 const uint8_t RFM95_INT = 21;
 const uint8_t RFM95_RST = 17;
 
-#elif defined(__AVR_ATmega328P__)  // Feather 328P w/wing
+#elif defined(__AVR_ATmega328P__) // Feather 328P w/wing
 const uint8_t RFM95_CS = 4;
 const uint8_t RFM95_INT = 3;
-const uint8_t RFM95_RST = 2;  // "A"
+const uint8_t RFM95_RST = 2; // "A"
 
-#elif defined(ESP8266)  // ESP8266 feather w/wing
-const uint8_t RFM95_CS = 2;    // "E"
-const uint8_t RFM95_INT = 15;  // "B"
-const uint8_t RFM95_RST = 16;  // "D"
+#elif defined(ESP8266) // ESP8266 feather w/wing
+const uint8_t RFM95_CS = 2;   // "E"
+const uint8_t RFM95_INT = 15; // "B"
+const uint8_t RFM95_RST = 16; // "D"
 
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_ESP32S2) || defined(ARDUINO_NRF52840_FEATHER) || \
-  defined(ARDUINO_NRF52840_FEATHER_SENSE)
-const uint8_t RFM95_CS = 10;   // "B"
-const uint8_t RFM95_INT = 9;   // "A"
-const uint8_t RFM95_RST = 11;  // "C"
+#elif defined(ARDUINO_ADAFRUIT_FEATHER_ESP32S2) ||                             \
+    defined(ARDUINO_NRF52840_FEATHER) ||                                       \
+    defined(ARDUINO_NRF52840_FEATHER_SENSE)
+const uint8_t RFM95_CS = 10;  // "B"
+const uint8_t RFM95_INT = 9;  // "A"
+const uint8_t RFM95_RST = 11; // "C"
 
-#elif defined(ESP32)  // ESP32 feather w/wing
-const uint8_t RFM95_CS = 33;   // "B"
-const uint8_t RFM95_INT = 27;  // "A"
+#elif defined(ESP32) // ESP32 feather w/wing
+const uint8_t RFM95_CS = 33;  // "B"
+const uint8_t RFM95_INT = 27; // "A"
 const uint8_t RFM95_RST = 13;
 
-#elif defined(ARDUINO_NRF52832_FEATHER)  // nRF52832 feather w/wing
-const uint8_t RFM95_CS = 11;   // "B"
-const uint8_t RFM95_INT = 31;  // "C"
-const uint8_t RFM95_RST = 7;   // "A"
+#elif defined(ARDUINO_NRF52832_FEATHER) // nRF52832 feather w/wing
+const uint8_t RFM95_CS = 11;  // "B"
+const uint8_t RFM95_INT = 31; // "C"
+const uint8_t RFM95_RST = 7;  // "A"
 
 #endif
 
@@ -70,9 +71,9 @@ const float RF95_FREQ = 877.0;
 // #define DO_DEBUGGING
 
 /**
- * printf the arguments with a line break at the end to the provided serial port.
- *  i.e. printfln(&Serial, "Here's a float: %f", 123.45);
- * Supports these interpolation codes:
+ * printf the arguments with a line break at the end to the provided serial
+ * port. i.e. printfln(&Serial, "Here's a float: %f", 123.45); Supports these
+ * interpolation codes:
  *  %% : escaped "%"
  *  %s : strings
  *  %d : integers (decimal)
@@ -80,7 +81,7 @@ const float RF95_FREQ = 877.0;
  *  %o : integers (octal)
  *  %x : integers (hex)
  *  %f : floats/doubles
-*/
-void serialPrintf(const char* input...);
+ */
+void serialPrintf(const char *input...);
 
-#endif  // ROV_COMMON_HPP_
+#endif // ROV_COMMON_HPP_

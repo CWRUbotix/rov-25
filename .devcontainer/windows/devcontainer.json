@@ -1,16 +1,20 @@
 {
-    "name" : "ROV Windows",
-    "image": "ghcr.io/cwrubotix/rov-25:iron",
-    "containerEnv": {  
-        "DISPLAY": "${localEnv:DISPLAY}"
-    },
-    "workspaceFolder": "/home/rov/rov-25",
-    "customizations": {
-        "vscode" : {
-            "extensions": ["ms-python.flake8", "ms-azuretools.vscode-docker",
-                           "streetsidesoftware.code-spell-checker", "ms-python.isort",
-                           "ms-python.mypy-type-checker"]
-        }
-    },
-    "privileged": true
+  "name": "ROV Windows",
+  "image": "ghcr.io/cwrubotix/rov-25:iron",
+  "containerEnv": {
+    "DISPLAY": "${localEnv:DISPLAY}"
+  },
+  "workspaceFolder": "/home/rov/rov-25",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.flake8",
+        "ms-azuretools.vscode-docker",
+        "streetsidesoftware.code-spell-checker",
+        "ms-python.isort",
+        "ms-python.mypy-type-checker"
+      ]
+    }
+  },
+  "privileged": true
 }
