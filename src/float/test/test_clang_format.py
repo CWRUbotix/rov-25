@@ -1,7 +1,6 @@
 """Test clang-format on this module."""
 
 import os
-import shutil
 from typing import Literal
 
 import pytest
