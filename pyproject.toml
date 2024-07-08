@@ -51,4 +51,4 @@ extension-pkg-whitelist = ["PyQt6", "cv2"]
 [tool.ruff]
 format.quote-style = 'single'
 lint.select = ["I"]
-line-lenth = 100
+line-length = 100
