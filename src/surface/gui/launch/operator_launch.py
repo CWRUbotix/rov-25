@@ -28,8 +28,6 @@ def generate_launch_description() -> LaunchDescription:
 
     timer_node: Node = Node(package='gui', executable='run_timer')
 
-    namespace_launch = GroupAction(
-        actions=[PushRosNamespace('gui'), gui_node, timer_node]
-    )
+    namespace_launch = GroupAction(actions=[PushRosNamespace('gui'), gui_node, timer_node])
 
     return LaunchDescription([namespace_launch])

@@ -15,9 +15,7 @@ def generate_launch_description() -> LaunchDescription:
 
     # Launches Gui
     gui_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [os.path.join(gui_path, 'launch', 'operator_launch.py')]
-        ),
+        PythonLaunchDescriptionSource([os.path.join(gui_path, 'launch', 'operator_launch.py')]),
     )
 
     # Launches flight_control (auto docking, manual control, etc.)

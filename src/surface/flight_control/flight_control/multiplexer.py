@@ -61,9 +61,7 @@ class MultiplexerNode(Node):
         )
 
     @staticmethod
-    def apply(
-        msg: PixhawkInstruction, function_to_apply: Callable[[float], float]
-    ) -> None:
+    def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
         """Apply a function to each dimension of this PixhawkInstruction."""
         msg.forward = function_to_apply(msg.forward)
         msg.vertical = function_to_apply(msg.vertical)

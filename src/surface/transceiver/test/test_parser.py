@@ -112,14 +112,10 @@ def test_message_parser(packet_handler: SerialReaderPacketHandler) -> None:
         ],  # noqa 501
     )
 
-    with pytest.raises(
-        ValueError, match='Packet expected 3 sections, found 2 sections'
-    ):
+    with pytest.raises(ValueError, match='Packet expected 3 sections, found 2 sections'):
         packet_handler.message_parser(NOT_THREE_SECTIONS)
 
-    with pytest.raises(
-        ValueError, match='Packet header length of 3 expected found 2 instead'
-    ):
+    with pytest.raises(ValueError, match='Packet header length of 3 expected found 2 instead'):
         packet_handler.message_parser(HEADER_TWO_ELEMENTS)
 
 

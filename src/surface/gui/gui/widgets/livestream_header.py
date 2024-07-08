@@ -13,9 +13,7 @@ class LivestreamHeader(QWidget):
         root_layout = QHBoxLayout()
         self.setLayout(root_layout)
 
-        logo_path = os.path.join(
-            get_package_share_directory('gui'), 'images', 'CWRUbotix Logo.png'
-        )
+        logo_path = os.path.join(get_package_share_directory('gui'), 'images', 'CWRUbotix Logo.png')
 
         logo_pixmap = QPixmap(logo_path)
 

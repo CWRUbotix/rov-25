@@ -22,6 +22,6 @@ from ament_flake8.main import main_with_errors
 def test_flake8() -> None:
     """Tests flake8 on this module."""
     error_code, errors = main_with_errors(argv=[])
-    assert error_code == 0, (
-        f'Found {len(errors)} code style errors / warnings:\n' + '\n'.join(errors)
+    assert error_code == 0, f'Found {len(errors)} code style errors / warnings:\n' + '\n'.join(
+        errors
     )

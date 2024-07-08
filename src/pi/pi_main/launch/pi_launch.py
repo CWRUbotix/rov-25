@@ -24,9 +24,7 @@ def generate_launch_description() -> LaunchDescription:
     manip_path = get_package_share_directory('manipulators')
 
     manip_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [os.path.join(manip_path, 'launch', 'manip_launch.py')]
-        )
+        PythonLaunchDescriptionSource([os.path.join(manip_path, 'launch', 'manip_launch.py')])
     )
 
     # Commented out because no usb cams are planned
@@ -56,9 +54,7 @@ def generate_launch_description() -> LaunchDescription:
     pi_info_path = get_package_share_directory('pi_info')
 
     pi_info_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [os.path.join(pi_info_path, 'launch', 'pi_info_launch.py')]
-        )
+        PythonLaunchDescriptionSource([os.path.join(pi_info_path, 'launch', 'pi_info_launch.py')])
     )
 
     # Flood detection

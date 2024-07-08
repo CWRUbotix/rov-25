@@ -33,9 +33,7 @@ class FloatComm(QWidget):
         self.handle_data_single_signal.connect(self.handle_single)
         GUIEventSubscriber(FloatData, 'transceiver_data', self.handle_data_signal)
         GUIEventSubscriber(FloatSerial, 'float_serial', self.handle_serial_signal)
-        GUIEventSubscriber(
-            FloatSingle, 'transceiver_single', self.handle_data_single_signal
-        )
+        GUIEventSubscriber(FloatSingle, 'transceiver_single', self.handle_data_single_signal)
 
         command_pub = GUIEventPublisher(FloatCommand, 'float_command')
 

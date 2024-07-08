@@ -25,9 +25,7 @@ class Circle(QLabel):
     def set_color(self, color: QColor | Qt.GlobalColor) -> None:
         if isinstance(color, Qt.GlobalColor):
             color = QColor(color)
-        style = (
-            f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});'
-        )
+        style = f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});'
         self.setStyleSheet(f'{self.styleSheet()}{style}')
 
 

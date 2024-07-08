@@ -23,9 +23,7 @@ class SeagrassWidget(QWidget):
         root_layout = QHBoxLayout(self)
 
         self.after_grid = SeagrassGrid(self.update_result_text)
-        self.before_grid = SeagrassGrid(
-            self.update_result_text, self.after_grid.set_button
-        )
+        self.before_grid = SeagrassGrid(self.update_result_text, self.after_grid.set_button)
         # Before layout
         before_layout = QVBoxLayout()
 
@@ -42,9 +40,7 @@ class SeagrassWidget(QWidget):
         before_btns_layout.addWidget(set_all_green)
         before_btns_layout.addWidget(set_all_white)
 
-        before_layout.addWidget(
-            QLabel('Before'), alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        before_layout.addWidget(QLabel('Before'), alignment=Qt.AlignmentFlag.AlignCenter)
         before_layout.addLayout(before_btns_layout)
         before_layout.addWidget(self.before_grid.frame)
 

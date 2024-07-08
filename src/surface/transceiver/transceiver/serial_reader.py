@@ -55,9 +55,7 @@ class SerialReader(Node):
         self.serial_packet_handler = SerialReaderPacketHandler()
 
         try:
-            self.serial = Serial(
-                '/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00', 115200
-            )
+            self.serial = Serial('/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00', 115200)
         except SerialException:
             self.get_logger().error('Could not get serial device')
             exit(1)
@@ -112,9 +110,7 @@ class SerialReaderPacketHandler:
         time_ms = int(data.split(COMMA_SEPARATOR)[0])
         pressure = float(data.split(COMMA_SEPARATOR)[1])
 
-        float_msg = FloatSingle(
-            team_number=team_number, time_ms=time_ms, pressure=pressure
-        )
+        float_msg = FloatSingle(team_number=team_number, time_ms=time_ms, pressure=pressure)
 
         if not self.surface_pressures.full():
             self.surface_pressures.put(pressure)
@@ -144,8 +140,7 @@ class SerialReaderPacketHandler:
 
         if len(header) != HEADER_LENGTH:
             raise ValueError(
-                f'Packet header length of {HEADER_LENGTH} expected '
-                f'found {len(header)} instead'
+                f'Packet header length of {HEADER_LENGTH} expected ' f'found {len(header)} instead'
             )
 
         msg.team_number = int(header[0])
@@ -161,14 +156,11 @@ class SerialReaderPacketHandler:
             if int(time_reading) == 0:
                 continue
             # Starts out as uint32
-            time_data_list.append(
-                int(time_reading) * MILLISECONDS_TO_SECONDS * SECONDS_TO_MINUTES
-            )
+            time_data_list.append(int(time_reading) * MILLISECONDS_TO_SECONDS * SECONDS_TO_MINUTES)
 
             # Starts out as float
             depth_data_list.append(
-                (float(pressure_reading) - self.surface_pressure)
-                * MBAR_TO_METER_OF_HEAD
+                (float(pressure_reading) - self.surface_pressure) * MBAR_TO_METER_OF_HEAD
                 + PRESSURE_SENSOR_VERTICAL_OFFSET
             )
 
