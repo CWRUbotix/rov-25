@@ -52,3 +52,8 @@ extension-pkg-whitelist = ["PyQt6", "cv2"]
 format.quote-style = 'single'
 extend-select = ["I"]
 line-length = 100
+
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
