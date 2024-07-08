@@ -21,4 +21,4 @@ repos:
    rev: v14.0.6 # TODO update with clang version
    hooks:
    -  id: clang-format
-    args: ["--config", "src/float/.clangformat.yaml"]
+      args: ["--config", "src/float/.clangformat.yaml"]
