@@ -1,3 +1,4 @@
+# https://results.pre-commit.ci/repo/github/821875747
 repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
