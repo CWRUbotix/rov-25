@@ -4,14 +4,17 @@ repos:
   # Ruff version.
   rev: v0.5.1
   hooks:
+    # Run the linter.
+    - id: ruff
+      args: ["--fix"]
     # Run the formatter.
     - id: ruff-format
 
 
--   repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
+# -   repo: https://github.com/pycqa/isort
+#     rev: 5.12.0
+#     hooks:
+#       - id: isort
 
   # TODO clang-format
 # -  repo: https://github.com/pre-commit/mirrors-clang-format
