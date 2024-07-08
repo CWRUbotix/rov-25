@@ -1,10 +1,10 @@
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
-from gui.widgets.circle import CircleIndicator
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
-
 from rov_msgs.msg import VehicleState
+
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from gui.widgets.circle import CircleIndicator
 
 
 class HeartbeatWidget(QWidget):

@@ -1,12 +1,18 @@
-from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QTextCursor
-from PyQt6.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QTextEdit,
-                             QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 from pyqtgraph import PlotWidget
-
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
+
+from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
 
 class FloatComm(QWidget):

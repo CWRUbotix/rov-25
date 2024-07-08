@@ -3,9 +3,8 @@ from queue import Queue
 from typing import Generator, TypeVar
 
 import pytest
-from transceiver.serial_reader import SerialReaderPacketHandler
-
 from rov_msgs.msg import FloatData
+from transceiver.serial_reader import SerialReaderPacketHandler
 
 T = TypeVar('T')
 

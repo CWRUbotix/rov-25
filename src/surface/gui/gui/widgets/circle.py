@@ -1,9 +1,10 @@
 from typing import Optional
 
-from gui.styles.custom_styles import IndicatorMixin
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QLabel, QWidget
+
+from gui.styles.custom_styles import IndicatorMixin
 
 
 class Circle(QLabel):

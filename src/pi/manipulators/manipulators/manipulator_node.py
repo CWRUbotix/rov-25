@@ -2,9 +2,8 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_system_default
-from tca9555 import TCA9555
-
 from rov_msgs.msg import Manip
+from tca9555 import TCA9555
 
 ALL_BITS = (0, 1, 2, 3, 4, 5)
 

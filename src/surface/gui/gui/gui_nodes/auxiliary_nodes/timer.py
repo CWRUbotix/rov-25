@@ -6,7 +6,6 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 from rclpy.time import Time
-
 from rov_msgs.msg import MissionTimerTick
 from rov_msgs.srv import MissionTimerSet
 

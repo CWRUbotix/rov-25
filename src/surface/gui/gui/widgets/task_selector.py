@@ -1,9 +1,9 @@
-from gui.gui_nodes.event_nodes.client import GUIEventClient
-from gui.styles.custom_styles import ButtonIndicator
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QGridLayout, QPushButton, QWidget
-
 from rov_msgs.srv import AutonomousFlight
+
+from gui.gui_nodes.event_nodes.client import GUIEventClient
+from gui.styles.custom_styles import ButtonIndicator
 
 WIDTH = 200
 

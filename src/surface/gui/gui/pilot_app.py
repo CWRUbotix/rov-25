@@ -1,14 +1,15 @@
 import enum
 
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QScreen
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout
+
 from gui.app import App
 from gui.widgets.arm import Arm
 from gui.widgets.flood_warning import FloodWarning
 from gui.widgets.livestream_header import LivestreamHeader
 from gui.widgets.timer import TimerDisplay
 from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QScreen
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout
 
 FRONT_CAM_TOPIC = 'front_cam/image_raw'
 BOTTOM_CAM_TOPIC = 'bottom_cam/image_raw'

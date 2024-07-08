@@ -1,3 +1,5 @@
+from PyQt6.QtWidgets import QHBoxLayout, QTabWidget, QVBoxLayout, QWidget
+
 from gui.app import App
 from gui.widgets.float_comm import FloatComm
 from gui.widgets.flood_warning import FloodWarning
@@ -8,7 +10,6 @@ from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.task_selector import TaskSelector
 from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.timer import InteractiveTimer
-from PyQt6.QtWidgets import QHBoxLayout, QTabWidget, QVBoxLayout, QWidget
 
 
 class OperatorApp(App):

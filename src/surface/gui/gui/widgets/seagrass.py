@@ -1,10 +1,17 @@
 from typing import Callable, Optional
 
-from gui.widgets.video_widget import (CameraDescription, CameraType,
-                                      PauseableVideoWidget)
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QFrame, QGridLayout, QHBoxLayout, QLabel,
-                             QPushButton, QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import (
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+from gui.widgets.video_widget import CameraDescription, CameraType, PauseableVideoWidget
 
 
 class SeagrassWidget(QWidget):

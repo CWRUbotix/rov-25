@@ -2,7 +2,6 @@ import rclpy
 import tsys01
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
-
 from rov_msgs.msg import Temperature
 
 READING_TIMER_PERIOD = 0.5  # Seconds
