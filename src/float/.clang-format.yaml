@@ -1,4 +1,4 @@
----
+
 # Start based off ament_clang_formats .yaml
 Language: Cpp
 BasedOnStyle: Google
@@ -28,4 +28,3 @@ ContinuationIndentWidth: 2
 DerivePointerAlignment: false
 PointerAlignment: Left
 ReflowComments: false
----
