@@ -1,5 +1,6 @@
-import lgpio
 import time
+
+import lgpio
 
 # Configuration
 SERVO_PIN = 12  # pin used to drive PWM fan
@@ -34,5 +35,5 @@ def main() -> None:
         lgpio.gpiochip_close(gpio_handle)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

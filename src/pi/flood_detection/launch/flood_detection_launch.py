@@ -17,9 +17,7 @@ def generate_launch_description() -> LaunchDescription:
         executable='flood_detector',
         emulate_tty=True,
         output='screen',
-        remappings=[('/pi/flooding', '/tether/flooding')]
+        remappings=[('/pi/flooding', '/tether/flooding')],
     )
 
-    return LaunchDescription([
-        flood_detection
-    ])
+    return LaunchDescription([flood_detection])

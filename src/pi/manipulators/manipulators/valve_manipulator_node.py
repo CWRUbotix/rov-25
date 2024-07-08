@@ -12,10 +12,7 @@ class ValveManipulator(Node):
     def __init__(self) -> None:
         super().__init__('valve_manipulator')
         self.create_subscription(
-            ValveManip,
-            'valve_manipulator',
-            self.manip_callback,
-            qos_profile_system_default
+            ValveManip, 'valve_manipulator', self.manip_callback, qos_profile_system_default
         )
 
         self.gpio_handle = lgpio.gpiochip_open(0)

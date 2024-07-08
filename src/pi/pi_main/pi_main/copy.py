@@ -1,4 +1,5 @@
 """Copies udev rules from separate process to ensure ideal protections of sudo."""
+
 import os
 import shutil
 import sys
@@ -17,4 +18,4 @@ if __name__ == '__main__':
     service_dst = os.path.join(service_dst_folder, 'pi_main.service')
 
     shutil.copy(service_src, service_dst)
-    print("Copying udev rules and services")
+    print('Copying udev rules and services')

@@ -4,15 +4,15 @@ from typing import NamedTuple, Optional
 import cv2
 import numpy
 from cv_bridge import CvBridge
-from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from numpy.typing import NDArray
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from rov_msgs.msg import CameraControllerSwitch
 from sensor_msgs.msg import Image
 
-from rov_msgs.msg import CameraControllerSwitch
+from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
 # TODO: Ubuntu26+
 # Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release
@@ -93,16 +93,16 @@ class VideoWidget(QWidget):
 
         self.handle_frame_signal.connect(self.handle_frame)
         self.camera_subscriber: GUIEventSubscriber = GUIEventSubscriber(
-            Image, camera_description.topic, self.handle_frame_signal)
+            Image, camera_description.topic, self.handle_frame_signal
+        )
 
     @pyqtSlot(Image)
     def handle_frame(self, frame: Image) -> None:
-        cv_image = self.cv_bridge.imgmsg_to_cv2(
-            frame, desired_encoding='passthrough')
+        cv_image = self.cv_bridge.imgmsg_to_cv2(frame, desired_encoding='passthrough')
 
-        qt_image: QImage = self.convert_cv_qt(cv_image,
-                                              self.camera_description.width,
-                                              self.camera_description.height)
+        qt_image: QImage = self.convert_cv_qt(
+            cv_image, self.camera_description.width, self.camera_description.height
+        )
 
         self.video_frame_label.setPixmap(QPixmap.fromImage(qt_image))
 
@@ -127,7 +127,7 @@ class VideoWidget(QWidget):
             img_format = QImage.Format.Format_Grayscale8
 
         else:
-            raise ValueError("Somehow not color or grayscale image.")
+            raise ValueError('Somehow not color or grayscale image.')
 
         qt_image = QImage(cv_img.data, w, h, bytes_per_line, img_format)
         qt_image = qt_image.scaled(width, height, Qt.AspectRatioMode.KeepAspectRatio)
@@ -142,9 +142,12 @@ class SwitchableVideoWidget(VideoWidget):
 
     controller_signal = pyqtSignal(CameraControllerSwitch)
 
-    def __init__(self, camera_descriptions: list[CameraDescription],
-                 controller_button_topic: Optional[str] = None,
-                 default_cam_num: int = 0):
+    def __init__(
+        self,
+        camera_descriptions: list[CameraDescription],
+        controller_button_topic: Optional[str] = None,
+        default_cam_num: int = 0,
+    ):
         self.camera_descriptions = camera_descriptions
         self.active_cam = default_cam_num
 
@@ -160,15 +163,16 @@ class SwitchableVideoWidget(VideoWidget):
         if isinstance(layout, QVBoxLayout):
             layout.addWidget(self.button, alignment=Qt.AlignmentFlag.AlignCenter)
         else:
-            self.camera_subscriber.get_logger().error("Missing Layout")
+            self.camera_subscriber.get_logger().error('Missing Layout')
 
         if controller_button_topic is not None:
             self.controller_signal.connect(self.controller_camera_switch)
-            self.controller_publisher = GUIEventPublisher(CameraControllerSwitch,
-                                                          controller_button_topic)
-            self.controller_subscriber = GUIEventSubscriber(CameraControllerSwitch,
-                                                            controller_button_topic,
-                                                            self.controller_signal)
+            self.controller_publisher = GUIEventPublisher(
+                CameraControllerSwitch, controller_button_topic
+            )
+            self.controller_subscriber = GUIEventSubscriber(
+                CameraControllerSwitch, controller_button_topic, self.controller_signal
+            )
 
     @pyqtSlot(CameraControllerSwitch)
     def controller_camera_switch(self, switch: CameraControllerSwitch) -> None:
@@ -188,7 +192,8 @@ class SwitchableVideoWidget(VideoWidget):
 
         self.camera_subscriber.destroy_node()
         self.camera_subscriber = GUIEventSubscriber(
-            Image, self.camera_description.topic, self.handle_frame_signal)
+            Image, self.camera_description.topic, self.handle_frame_signal
+        )
         self.button.setText(self.camera_description.label)
 
         # Updates text for info when no frame received.
@@ -214,7 +219,7 @@ class PauseableVideoWidget(VideoWidget):
         if isinstance(layout, QVBoxLayout):
             layout.addWidget(self.button, alignment=Qt.AlignmentFlag.AlignCenter)
         else:
-            self.camera_subscriber.get_logger().error("Missing Layout")
+            self.camera_subscriber.get_logger().error('Missing Layout')
 
         self.is_paused = False
 

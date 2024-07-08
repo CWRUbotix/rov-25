@@ -1,12 +1,11 @@
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
-
 from rov_msgs.msg import IPAddress
+
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
 
 class IPWidget(QWidget):
-
     signal = pyqtSignal(IPAddress)
 
     def __init__(self) -> None:

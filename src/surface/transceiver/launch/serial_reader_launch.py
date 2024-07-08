@@ -1,5 +1,5 @@
-from launch_ros.actions import Node
 from launch.launch_description import LaunchDescription
+from launch_ros.actions import Node
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -17,13 +17,13 @@ def generate_launch_description() -> LaunchDescription:
         package='transceiver',
         executable='serial',
         emulate_tty=True,
-        output="screen",
-        remappings=[("/surface/transceiver_data", "/surface/gui/transceiver_data"),
-                    ("/surface/float_command", "/surface/gui/float_command"),
-                    ("/surface/float_serial", "/surface/gui/float_serial"),
-                    ("/surface/transceiver_single", "/surface/gui/transceiver_single")]
+        output='screen',
+        remappings=[
+            ('/surface/transceiver_data', '/surface/gui/transceiver_data'),
+            ('/surface/float_command', '/surface/gui/float_command'),
+            ('/surface/float_serial', '/surface/gui/float_serial'),
+            ('/surface/transceiver_single', '/surface/gui/transceiver_single'),
+        ],
     )
 
-    return LaunchDescription([
-        reader_node
-    ])
+    return LaunchDescription([reader_node])

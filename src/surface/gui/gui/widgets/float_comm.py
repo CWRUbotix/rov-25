@@ -1,12 +1,11 @@
-from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QTextCursor
-from PyQt6.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QTextEdit,
-                             QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
 from pyqtgraph import PlotWidget
-
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
+
+from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
 
 class FloatComm(QWidget):
@@ -25,20 +24,20 @@ class FloatComm(QWidget):
         self.handle_data_signal.connect(self.handle_data)
         self.handle_serial_signal.connect(self.handle_serial)
         self.handle_data_single_signal.connect(self.handle_single)
-        GUIEventSubscriber(FloatData, "transceiver_data", self.handle_data_signal)
-        GUIEventSubscriber(FloatSerial, "float_serial", self.handle_serial_signal)
-        GUIEventSubscriber(FloatSingle, "transceiver_single", self.handle_data_single_signal)
+        GUIEventSubscriber(FloatData, 'transceiver_data', self.handle_data_signal)
+        GUIEventSubscriber(FloatSerial, 'float_serial', self.handle_serial_signal)
+        GUIEventSubscriber(FloatSingle, 'transceiver_single', self.handle_data_single_signal)
 
-        command_pub = GUIEventPublisher(FloatCommand, "float_command")
+        command_pub = GUIEventPublisher(FloatCommand, 'float_command')
 
         info_layout = QVBoxLayout()
 
         single_layout = QHBoxLayout()
 
         self.team_number = QLabel('Waiting for Team #')
-        self.time = QLabel("Waiting for Time")
-        self.pressure = QLabel("Waiting for Pressure")
-        self.average_pressure = QLabel("Avg Pressure: 0/5")
+        self.time = QLabel('Waiting for Time')
+        self.pressure = QLabel('Waiting for Pressure')
+        self.average_pressure = QLabel('Avg Pressure: 0/5')
 
         single_layout.addWidget(self.team_number)
         single_layout.addWidget(self.time)
@@ -47,8 +46,8 @@ class FloatComm(QWidget):
 
         self.single_time = QLabel('Waiting for Time')
         self.single_pressure = QLabel('Waiting for Pressure')
-        self.profile_number = QLabel("Waiting for profile #")
-        self.profile_half = QLabel("Waiting for profile half")
+        self.profile_number = QLabel('Waiting for profile #')
+        self.profile_half = QLabel('Waiting for profile half')
 
         info_layout.addWidget(self.profile_number)
         info_layout.addWidget(self.profile_half)
@@ -56,27 +55,27 @@ class FloatComm(QWidget):
         info_and_buttons = QHBoxLayout()
         info_and_buttons.addLayout(info_layout)
 
-        submerge_button = QPushButton("Submerge")
-        pump_button = QPushButton("Pump")
-        suck_button = QPushButton("Suck")
-        return_button = QPushButton("Return")
-        stop_button = QPushButton("Stop")
+        submerge_button = QPushButton('Submerge')
+        pump_button = QPushButton('Pump')
+        suck_button = QPushButton('Suck')
+        return_button = QPushButton('Return')
+        stop_button = QPushButton('Stop')
 
-        submerge_button.clicked.connect(lambda: command_pub.publish(
-            FloatCommand(command=FloatCommand.SUBMERGE)
-        ))
-        pump_button.clicked.connect(lambda: command_pub.publish(
-            FloatCommand(command=FloatCommand.PUMP)
-        ))
-        suck_button.clicked.connect(lambda: command_pub.publish(
-            FloatCommand(command=FloatCommand.SUCK)
-        ))
-        return_button.clicked.connect(lambda: command_pub.publish(
-            FloatCommand(command=FloatCommand.RETURN)
-        ))
-        stop_button.clicked.connect(lambda: command_pub.publish(
-            FloatCommand(command=FloatCommand.STOP)
-        ))
+        submerge_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.SUBMERGE))
+        )
+        pump_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.PUMP))
+        )
+        suck_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.SUCK))
+        )
+        return_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.RETURN))
+        )
+        stop_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.STOP))
+        )
 
         info_and_buttons.addWidget(submerge_button)
         info_and_buttons.addWidget(pump_button)
@@ -89,7 +88,7 @@ class FloatComm(QWidget):
         self.console.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
 
         font = self.console.font()
-        font.setFamily("Courier")
+        font.setFamily('Courier')
         font.setPointSize(11)
         self.console.setFont(font)
 
@@ -122,9 +121,9 @@ class FloatComm(QWidget):
         msg : FloatData
             the data from the float
         """
-        self.team_number.setText(f"Team #: {msg.team_number}")
-        self.profile_number.setText(f"Profile #: {msg.profile_number}")
-        self.profile_half.setText(f"Profile half: {msg.profile_half}")
+        self.team_number.setText(f'Team #: {msg.team_number}')
+        self.profile_number.setText(f'Profile #: {msg.profile_number}')
+        self.profile_half.setText(f'Profile half: {msg.profile_half}')
 
         time_data = list(msg.time_data)
         depth_data = list(msg.depth_data)
@@ -168,14 +167,14 @@ class FloatComm(QWidget):
     def handle_single(self, msg: FloatSingle) -> None:
         self.counter += 1
 
-        self.team_number.setText(f"Team #: {msg.team_number}")
-        self.time.setText(f"Time: {msg.time_ms} (ms)")
+        self.team_number.setText(f'Team #: {msg.team_number}')
+        self.time.setText(f'Time: {msg.time_ms} (ms)')
         # Magic mbar -> Kpa
         pressure = round(msg.pressure / 10, 4)
         avg_pressure = round(msg.average_pressure / 10, 4)
 
-        self.pressure.setText(f"Pressure: {pressure} (kPa)")
+        self.pressure.setText(f'Pressure: {pressure} (kPa)')
         if msg.average_pressure != float():
-            self.average_pressure.setText(f"Avg Pressure: {avg_pressure} (kPa)")
+            self.average_pressure.setText(f'Avg Pressure: {avg_pressure} (kPa)')
         else:
-            self.average_pressure.setText(f"Avg Pressure: {self.counter}/5")
+            self.average_pressure.setText(f'Avg Pressure: {self.counter}/5')
