@@ -6,7 +6,6 @@ from rov_msgs.msg import IPAddress
 
 
 class IPWidget(QWidget):
-
     signal = pyqtSignal(IPAddress)
 
     def __init__(self) -> None:
@@ -17,7 +16,9 @@ class IPWidget(QWidget):
 
         ip_layout = QVBoxLayout()
         wired_str = f'Last known Pi Wired IP: {IPAddress.ETHERNET_ADDRESS__DEFAULT}'
-        wireless_str = f'Last known Pi Wireless IP: {IPAddress.WIRELESS_ADDRESS__DEFAULT}'
+        wireless_str = (
+            f'Last known Pi Wireless IP: {IPAddress.WIRELESS_ADDRESS__DEFAULT}'
+        )
         self.ethernet_label = QLabel(wired_str)
         self.wireless_label = QLabel(wireless_str)
 
@@ -28,4 +29,6 @@ class IPWidget(QWidget):
     @pyqtSlot(IPAddress)
     def refresh(self, msg: IPAddress) -> None:
         self.ethernet_label.setText(f'Last known Pi Wired IP:  {msg.ethernet_address}')
-        self.wireless_label.setText(f'Last known Pi Wireless IP: {msg.wireless_address}')
+        self.wireless_label.setText(
+            f'Last known Pi Wireless IP: {msg.wireless_address}'
+        )

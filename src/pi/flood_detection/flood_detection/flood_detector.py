@@ -1,14 +1,14 @@
+import lgpio
 import rclpy
 from rclpy.node import Node
+
 from rov_msgs.msg import Flooding
-import lgpio
 
 # Pins used for GPIO
 DETECT_PIN = 17
 
 
 class FloodDetector(Node):
-
     def __init__(self) -> None:
         super().__init__('gpio_reader', parameter_overrides=[])
         self.publisher = self.create_publisher(Flooding, 'flooding', 10)
@@ -23,9 +23,9 @@ class FloodDetector(Node):
 
         # If any of the sensors detect water, send true to /tether/flooding
         msg = Flooding()
-        msg.flooding = (flood_reading == lgpio.HIGH)
+        msg.flooding = flood_reading == lgpio.HIGH
         if msg.flooding:
-            self.get_logger().error("The ebay is flooding")
+            self.get_logger().error('The ebay is flooding')
         self.publisher.publish(msg)
 
 

@@ -21,7 +21,6 @@ class Arm(QWidget):
     vehicle_state_signal = pyqtSignal(VehicleState)
 
     def __init__(self) -> None:
-
         super().__init__()
 
         layout = QHBoxLayout()
@@ -30,8 +29,8 @@ class Arm(QWidget):
         self.arm_button = ButtonIndicator()
         self.disarm_button = ButtonIndicator()
 
-        self.arm_button.setText("Arm")
-        self.disarm_button.setText("Disarm")
+        self.arm_button.setText('Arm')
+        self.disarm_button.setText('Disarm')
 
         self.arm_button.setMinimumWidth(self.BUTTON_WIDTH)
         self.disarm_button.setMinimumWidth(self.BUTTON_WIDTH)
@@ -52,9 +51,12 @@ class Arm(QWidget):
 
         self.command_response_signal.connect(self.arm_status)
 
-        self.arm_client = GUIEventClient(CommandBool, "mavros/cmd/arming",
-                                         self.command_response_signal,
-                                         expected_namespace='/tether')
+        self.arm_client = GUIEventClient(
+            CommandBool,
+            'mavros/cmd/arming',
+            self.command_response_signal,
+            expected_namespace='/tether',
+        )
 
         self.mavros_subscription = GUIEventSubscriber(
             VehicleState,
@@ -73,7 +75,7 @@ class Arm(QWidget):
     @pyqtSlot(CommandBool.Response)
     def arm_status(self, res: CommandBool.Response) -> None:
         if not res:
-            self.arm_client.get_logger().warn("Failed to arm or disarm.")
+            self.arm_client.get_logger().warn('Failed to arm or disarm.')
 
     @pyqtSlot(VehicleState)
     def vehicle_state_callback(self, msg: VehicleState) -> None:

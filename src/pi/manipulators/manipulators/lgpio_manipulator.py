@@ -11,7 +11,6 @@ MANIP_PIN_TWO = 24
 
 
 class Manipulator(Node):
-
     def __init__(self) -> None:
         super().__init__('lgpio_manipulator')
 
@@ -19,7 +18,7 @@ class Manipulator(Node):
             Manip,
             'manipulator_control',
             self.manip_callback,
-            qos_profile_system_default
+            qos_profile_system_default,
         )
 
         self.gpio_handle = lgpio.gpiochip_open(0)
@@ -31,12 +30,12 @@ class Manipulator(Node):
         manip_id = message.manip_id
         activated = message.activated
 
-        if manip_id == "left":
+        if manip_id == 'left':
             if activated:
                 lgpio.gpio_write(self.gpio_handle, MANIP_PIN_ONE, lgpio.HIGH)
             else:
                 lgpio.gpio_write(self.gpio_handle, MANIP_PIN_ONE, lgpio.LOW)
-        elif manip_id == "right":
+        elif manip_id == 'right':
             if activated:
                 lgpio.gpio_write(self.gpio_handle, MANIP_PIN_TWO, lgpio.HIGH)
             else:

@@ -1,14 +1,14 @@
 from gui.app import App
-from gui.widgets.logger import Logger
-from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.float_comm import FloatComm
-from gui.widgets.timer import InteractiveTimer
-from gui.widgets.task_selector import TaskSelector
 from gui.widgets.flood_warning import FloodWarning
-from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.heartbeat import HeartbeatWidget
 from gui.widgets.ip_widget import IPWidget
-from PyQt6.QtWidgets import QTabWidget, QWidget, QVBoxLayout, QHBoxLayout
+from gui.widgets.logger import Logger
+from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
+from gui.widgets.task_selector import TaskSelector
+from gui.widgets.temperature import TemperatureSensor
+from gui.widgets.timer import InteractiveTimer
+from PyQt6.QtWidgets import QHBoxLayout, QTabWidget, QVBoxLayout, QWidget
 
 
 class OperatorApp(App):
@@ -47,8 +47,8 @@ class OperatorApp(App):
         self.setLayout(root_layout)
 
         tabs = QTabWidget()
-        tabs.addTab(main_tab, "Main")
-        tabs.addTab(GeneralDebugTab(), "General Debug")
+        tabs.addTab(main_tab, 'Main')
+        tabs.addTab(GeneralDebugTab(), 'General Debug')
         root_layout.addWidget(tabs)
 
 

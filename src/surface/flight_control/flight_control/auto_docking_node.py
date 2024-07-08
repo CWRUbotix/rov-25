@@ -8,16 +8,16 @@ from rov_msgs.srv import AutonomousFlight
 
 
 class AutoDocker(Node):
-
     def __init__(self) -> None:
         super().__init__('auto_docker')
 
         self.control_server = self.create_service(
-            AutonomousFlight, 'auto_control_toggle', self.task_control_callback)
+            AutonomousFlight, 'auto_control_toggle', self.task_control_callback
+        )
 
         self.pixhawk_control = self.create_publisher(
             PixhawkInstruction,
-            "pixhawk_control",
+            'pixhawk_control',
             QoSPresetProfiles.DEFAULT.value,
         )
 
@@ -25,8 +25,9 @@ class AutoDocker(Node):
 
         # TODO: Add cam frame subscriber here to act as control loop for auto docking
 
-    def task_control_callback(self, request: AutonomousFlight.Request,
-                              response: AutonomousFlight.Response) -> AutonomousFlight.Response:
+    def task_control_callback(
+        self, request: AutonomousFlight.Request, response: AutonomousFlight.Response
+    ) -> AutonomousFlight.Response:
         self.current_state = request.state
         response.current_state = request.state
         return response

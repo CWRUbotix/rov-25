@@ -8,20 +8,21 @@ from rov_msgs.msg import VehicleState
 
 
 class HeartbeatWidget(QWidget):
-
     signal = pyqtSignal(VehicleState)
 
     def __init__(self) -> None:
         super().__init__()
 
         self.signal.connect(self.refresh)
-        self.subscription = GUIEventSubscriber(VehicleState, 'vehicle_state_event', self.signal)
+        self.subscription = GUIEventSubscriber(
+            VehicleState, 'vehicle_state_event', self.signal
+        )
         # Create a latch variable
         self.warning_msg_latch: bool = False
 
         heartbeat_layout = QVBoxLayout()
 
-        font = QFont("Arial", 14)
+        font = QFont('Arial', 14)
 
         pi_status_layout = QHBoxLayout()
         self.pi_indicator = QLabel('No Pi Status')

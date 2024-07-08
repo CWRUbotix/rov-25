@@ -1,30 +1,33 @@
-from gui.app import App
-from gui.widgets.arm import Arm
-from gui.widgets.timer import TimerDisplay
-from gui.widgets.flood_warning import FloodWarning
-from gui.widgets.video_widget import (CameraDescription, CameraType,
-                                      VideoWidget)
-from gui.widgets.livestream_header import LivestreamHeader
-
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout
-from PyQt6.QtGui import QScreen
-
 import enum
 
+from gui.app import App
+from gui.widgets.arm import Arm
+from gui.widgets.flood_warning import FloodWarning
+from gui.widgets.livestream_header import LivestreamHeader
+from gui.widgets.timer import TimerDisplay
+from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QScreen
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout
 
 FRONT_CAM_TOPIC = 'front_cam/image_raw'
 BOTTOM_CAM_TOPIC = 'bottom_cam/image_raw'
 
 
 class GuiType(enum.Enum):
-    PILOT = "pilot"
-    LIVESTREAM = "livestream"
-    DEBUG = "debug"
+    PILOT = 'pilot'
+    LIVESTREAM = 'livestream'
+    DEBUG = 'debug'
 
 
-TWO_MONITOR_CONFIG: dict[GuiType, int | None] = {GuiType.PILOT: None, GuiType.LIVESTREAM: 1}
-THREE_MONITOR_CONFIG: dict[GuiType, int | None] = {GuiType.PILOT: 2, GuiType.LIVESTREAM: 1}
+TWO_MONITOR_CONFIG: dict[GuiType, int | None] = {
+    GuiType.PILOT: None,
+    GuiType.LIVESTREAM: 1,
+}
+THREE_MONITOR_CONFIG: dict[GuiType, int | None] = {
+    GuiType.PILOT: 2,
+    GuiType.LIVESTREAM: 1,
+}
 
 
 class PilotApp(App):
@@ -50,23 +53,19 @@ class PilotApp(App):
             self.setWindowTitle('Pilot GUI - CWRUbotix ROV 2024')
 
             front_cam_description = CameraDescription(
-                front_cam_type,
-                FRONT_CAM_TOPIC,
-                "Front Camera",
-                1280, 720
+                front_cam_type, FRONT_CAM_TOPIC, 'Front Camera', 1280, 720
             )
             bottom_cam_description = CameraDescription(
-                bottom_cam_type,
-                BOTTOM_CAM_TOPIC,
-                "Bottom Camera",
-                1280, 720
+                bottom_cam_type, BOTTOM_CAM_TOPIC, 'Bottom Camera', 1280, 720
             )
 
-            main_layout.addWidget(VideoWidget(front_cam_description),
-                                  alignment=Qt.AlignmentFlag.AlignHCenter)
+            main_layout.addWidget(
+                VideoWidget(front_cam_description),
+                alignment=Qt.AlignmentFlag.AlignHCenter,
+            )
             main_layout.addWidget(
                 VideoWidget(bottom_cam_description),
-                alignment=Qt.AlignmentFlag.AlignHCenter
+                alignment=Qt.AlignmentFlag.AlignHCenter,
             )
 
             main_layout.addLayout(self.make_bottom_bar())
@@ -84,24 +83,22 @@ class PilotApp(App):
             self.setWindowTitle('Livestream GUI - CWRUbotix ROV 2024')
 
             front_cam_description = CameraDescription(
-                front_cam_type,
-                FRONT_CAM_TOPIC,
-                "Forward Camera",
-                920, 690
+                front_cam_type, FRONT_CAM_TOPIC, 'Forward Camera', 920, 690
             )
             bottom_cam_description = CameraDescription(
-                bottom_cam_type,
-                BOTTOM_CAM_TOPIC,
-                "Down Camera",
-                920, 690
+                bottom_cam_type, BOTTOM_CAM_TOPIC, 'Down Camera', 920, 690
             )
 
             video_layout = QHBoxLayout()
 
-            video_layout.addWidget(VideoWidget(front_cam_description),
-                                   alignment=Qt.AlignmentFlag.AlignHCenter)
-            video_layout.addWidget(VideoWidget(bottom_cam_description),
-                                   alignment=Qt.AlignmentFlag.AlignHCenter)
+            video_layout.addWidget(
+                VideoWidget(front_cam_description),
+                alignment=Qt.AlignmentFlag.AlignHCenter,
+            )
+            video_layout.addWidget(
+                VideoWidget(bottom_cam_description),
+                alignment=Qt.AlignmentFlag.AlignHCenter,
+            )
             video_layout.setSpacing(0)
 
             main_layout.addLayout(video_layout)
@@ -111,25 +108,21 @@ class PilotApp(App):
             self.setWindowTitle('Debug GUI - CWRUbotix ROV 2024')
 
             front_cam_description = CameraDescription(
-                front_cam_type,
-                FRONT_CAM_TOPIC,
-                "Front Camera",
-                721, 541
+                front_cam_type, FRONT_CAM_TOPIC, 'Front Camera', 721, 541
             )
             bottom_cam_description = CameraDescription(
-                bottom_cam_type,
-                BOTTOM_CAM_TOPIC,
-                "Bottom Camera",
-                721, 541
+                bottom_cam_type, BOTTOM_CAM_TOPIC, 'Bottom Camera', 721, 541
             )
 
             video_layout = QHBoxLayout()
 
-            video_layout.addWidget(VideoWidget(front_cam_description),
-                                   alignment=Qt.AlignmentFlag.AlignHCenter)
+            video_layout.addWidget(
+                VideoWidget(front_cam_description),
+                alignment=Qt.AlignmentFlag.AlignHCenter,
+            )
             video_layout.addWidget(
                 VideoWidget(bottom_cam_description),
-                alignment=Qt.AlignmentFlag.AlignHCenter
+                alignment=Qt.AlignmentFlag.AlignHCenter,
             )
 
             main_layout.addLayout(video_layout)
@@ -151,12 +144,15 @@ class PilotApp(App):
         bottom_screen_layout.addWidget(timer)
 
         flood_widget = FloodWarning()
-        bottom_screen_layout.addWidget(flood_widget, alignment=Qt.AlignmentFlag.AlignHCenter |
-                                       Qt.AlignmentFlag.AlignBottom)
+        bottom_screen_layout.addWidget(
+            flood_widget,
+            alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom,
+        )
 
         arm = Arm()
-        bottom_screen_layout.addWidget(arm, alignment=Qt.AlignmentFlag.AlignRight |
-                                       Qt.AlignmentFlag.AlignBottom)
+        bottom_screen_layout.addWidget(
+            arm, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom
+        )
 
         return bottom_screen_layout
 

@@ -1,6 +1,6 @@
+import time
 
 from tca9555 import TCA9555
-import time
 
 ALL_BITS = (0, 1, 2, 3, 4, 5)
 
@@ -31,5 +31,5 @@ def main() -> None:
         gpio.unset_bits(bits=ALL_BITS)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -2,11 +2,11 @@ from collections.abc import MutableSequence
 from enum import IntEnum
 
 import rclpy
+from mavros_msgs.srv import CommandBool
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
 from sensor_msgs.msg import Joy
-from mavros_msgs.srv import CommandBool
 
 from rov_msgs.msg import (CameraControllerSwitch, Manip, PixhawkInstruction,
                           ValveManip)
@@ -44,7 +44,7 @@ ARMING_SERVICE_TIMEOUT = 3.0
 ARM_MESSAGE = CommandBool.Request(value=True)
 DISARM_MESSAGE = CommandBool.Request(value=False)
 
-CONTROLLER_MODE_PARAM = "controller_mode"
+CONTROLLER_MODE_PARAM = 'controller_mode'
 
 
 class ControllerMode(IntEnum):
@@ -56,33 +56,26 @@ class ManualControlNode(Node):
     def __init__(self) -> None:
         super().__init__('manual_control_node')
 
-        mode_param = self.declare_parameter(CONTROLLER_MODE_PARAM, value=ControllerMode.ARM)
+        mode_param = self.declare_parameter(
+            CONTROLLER_MODE_PARAM, value=ControllerMode.ARM
+        )
 
         self.rc_pub = self.create_publisher(
-            PixhawkInstruction,
-            'uninverted_pixhawk_control',
-            qos_profile_system_default
+            PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_system_default
         )
 
         self.subscription = self.create_subscription(
-            Joy,
-            'joy',
-            self.controller_callback,
-            qos_profile_sensor_data
+            Joy, 'joy', self.controller_callback, qos_profile_sensor_data
         )
 
         # Manipulators
         self.manip_publisher = self.create_publisher(
-            Manip,
-            'manipulator_control',
-            qos_profile_system_default
+            Manip, 'manipulator_control', qos_profile_system_default
         )
 
         # Valve Manip
         self.valve_manip = self.create_publisher(
-            ValveManip,
-            "valve_manipulator",
-            qos_profile_system_default
+            ValveManip, 'valve_manipulator', qos_profile_system_default
         )
 
         controller_mode = ControllerMode(mode_param.value)
@@ -91,18 +84,16 @@ class ManualControlNode(Node):
             # Control camera switching
             self.misc_controls_callback = self.toggle_cameras
             self.camera_toggle_publisher = self.create_publisher(
-                CameraControllerSwitch,
-                "camera_switch",
-                qos_profile_system_default
+                CameraControllerSwitch, 'camera_switch', qos_profile_system_default
             )
         else:
             self.misc_controls_callback = self.set_arming
             # Control arming
-            self.arm_client = self.create_client(CommandBool, "mavros/cmd/arming")
+            self.arm_client = self.create_client(CommandBool, 'mavros/cmd/arming')
 
         self.manip_buttons: dict[int, ManipButton] = {
-            X_BUTTON: ManipButton("left"),
-            O_BUTTON: ManipButton("right")
+            X_BUTTON: ManipButton('left'),
+            O_BUTTON: ManipButton('right'),
         }
 
         self.seen_left_cam = False
@@ -122,11 +113,12 @@ class ManualControlNode(Node):
         instruction = PixhawkInstruction(
             forward=float(axes[LJOYY]),  # Left Joystick Y
             lateral=-float(axes[LJOYX]),  # Left Joystick X
-            vertical=float(axes[L2PRESS_PERCENT] - axes[R2PRESS_PERCENT]) / 2,  # L2/R2 triggers
+            vertical=float(axes[L2PRESS_PERCENT] - axes[R2PRESS_PERCENT])
+            / 2,  # L2/R2 triggers
             roll=float(buttons[L1] - buttons[R1]),  # L1/R1 buttons
             pitch=float(axes[RJOYY]),  # Right Joystick Y
             yaw=-float(axes[RJOYX]),  # Right Joystick X
-            author=PixhawkInstruction.MANUAL_CONTROL
+            author=PixhawkInstruction.MANUAL_CONTROL,
         )
 
         self.rc_pub.publish(instruction)
@@ -141,8 +133,9 @@ class ManualControlNode(Node):
                 new_manip_state = not manip_button.is_active
                 manip_button.is_active = new_manip_state
 
-                manip_msg = Manip(manip_id=manip_button.claw,
-                                  activated=manip_button.is_active)
+                manip_msg = Manip(
+                    manip_id=manip_button.claw, activated=manip_button.is_active
+                )
                 self.manip_publisher.publish(manip_msg)
             manip_button.last_button_state = just_pressed
 
@@ -169,10 +162,14 @@ class ManualControlNode(Node):
             self.seen_left_cam = True
         elif buttons[MENU] == UNPRESSED and self.seen_right_cam:
             self.seen_right_cam = False
-            self.camera_toggle_publisher.publish(CameraControllerSwitch(toggle_right=True))
+            self.camera_toggle_publisher.publish(
+                CameraControllerSwitch(toggle_right=True)
+            )
         elif buttons[PAIRING_BUTTON] == UNPRESSED and self.seen_left_cam:
             self.seen_left_cam = False
-            self.camera_toggle_publisher.publish(CameraControllerSwitch(toggle_right=False))
+            self.camera_toggle_publisher.publish(
+                CameraControllerSwitch(toggle_right=False)
+            )
 
     def set_arming(self, msg: Joy) -> None:
         """Set the arming state using the menu and pairing buttons."""

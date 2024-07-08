@@ -1,15 +1,16 @@
+from gui.gui_nodes.event_nodes.client import GUIEventClient
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QGridLayout, QLabel, QPushButton, QWidget
-from rov_msgs.msg import MissionTimerTick
-from rov_msgs.srv import MissionTimerSet
 from rclpy.duration import Duration
 
-from gui.gui_nodes.event_nodes.client import GUIEventClient
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from rov_msgs.msg import MissionTimerTick
+from rov_msgs.srv import MissionTimerSet
 
-
-RESET_SECONDS = 15 * 60  # The number of seconds to set the timer to when reset is clicked
+RESET_SECONDS = (
+    15 * 60
+)  # The number of seconds to set the timer to when reset is clicked
 
 
 class TimerDisplay(QLabel):
@@ -32,7 +33,7 @@ class TimerDisplay(QLabel):
 
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFont(QFont('Arial', 36))
-        self.setText("--:--")
+        self.setText('--:--')
 
     def update_label(self, seconds_left: int) -> None:
         """
@@ -45,7 +46,7 @@ class TimerDisplay(QLabel):
         """
         minutes = seconds_left // 60
         seconds = seconds_left % 60
-        self.setText(f"{minutes:02d}:{seconds:02d}")
+        self.setText(f'{minutes:02d}:{seconds:02d}')
 
     @pyqtSlot(MissionTimerTick)
     def mission_timer_callback(self, msg: MissionTimerTick) -> None:
@@ -79,9 +80,7 @@ class InteractiveTimer(QWidget):
         super().__init__()
 
         self.set_timer_client = GUIEventClient(
-            MissionTimerSet,
-            "set_mission_timer",
-            self.set_timer_response_signal
+            MissionTimerSet, 'set_mission_timer', self.set_timer_response_signal
         )
         self.set_timer_response_signal.connect(self.set_time_response_callback)
 
@@ -116,17 +115,14 @@ class InteractiveTimer(QWidget):
         """
         self.toggle_btn.setChecked(msg.is_running)
         if msg.is_running:
-            self.toggle_btn.setText("Pause")
+            self.toggle_btn.setText('Pause')
         else:
-            self.toggle_btn.setText("Start")
+            self.toggle_btn.setText('Start')
 
     def toggle_timer(self) -> None:
         """If the ROS timer is running, pause it. If it's paused, resume it."""
         self.set_timer_client.send_request_async(
-            MissionTimerSet.Request(
-                set_running=True,
-                running=not self.timer.running
-            )
+            MissionTimerSet.Request(set_running=True, running=not self.timer.running)
         )
 
     def reset_timer(self) -> None:
@@ -136,7 +132,7 @@ class InteractiveTimer(QWidget):
                 set_time=True,
                 time=Duration(seconds=RESET_SECONDS).to_msg(),
                 set_running=True,
-                running=False
+                running=False,
             )
         )
 
@@ -151,4 +147,4 @@ class InteractiveTimer(QWidget):
             The ROS response sent by the timer node.
         """
         if not res.success:
-            self.set_timer_client.get_logger().error("Failed to set timer")
+            self.set_timer_client.get_logger().error('Failed to set timer')

@@ -23,11 +23,10 @@ def test_joystick_profiles() -> None:
         forward=0,
         vertical=1,
         lateral=-1,
-
         # Not nice possible values
         pitch=0.34,
         yaw=-0.6,
-        roll=0.92
+        roll=0.92,
     )
 
     msg = MultiplexerNode.to_override_rc_in(instruction)

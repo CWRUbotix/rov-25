@@ -1,13 +1,14 @@
 from typing import Optional
+
 import rclpy
-from rclpy.node import Node
+from rclpy.duration import Duration
 from rclpy.executors import MultiThreadedExecutor
+from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 from rclpy.time import Time
-from rclpy.duration import Duration
+
 from rov_msgs.msg import MissionTimerTick
 from rov_msgs.srv import MissionTimerSet
-
 
 PUBLISH_RATE = 10  # Hz
 DEFAULT_DURATION = Duration(seconds=15 * 60)
@@ -23,14 +24,14 @@ class TimerNode(Node):
 
     def __init__(self) -> None:
         """Initialize the publisher, service client, and internal variables."""
-        super().__init__("timer_node", parameter_overrides=[])
+        super().__init__('timer_node', parameter_overrides=[])
 
         self.publisher = self.create_publisher(
-            MissionTimerTick, "mission_timer", qos_profile_system_default
+            MissionTimerTick, 'mission_timer', qos_profile_system_default
         )
 
         self.set_time_service = self.create_service(
-            MissionTimerSet, "set_mission_timer", callback=self.set_time_callback
+            MissionTimerSet, 'set_mission_timer', callback=self.set_time_callback
         )
 
         self.publisher_timer = self.create_timer(1 / PUBLISH_RATE, self.timer_callback)
@@ -71,8 +72,9 @@ class TimerNode(Node):
         self.do_tick()
         self.publish_tick_message()
 
-    def set_time_callback(self, request: MissionTimerSet.Request,
-                          response: MissionTimerSet.Response) -> MissionTimerSet.Response:
+    def set_time_callback(
+        self, request: MissionTimerSet.Request, response: MissionTimerSet.Response
+    ) -> MissionTimerSet.Response:
         """
         Handle a request to start, stop, or reset the timer.
 
@@ -111,5 +113,5 @@ def run_timer() -> None:
     rclpy.spin(timer_node, executor=executor)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run_timer()

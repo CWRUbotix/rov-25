@@ -1,13 +1,13 @@
 from typing import Callable, Optional
 
-from gui.widgets.video_widget import CameraDescription, PauseableVideoWidget, CameraType
+from gui.widgets.video_widget import (CameraDescription, CameraType,
+                                      PauseableVideoWidget)
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QFrame, QGridLayout, QHBoxLayout, QLabel,
                              QPushButton, QVBoxLayout, QWidget)
 
 
 class SeagrassWidget(QWidget):
-
     BUTTON_WIDTH = 120
 
     def __init__(self) -> None:
@@ -16,32 +16,36 @@ class SeagrassWidget(QWidget):
         root_layout = QHBoxLayout(self)
 
         self.after_grid = SeagrassGrid(self.update_result_text)
-        self.before_grid = SeagrassGrid(self.update_result_text, self.after_grid.set_button)
+        self.before_grid = SeagrassGrid(
+            self.update_result_text, self.after_grid.set_button
+        )
         # Before layout
         before_layout = QVBoxLayout()
 
         before_btns_layout = QHBoxLayout()
 
-        set_all_green = QPushButton("Set All Green")
+        set_all_green = QPushButton('Set All Green')
         set_all_green.setMaximumWidth(self.BUTTON_WIDTH)
         set_all_green.clicked.connect(lambda: self.before_grid.reset_grid(True))
 
-        set_all_white = QPushButton("Set All White")
+        set_all_white = QPushButton('Set All White')
         set_all_white.setMaximumWidth(self.BUTTON_WIDTH)
         set_all_white.clicked.connect(lambda: self.before_grid.reset_grid(False))
 
         before_btns_layout.addWidget(set_all_green)
         before_btns_layout.addWidget(set_all_white)
 
-        before_layout.addWidget(QLabel("Before"), alignment=Qt.AlignmentFlag.AlignCenter)
+        before_layout.addWidget(
+            QLabel('Before'), alignment=Qt.AlignmentFlag.AlignCenter
+        )
         before_layout.addLayout(before_btns_layout)
         before_layout.addWidget(self.before_grid.frame)
 
         before_layout.addStretch()
 
-        bottom_cam_description = CameraDescription(CameraType.ETHERNET,
-                                                   'bottom_cam/image_raw',
-                                                   'Bottom Camera', 640, 370)
+        bottom_cam_description = CameraDescription(
+            CameraType.ETHERNET, 'bottom_cam/image_raw', 'Bottom Camera', 640, 370
+        )
         # Bottom cam
         self.bottom_cam = PauseableVideoWidget(bottom_cam_description)
 
@@ -49,13 +53,13 @@ class SeagrassWidget(QWidget):
         after_layout = QVBoxLayout()
         after_bttn_layout = QHBoxLayout()
 
-        match_before = QPushButton("Match Before")
+        match_before = QPushButton('Match Before')
         match_before.setMaximumWidth(120)
         match_before.clicked.connect(self.before_grid.update_connected_grid)
 
         after_bttn_layout.addWidget(match_before)
 
-        after_layout.addWidget(QLabel("After"), alignment=Qt.AlignmentFlag.AlignCenter)
+        after_layout.addWidget(QLabel('After'), alignment=Qt.AlignmentFlag.AlignCenter)
         after_layout.addLayout(after_bttn_layout)
         after_layout.addWidget(self.after_grid.frame)
 
@@ -67,8 +71,8 @@ class SeagrassWidget(QWidget):
 
         result_widget.setLayout(result_layout)
 
-        self.before_label = QLabel("Before: ")
-        self.after_label = QLabel("After: ")
+        self.before_label = QLabel('Before: ')
+        self.after_label = QLabel('After: ')
         self.diff_label = QLabel()
 
         result_layout.addWidget(self.before_label)
@@ -92,21 +96,24 @@ class SeagrassWidget(QWidget):
         diff: int = abs(after_num - before_num)
 
         if after_num > before_num:
-            result = f"{diff} went from white to green"
+            result = f'{diff} went from white to green'
         elif after_num < before_num:
-            result = f"{diff} went from green to white"
+            result = f'{diff} went from green to white'
         else:
-            result = "There was no change"
+            result = 'There was no change'
 
-        self.before_label.setText(f"Before: {before_num} green")
-        self.after_label.setText(f"After: {after_num} green")
+        self.before_label.setText(f'Before: {before_num} green')
+        self.after_label.setText(f'After: {after_num} green')
 
         self.diff_label.setText(result)
 
 
 class SeagrassGrid(QWidget):
-    def __init__(self, update_result_text: Callable[[], None],
-                 set_other_button: Optional[Callable[[int, bool], None]] = None) -> None:
+    def __init__(
+        self,
+        update_result_text: Callable[[], None],
+        set_other_button: Optional[Callable[[int, bool], None]] = None,
+    ) -> None:
         super().__init__()
 
         self.set_other_button: Optional[Callable[[int, bool], None]] = set_other_button
@@ -121,7 +128,7 @@ class SeagrassGrid(QWidget):
 
         self.frame = QFrame()
         self.frame.setLayout(grid_layout)
-        self.frame.setStyleSheet("border: 1px solid gray")
+        self.frame.setStyleSheet('border: 1px solid gray')
 
         self.all_buttons: list[SeagrassButton] = []
         N = 8
@@ -129,9 +136,9 @@ class SeagrassGrid(QWidget):
 
         for row in range(N):
             for col in range(N):
-                seagrass_button: SeagrassButton = SeagrassButton(button_id, 50,
-                                                                 update_result_text,
-                                                                 self.set_other_button)
+                seagrass_button: SeagrassButton = SeagrassButton(
+                    button_id, 50, update_result_text, self.set_other_button
+                )
                 self.all_buttons.append(seagrass_button)
 
                 grid_layout.addWidget(seagrass_button, row, col)
@@ -153,7 +160,7 @@ class SeagrassGrid(QWidget):
 
     def update_connected_grid(self) -> None:
         if self.set_other_button is None:
-            raise ValueError("self.set_other_button has been called on after grid")
+            raise ValueError('self.set_other_button has been called on after grid')
 
         for button in self.all_buttons:
             self.set_other_button(button.button_id, button.recovered)
@@ -164,15 +171,20 @@ class SeagrassGrid(QWidget):
 
 
 class SeagrassButton(QPushButton):
-    def __init__(self, button_id: int, size: int, update_text: Callable[[], None],
-                 set_other_button: Optional[Callable[[int, bool], None]] = None) -> None:
+    def __init__(
+        self,
+        button_id: int,
+        size: int,
+        update_text: Callable[[], None],
+        set_other_button: Optional[Callable[[int, bool], None]] = None,
+    ) -> None:
         super(SeagrassButton, self).__init__()
 
         self.button_id: int = button_id
         self.setFixedSize(size, size)
 
         self.recovered = True
-        self.setStyleSheet("border: 1px solid gray; background-color : green")
+        self.setStyleSheet('border: 1px solid gray; background-color : green')
 
         self.update_text = update_text
         self.set_other_button = set_other_button
@@ -188,11 +200,11 @@ class SeagrassButton(QPushButton):
         self.recovered = recovered
 
         if recovered:
-            color = "green"
+            color = 'green'
         else:
-            color = "white"
+            color = 'white'
 
-        self.setStyleSheet(f"border: 1px solid gray; background-color :{color}")
+        self.setStyleSheet(f'border: 1px solid gray; background-color :{color}')
 
         # Update other button
         if self.set_other_button is not None:

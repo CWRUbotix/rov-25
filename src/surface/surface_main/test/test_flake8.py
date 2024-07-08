@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ament_flake8.main import main_with_errors
 import pytest
+from ament_flake8.main import main_with_errors
 
 
 @pytest.mark.flake8
@@ -22,6 +22,6 @@ import pytest
 def test_flake8() -> None:
     """Tests flake8 on this module."""
     error_code, errors = main_with_errors(argv=[])
-    assert error_code == 0, \
-        f'Found {len(errors)} code style errors / warnings:\n' + \
-        '\n'.join(errors)
+    assert error_code == 0, (
+        f'Found {len(errors)} code style errors / warnings:\n' + '\n'.join(errors)
+    )
