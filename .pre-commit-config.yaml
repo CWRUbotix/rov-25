@@ -20,8 +20,9 @@ repos:
     hooks:
       - id: isort
 
--  repo: https://github.com/pre-commit/mirrors-clang-format
-   rev: v14.0.6 # TODO update with clang version
-   hooks:
-   -  id: clang-format
-    # args: ["--config", "src/float/.clangformat.yaml"]
+  # TODO clang-format
+# -  repo: https://github.com/pre-commit/mirrors-clang-format
+#    rev: v14.0.6 # TODO update with clang version
+#    hooks:
+#    -  id: clang-format
+#     # args: ["--config", "src/float/.clangformat.yaml"]
