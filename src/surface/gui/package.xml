@@ -8,6 +8,7 @@
   <license>Apache License 2.0</license>
 
   <test_depend>ament_flake8</test_depend>
+  <test_depend>python-pytest-qt-pip</test_depend>
   <test_depend>ament_mypy</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>

@@ -15,9 +15,6 @@ RUN apt-get update -y \
   python3-pip \
   # Install geographiclib dependencies for mavros.
   geographiclib-tools \
-  # Install missing libxcb-cursor0 xvfb for PyQt unit testing
-# https://pytest-qt.readthedocs.io/en/latest/troubleshooting.html
-  xvfb \
   && apt-get upgrade -y \
   # Clean for better performance
   && apt-get clean \
