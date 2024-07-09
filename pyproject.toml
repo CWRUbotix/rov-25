@@ -2,6 +2,7 @@
 name = "rov-25"
 # I know Ben hates this but this required lol
 version = "1.2.0"
+requires-python = ">=3.12"
 
 dependencies = [
     'pyqt6',
@@ -13,22 +14,6 @@ dependencies = [
     'pymavlink',
     # Comment out for now because mavproxy installs numpy v2 breaking things :(
     #'mavproxy'
-]
-
-[tool]
-line-length = 100
-
-[tool.pydocstyle]
-convention = "numpy"
-add-ignore=[
-    "D100",
-    "D101",
-    "D102",
-    "D103",
-    "D104",
-    "D105",
-    "D106",
-    "D107"
 ]
 
 [tool.mypy]
@@ -50,7 +35,20 @@ extension-pkg-whitelist = ["PyQt6", "cv2"]
 # For precommit CI
 [tool.ruff]
 format.quote-style = 'single'
+exclude = ["src/util/ament_pep257", "src/surface/ros2_video_streamer"]
 
 # Done to sort imports
+line-length = 100
 [tool.ruff.lint]
-extend-select = ["I", "COM819"]
+flake8-quotes.inline-quotes='single'
+extend-select = ["ALL"]
+fixable = ["ALL"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "T201", "FIX002", "TD003", "TD002", "TRY003", "EM101", "EM102", "RET504", "D211", "COM812", "ISC001", "ERA001"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"test*" = ["S101", "INP001", "PLR2004"]
+"setup.py" = ["INP001"]
+"*/launch/*" = ["INP001"]
