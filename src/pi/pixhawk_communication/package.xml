@@ -27,7 +27,7 @@
 
   <!-- Dependencies for pymavlink -->
   <depend>python3-future</depend>
-  <!-- Until rosdep can support pip on python3.11+ -->
+  <!-- Installing this in pyproject.toml until rosdep supports pip on python3.11+ -->
   <!-- <depend>python-pymavlink</depend> -->
 
   <export>
