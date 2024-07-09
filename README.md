@@ -160,7 +160,7 @@ In VSCode, press `F1` or `ctrl+shift+p` and enter `Tasks: Run Test Task` as anot
 
 It runs the tests and pipes the output to the terminal. To test pi_main make sure to type your password into the terminal after running the above command.
 
-If you install the mypy extension they should help enforce the linters.
+If you install the mypy extension it should help enforce the linters.
 
 <!-- ### Automatic building for non-VSCode heathens
 
