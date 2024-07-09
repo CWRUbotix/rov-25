@@ -53,4 +53,4 @@ format.quote-style = 'single'
 
 # Done to sort imports
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = ["I", "COM819"]
