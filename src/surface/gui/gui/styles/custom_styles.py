@@ -1,23 +1,22 @@
-from PyQt6.QtWidgets import QWidget, QPushButton
+from PyQt6.QtWidgets import QPushButton, QWidget
 
 
 class IndicatorMixin(QWidget):
-
-    _PROPERTY_NAME = "widgetState"
+    _PROPERTY_NAME = 'widgetState'
 
     # A component is running, enabled, or armed
-    _ON = "on"
+    _ON = 'on'
 
     # A component is disabled, not running, or disarmed, but could be enabled through this widget
-    _OFF = "off"
+    _OFF = 'off'
 
     # A component is disabled, not expected to have any effect or perform its function because of
     # some external factor, either another widget or something external to the gui
     # For example, a the arm button when the pi is not connected
-    _INACTIVE = "inactive"
+    _INACTIVE = 'inactive'
 
     # Removes any state
-    _NO_STATE = ""
+    _NO_STATE = ''
 
     def set_on(self) -> None:
         self.setProperty(IndicatorMixin._PROPERTY_NAME, IndicatorMixin._ON)

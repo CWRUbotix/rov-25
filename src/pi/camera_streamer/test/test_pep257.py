@@ -23,6 +23,6 @@ from ament_pep257.main import main
 @pytest.mark.pep257
 def test_pep257() -> None:
     """Tests pep257 on this module."""
-    path = os.path.join(os.getcwd(), "..", "..", "..", "pyproject.toml")
+    path = os.path.join(os.getcwd(), '..', '..', '..', 'pyproject.toml')
     error_code = main(argv=['.', 'test', '--config', path])
     assert error_code == 0, 'Found code style errors / warnings'

@@ -1,6 +1,7 @@
-from setuptools import setup
-from glob import glob
 import os
+from glob import glob
+
+from setuptools import setup
 
 package_name = 'flood_detection'
 
@@ -9,12 +10,13 @@ setup(
     version='1.2.0',
     packages=[package_name],
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
+        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         # Include all launch files.
-        (os.path.join('share', package_name, 'launch'),
-         glob('launch/*launch.[pxy][yma]*'))
+        (
+            os.path.join('share', package_name, 'launch'),
+            glob('launch/*launch.[pxy][yma]*'),
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,7 +28,7 @@ setup(
     entry_points={
         'console_scripts': [
             'flood_detector = flood_detection.flood_detector:main',
-            'dry_run = flood_detection.gpio_reader_dry_run:main'
+            'dry_run = flood_detection.gpio_reader_dry_run:main',
         ],
     },
 )

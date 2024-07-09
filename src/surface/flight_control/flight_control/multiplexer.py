@@ -1,11 +1,10 @@
-import rclpy
-from rclpy.executors import MultiThreadedExecutor
-
-from rclpy.node import Node
-from rclpy.qos import QoSPresetProfiles
-from mavros_msgs.msg import OverrideRCIn
 from typing import Callable
 
+import rclpy
+from mavros_msgs.msg import OverrideRCIn
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.node import Node
+from rclpy.qos import QoSPresetProfiles
 from rov_msgs.msg import PixhawkInstruction
 from rov_msgs.srv import AutonomousFlight
 
@@ -42,32 +41,29 @@ def joystick_map(raw: float) -> float:
 
 class MultiplexerNode(Node):
     def __init__(self) -> None:
-        super().__init__('multiplexer',
-                         parameter_overrides=[])
+        super().__init__('multiplexer', parameter_overrides=[])
 
         self.state = AutonomousFlight.Request.STOP
 
         self.autonomous_toggle = self.create_service(
-            AutonomousFlight,
-            'auto_control_toggle',
-            self.state_control
+            AutonomousFlight, 'auto_control_toggle', self.state_control
         )
 
         self.control_subscription = self.create_subscription(
             PixhawkInstruction,
             'pixhawk_control',
             self.control_callback,
-            QoSPresetProfiles.DEFAULT.value
+            QoSPresetProfiles.DEFAULT.value,
         )
 
         self.rc_pub = self.create_publisher(
-            OverrideRCIn,
-            'mavros/rc/override',
-            QoSPresetProfiles.DEFAULT.value
+            OverrideRCIn, 'mavros/rc/override', QoSPresetProfiles.DEFAULT.value
         )
 
     @staticmethod
-    def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
+    def apply(
+        msg: PixhawkInstruction, function_to_apply: Callable[[float], float]
+    ) -> None:
         """Apply a function to each dimension of this PixhawkInstruction."""
         msg.forward = function_to_apply(msg.forward)
         msg.vertical = function_to_apply(msg.vertical)
@@ -93,24 +89,30 @@ class MultiplexerNode(Node):
 
         return rc_msg
 
-    def state_control(self, req: AutonomousFlight.Request,
-                      res: AutonomousFlight.Response) -> AutonomousFlight.Response:
+    def state_control(
+        self, req: AutonomousFlight.Request, res: AutonomousFlight.Response
+    ) -> AutonomousFlight.Response:
         self.state = req.state
         res.current_state = req.state
         return res
 
     def control_callback(self, msg: PixhawkInstruction) -> None:
-
-        if msg.author == PixhawkInstruction.MANUAL_CONTROL and \
-                self.state == AutonomousFlight.Request.STOP:
+        if (
+            msg.author == PixhawkInstruction.MANUAL_CONTROL
+            and self.state == AutonomousFlight.Request.STOP
+        ):
             # Smooth out adjustments
             # TODO look into maybe doing inheritance on a PixhawkInstruction
             MultiplexerNode.apply(msg, joystick_map)
-        elif msg.author == PixhawkInstruction.KEYBOARD_CONTROL and \
-                self.state == AutonomousFlight.Request.STOP:
+        elif (
+            msg.author == PixhawkInstruction.KEYBOARD_CONTROL
+            and self.state == AutonomousFlight.Request.STOP
+        ):
             pass
-        elif msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL and \
-                self.state == AutonomousFlight.Request.START:
+        elif (
+            msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL
+            and self.state == AutonomousFlight.Request.START
+        ):
             pass
         else:
             return

@@ -15,7 +15,7 @@ class ValveManipulator(Node):
             ValveManip,
             'valve_manipulator',
             self.manip_callback,
-            qos_profile_system_default
+            qos_profile_system_default,
         )
 
         self.gpio_handle = lgpio.gpiochip_open(0)

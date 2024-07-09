@@ -1,6 +1,6 @@
-from flight_control.keyboard_control_node import KeyboardListenerNode
-import rclpy
 import pytest
+import rclpy
+from flight_control.keyboard_control_node import KeyboardListenerNode
 
 
 @pytest.fixture

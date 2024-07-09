@@ -1,12 +1,12 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
+from launch.actions import GroupAction
+from launch.conditions import IfCondition
 from launch.launch_description import LaunchDescription
+from launch.substitutions.launch_configuration import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.parameter_descriptions import Parameter
-from launch.substitutions.launch_configuration import LaunchConfiguration
-from launch.conditions import IfCondition
-from launch.actions import GroupAction
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -14,8 +14,9 @@ def generate_launch_description() -> LaunchDescription:
     bottom_arg = LaunchConfiguration('launch_bottom', default=True)
     ns_arg = LaunchConfiguration('ns', default='')
 
-    parameter_file = os.path.join(get_package_share_directory('rov_flir'), 'config',
-                                  'blackfly_s.yaml')
+    parameter_file = os.path.join(
+        get_package_share_directory('rov_flir'), 'config', 'blackfly_s.yaml'
+    )
 
     parameters = {
         'debug': False,
@@ -51,7 +52,7 @@ def generate_launch_description() -> LaunchDescription:
         'chunk_selector_gain': 'Gain',
         'chunk_enable_gain': True,
         'chunk_selector_timestamp': 'Timestamp',
-        'chunk_enable_timestamp': True
+        'chunk_enable_timestamp': True,
     }
 
     # launches node to run front flir camera
@@ -62,10 +63,12 @@ def generate_launch_description() -> LaunchDescription:
         exec_name='front_cam',
         emulate_tty=True,
         output='screen',
-        parameters=[Parameter('serial_number', '23473566'),
-                    Parameter('parameter_file', parameter_file),
-                    parameters],
-        condition=IfCondition(front_arg)
+        parameters=[
+            Parameter('serial_number', '23473566'),
+            Parameter('parameter_file', parameter_file),
+            parameters,
+        ],
+        condition=IfCondition(front_arg),
     )
 
     # launches node to run bottom flir camera
@@ -76,18 +79,16 @@ def generate_launch_description() -> LaunchDescription:
         exec_name='bottom_cam',
         emulate_tty=True,
         output='screen',
-        parameters=[Parameter('serial_number', '23473577'),
-                    Parameter('parameter_file', parameter_file),
-                    parameters],
-        condition=IfCondition(bottom_arg)
+        parameters=[
+            Parameter('serial_number', '23473577'),
+            Parameter('parameter_file', parameter_file),
+            parameters,
+        ],
+        condition=IfCondition(bottom_arg),
     )
 
     namespace_launch = GroupAction(
-        actions=[
-            PushRosNamespace(ns_arg),
-            front_cam,
-            bottom_cam
-        ]
+        actions=[PushRosNamespace(ns_arg), front_cam, bottom_cam]
     )
 
     return LaunchDescription([namespace_launch])

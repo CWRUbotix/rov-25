@@ -9,24 +9,23 @@ ALL_BITS = (0, 1, 2, 3, 4, 5)
 
 
 class Manipulator(Node):
-
     def __init__(self) -> None:
-        super().__init__('manipulator',
-                         parameter_overrides=[])
+        super().__init__('manipulator', parameter_overrides=[])
 
         self.subscription = self.create_subscription(
             Manip,
             'manipulator_control',
             self.manip_callback,
-            qos_profile_system_default
+            qos_profile_system_default,
         )
 
         self.declare_parameters(
-            namespace="",
+            namespace='',
             parameters=[
-                ("left", Parameter.Type.INTEGER),
-                ("right", Parameter.Type.INTEGER)
-            ])
+                ('left', Parameter.Type.INTEGER),
+                ('right', Parameter.Type.INTEGER),
+            ],
+        )
 
         # Initialize with standard I2C-bus address of TCA9555 a.k.a 0x20
         self.i2c = TCA9555()  # can put in the address as a param in hexadecimal
@@ -40,7 +39,7 @@ class Manipulator(Node):
         manip_id = message.manip_id
         activated = message.activated
 
-        if manip_id != "valve":
+        if manip_id != 'valve':
             pin = self.get_parameter(manip_id).get_parameter_value().integer_value
 
             if activated:
