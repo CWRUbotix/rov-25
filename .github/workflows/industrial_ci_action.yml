@@ -53,8 +53,6 @@ jobs:
         # Need since mypy < 0.981 does not work with type stubs.
         # Ubuntu 24 has 1.9 so should be fine when we upgrade
           AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install --upgrade pip && pip install /root/target_ws/src/rov-25 --user && pip install "mypy>=1.7" --user && rm -r /root/target_ws/src/rov-25/build'
-          # Used for running our CI but don't necessarily want to run others failing unit tests (ej. ament_pep257)
-          UPSTREAM_WORKSPACE: 'github:InvincibleRMC/ament_pep257#main'
 
       # Once a :jazzy exists we can remove this section
       - uses: 'ros-industrial/industrial_ci@master' # run industrial_ci
@@ -69,5 +67,3 @@ jobs:
             ADDITIONAL_DEBS: 'python3-pyqt6.qtmultimedia'
             # Crazy one liner for install python dependencies
             AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install /root/target_ws/src/rov-25 --user --break-system-packages && rm -r /root/target_ws/src/rov-25/build'
-            # Used for running our CI but don't necessarily want to run others failing unit tests (ej. ament_pep257)
-            UPSTREAM_WORKSPACE: 'github:InvincibleRMC/ament_pep257#main'
