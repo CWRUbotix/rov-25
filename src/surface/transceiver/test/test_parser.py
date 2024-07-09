@@ -1,6 +1,6 @@
 from collections import deque
 from queue import Queue
-from typing import Generator, TypeVar
+from typing import TypeVar
 
 import pytest
 from rov_msgs.msg import FloatData
@@ -32,9 +32,9 @@ TEST_VALUES = (992.4500, 994.4299, 992.9600, 993.3699, 993.26)
 EXPECTED_VALUES = (992.4500, 993.43995, 993.27996666666, 993.30245, 993.29396)
 
 
-@pytest.fixture
-def packet_handler() -> Generator[SerialReaderPacketHandler, None, None]:
-    yield SerialReaderPacketHandler()
+@pytest.fixture()
+def packet_handler() -> SerialReaderPacketHandler:
+    return SerialReaderPacketHandler()
 
 
 def test_message_parser(packet_handler: SerialReaderPacketHandler) -> None:
@@ -76,7 +76,7 @@ def test_message_parser(packet_handler: SerialReaderPacketHandler) -> None:
             5.671316623687744,
             5.687016487121582,
             5.702716827392578,
-        ],  # noqa 501
+        ],  # 501
         depth_data=[
             0.3828616142272949,
             0.38326960802078247,
@@ -109,17 +109,13 @@ def test_message_parser(packet_handler: SerialReaderPacketHandler) -> None:
             1.044724941253662,
             1.0454388856887817,
             1.04594886302948,
-        ],  # noqa 501
+        ],  # 501
     )
 
-    with pytest.raises(
-        ValueError, match='Packet expected 3 sections, found 2 sections'
-    ):
+    with pytest.raises(ValueError, match='Packet expected 3 sections, found 2 sections'):
         packet_handler.message_parser(NOT_THREE_SECTIONS)
 
-    with pytest.raises(
-        ValueError, match='Packet header length of 3 expected found 2 instead'
-    ):
+    with pytest.raises(ValueError, match='Packet header length of 3 expected found 2 instead'):
         packet_handler.message_parser(HEADER_TWO_ELEMENTS)
 
 
@@ -127,7 +123,7 @@ def test_handle_ros_single(packet_handler: SerialReaderPacketHandler) -> None:
     test_queue: Queue[float] = Queue(5)
 
     for ros_single, test_value, expected_value in zip(
-        ROS_SINGLE_MSGS, TEST_VALUES, EXPECTED_VALUES
+        ROS_SINGLE_MSGS, TEST_VALUES, EXPECTED_VALUES, strict=False
     ):
         packet_handler.handle_ros_single(ros_single)
         test_queue.put(test_value)

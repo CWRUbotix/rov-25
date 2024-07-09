@@ -8,9 +8,7 @@ from rov_msgs.srv import MissionTimerSet
 from gui.gui_nodes.event_nodes.client import GUIEventClient
 from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
 
-RESET_SECONDS = (
-    15 * 60
-)  # The number of seconds to set the timer to when reset is clicked
+RESET_SECONDS = 15 * 60  # The number of seconds to set the timer to when reset is clicked
 
 
 class TimerDisplay(QLabel):

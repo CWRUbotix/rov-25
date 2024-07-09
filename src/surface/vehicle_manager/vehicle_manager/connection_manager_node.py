@@ -36,9 +36,7 @@ class VehicleManagerNode(Node):
         )
 
         self.watchdog_timer = self.create_timer(1, self.watchdog_callback)
-        self.last_heartbeat: float = (
-            0  # Unix timestamp of the last mavros heartbeat from the pi
-        )
+        self.last_heartbeat: float = 0  # Unix timestamp of the last mavros heartbeat from the pi
 
         self.last_subscriber_count = 0
         self.poll_subscribers_timer = self.create_timer(1, self.poll_subscribers)
@@ -67,9 +65,7 @@ class VehicleManagerNode(Node):
 
             if self.vehicle_state.pixhawk_connected and not new_state.pixhawk_connected:
                 self.get_logger().warn('Pixhawk disconnected')
-            elif (
-                not self.vehicle_state.pixhawk_connected and new_state.pixhawk_connected
-            ):
+            elif not self.vehicle_state.pixhawk_connected and new_state.pixhawk_connected:
                 self.get_logger().info('Pixhawk connected')
 
             if self.vehicle_state.armed and not new_state.armed:
@@ -88,10 +84,7 @@ class VehicleManagerNode(Node):
             self.get_logger().info('Pi connected')
 
     def watchdog_callback(self) -> None:
-        if (
-            self.vehicle_state.pi_connected
-            and time.time() - self.last_heartbeat > PI_TIMEOUT
-        ):
+        if self.vehicle_state.pi_connected and time.time() - self.last_heartbeat > PI_TIMEOUT:
             self.vehicle_state = VehicleState(
                 pi_connected=False, pixhawk_connected=False, armed=False
             )

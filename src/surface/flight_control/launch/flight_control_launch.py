@@ -7,9 +7,7 @@ def generate_launch_description() -> LaunchDescription:
     manual_control_node = Node(
         package='flight_control',
         executable='manual_control_node',
-        parameters=[
-            {'controller_mode': LaunchConfiguration('controller_mode', default=0)}
-        ],
+        parameters=[{'controller_mode': LaunchConfiguration('controller_mode', default=0)}],
         remappings=[
             ('/surface/manipulator_control', '/tether/manipulator_control'),
             ('/surface/valve_manipulator', '/tether/valve_manipulator'),

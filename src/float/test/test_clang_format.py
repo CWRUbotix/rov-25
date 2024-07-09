@@ -12,16 +12,12 @@ SRC = 'src'
 INCLUDE = 'include'
 
 
-@pytest.mark.linter
+@pytest.mark.linter()
 def test_clang_format() -> None:
     """Tests clang-format on this module."""
-
     regular_cpp = [
         *[os.path.join(os.getcwd(), folder) for folder in [SRC, INCLUDE]],
-        *[
-            os.path.join(os.getcwd(), folder, folder + INO_EXTENSION)
-            for folder in SKETCHES
-        ],
+        *[os.path.join(os.getcwd(), folder, folder + INO_EXTENSION) for folder in SKETCHES],
     ]
 
     config_file = os.path.join(os.getcwd(), '.clang-format.yaml')

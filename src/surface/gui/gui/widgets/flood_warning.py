@@ -43,9 +43,7 @@ class FloodWarning(QWidget):
         flood_layout.addWidget(self.indicator)
         self.setLayout(flood_layout)
 
-        alarm_sound_path = os.path.join(
-            get_package_share_directory('gui'), 'sounds', 'alarm.wav'
-        )
+        alarm_sound_path = os.path.join(get_package_share_directory('gui'), 'sounds', 'alarm.wav')
         self.alarm_sound = QSoundEffect()
         self.alarm_sound.setSource(QUrl.fromLocalFile(alarm_sound_path))
         self.alarm_sound.setLoopCount(Q_SOUND_EFFECT_LOOP_FOREVER)
@@ -54,9 +52,7 @@ class FloodWarning(QWidget):
     def refresh(self, msg: Flooding) -> None:
         if msg.flooding:
             self.indicator.setText('FLOODING')
-            self.subscription.get_logger().error(
-                'Robot is actively flooding, do something!'
-            )
+            self.subscription.get_logger().error('Robot is actively flooding, do something!')
             self.warning_msg_latch = True
             self.indicator_circle.set_off()
 
@@ -67,8 +63,6 @@ class FloodWarning(QWidget):
             self.indicator.setText('No Water present')
             self.indicator_circle.set_on()
             if self.warning_msg_latch:
-                self.subscription.get_logger().warning(
-                    'Robot flooding has reset itself.'
-                )
+                self.subscription.get_logger().warning('Robot flooding has reset itself.')
                 self.warning_msg_latch = False
                 self.alarm_sound.setLoopCount(0)

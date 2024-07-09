@@ -75,9 +75,7 @@ class ThrusterTester(QWidget):
         layout.addWidget(pin_assignment_button)
         layout.addWidget(test_button)
 
-    def test_motor_for_time(
-        self, motor_index: int, throttle: float, duration: float
-    ) -> None:
+    def test_motor_for_time(self, motor_index: int, throttle: float, duration: float) -> None:
         """
         Run a motor for an (approximate) length of time (blocking).
 
@@ -94,9 +92,7 @@ class ThrusterTester(QWidget):
 
         """
         throttle = max(min(throttle, 1.0), -1.0)  # Clamp the throttle between -1 and 1
-        throttle_percent = (
-            50 * throttle + 50
-        )  # Rescale to be from 0 to 100, with 50 at the center
+        throttle_percent = 50 * throttle + 50  # Rescale to be from 0 to 100, with 50 at the center
 
         start_time = time.time()
         while time.time() - start_time < duration:
@@ -115,12 +111,10 @@ class ThrusterTester(QWidget):
             time.sleep(0.05)
 
     def async_send_message(self) -> None:
-        Thread(
-            target=self.send_test_message, daemon=True, name='thruster_test_thread'
-        ).start()
+        Thread(target=self.send_test_message, daemon=True, name='thruster_test_thread').start()
 
     def send_test_message(self) -> None:
-        for motor_index in range(0, self.MOTOR_COUNT):
+        for motor_index in range(self.MOTOR_COUNT):
             self.cmd_client.get_logger().info(f'Testing thruster {motor_index}')
             self.test_motor_for_time(motor_index, self.TEST_THROTTLE, self.TEST_LENGTH)
             self.test_motor_for_time(motor_index, 0.0, 0.5)
@@ -133,6 +127,4 @@ class ThrusterTester(QWidget):
 
     @pyqtSlot(CommandLong.Response)
     def command_response_handler(self, res: CommandLong.Response) -> None:
-        self.cmd_client.get_logger().debug(
-            f'Test response: {res.success}, {res.result}'
-        )
+        self.cmd_client.get_logger().debug(f'Test response: {res.success}, {res.result}')

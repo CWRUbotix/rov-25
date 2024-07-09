@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 import cv2
 import numpy
@@ -81,9 +81,7 @@ class VideoWidget(QWidget):
         self.setLayout(layout)
 
         self.video_frame_label = QLabel()
-        self.video_frame_label.setText(
-            f'This topic had no frame: {camera_description.topic}'
-        )
+        self.video_frame_label.setText(f'This topic had no frame: {camera_description.topic}')
         layout.addWidget(self.video_frame_label)
 
         self.label = QLabel(camera_description.label)
@@ -147,7 +145,7 @@ class SwitchableVideoWidget(VideoWidget):
     def __init__(
         self,
         camera_descriptions: list[CameraDescription],
-        controller_button_topic: Optional[str] = None,
+        controller_button_topic: str | None = None,
         default_cam_num: int = 0,
     ):
         self.camera_descriptions = camera_descriptions
@@ -157,9 +155,7 @@ class SwitchableVideoWidget(VideoWidget):
 
         super().__init__(camera_descriptions[self.active_cam])
 
-        self.button: QPushButton = QPushButton(
-            camera_descriptions[self.active_cam].label
-        )
+        self.button: QPushButton = QPushButton(camera_descriptions[self.active_cam].label)
         self.button.setMaximumWidth(self.BUTTON_WIDTH)
         self.button.clicked.connect(self.gui_camera_switch)
 
@@ -201,9 +197,7 @@ class SwitchableVideoWidget(VideoWidget):
         self.button.setText(self.camera_description.label)
 
         # Updates text for info when no frame received.
-        self.video_frame_label.setText(
-            f'This topic had no frame: {self.camera_description.topic}'
-        )
+        self.video_frame_label.setText(f'This topic had no frame: {self.camera_description.topic}')
         self.label.setText(self.camera_description.label)
 
 

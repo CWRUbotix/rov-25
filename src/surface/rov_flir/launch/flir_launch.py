@@ -87,8 +87,6 @@ def generate_launch_description() -> LaunchDescription:
         condition=IfCondition(bottom_arg),
     )
 
-    namespace_launch = GroupAction(
-        actions=[PushRosNamespace(ns_arg), front_cam, bottom_cam]
-    )
+    namespace_launch = GroupAction(actions=[PushRosNamespace(ns_arg), front_cam, bottom_cam])
 
     return LaunchDescription([namespace_launch])

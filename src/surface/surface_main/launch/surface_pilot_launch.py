@@ -18,9 +18,7 @@ def generate_launch_description() -> LaunchDescription:
 
     # Launches Gui
     gui_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [os.path.join(gui_path, 'launch', 'pilot_launch.py')]
-        ),
+        PythonLaunchDescriptionSource([os.path.join(gui_path, 'launch', 'pilot_launch.py')]),
     )
 
     # Launches Controller

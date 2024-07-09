@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 import rclpy
 from mavros_msgs.msg import OverrideRCIn
@@ -61,9 +61,7 @@ class MultiplexerNode(Node):
         )
 
     @staticmethod
-    def apply(
-        msg: PixhawkInstruction, function_to_apply: Callable[[float], float]
-    ) -> None:
+    def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
         """Apply a function to each dimension of this PixhawkInstruction."""
         msg.forward = function_to_apply(msg.forward)
         msg.vertical = function_to_apply(msg.vertical)
@@ -107,9 +105,7 @@ class MultiplexerNode(Node):
         elif (
             msg.author == PixhawkInstruction.KEYBOARD_CONTROL
             and self.state == AutonomousFlight.Request.STOP
-        ):
-            pass
-        elif (
+        ) or (
             msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL
             and self.state == AutonomousFlight.Request.START
         ):

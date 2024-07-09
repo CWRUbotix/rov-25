@@ -1,5 +1,3 @@
-from typing import Optional
-
 import rclpy.utilities
 from pynput.keyboard import Key, KeyCode, Listener
 from rclpy.node import Node
@@ -74,7 +72,7 @@ class KeyboardListenerNode(Node):
             YAW_RIGHT: False,
         }
 
-    def on_press(self, key: Optional[Key | KeyCode]) -> None:
+    def on_press(self, key: Key | KeyCode | None) -> None:
         try:
             key_name: str = ''
             if isinstance(key, KeyCode):
@@ -97,7 +95,7 @@ class KeyboardListenerNode(Node):
             self.get_logger().error(str(exception))
             raise exception
 
-    def on_release(self, key: Optional[Key | KeyCode]) -> None:
+    def on_release(self, key: Key | KeyCode | None) -> None:
         try:
             key_name: str = ''
             if isinstance(key, KeyCode):

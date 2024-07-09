@@ -19,8 +19,8 @@ import pytest
 from ament_pep257.main import main
 
 
-@pytest.mark.linter
-@pytest.mark.pep257
+@pytest.mark.linter()
+@pytest.mark.pep257()
 def test_pep257() -> None:
     """Tests pep257 on this module."""
     path = os.path.join(os.getcwd(), '..', '..', '..', 'pyproject.toml')

@@ -33,9 +33,7 @@ class FloatComm(QWidget):
         self.handle_data_single_signal.connect(self.handle_single)
         GUIEventSubscriber(FloatData, 'transceiver_data', self.handle_data_signal)
         GUIEventSubscriber(FloatSerial, 'float_serial', self.handle_serial_signal)
-        GUIEventSubscriber(
-            FloatSingle, 'transceiver_single', self.handle_data_single_signal
-        )
+        GUIEventSubscriber(FloatSingle, 'transceiver_single', self.handle_data_single_signal)
 
         command_pub = GUIEventPublisher(FloatCommand, 'float_command')
 
@@ -137,9 +135,11 @@ class FloatComm(QWidget):
         time_data = list(msg.time_data)
         depth_data = list(msg.depth_data)
 
-        if msg.profile_number == 0 and self.completed_profile_one:
-            return
-        elif msg.profile_number not in (0, 1):
+        if (
+            msg.profile_number == 0
+            and self.completed_profile_one
+            or msg.profile_number not in (0, 1)
+        ):
             return
 
         if msg.profile_half == 0 and not self.received_first_half:
@@ -183,7 +183,7 @@ class FloatComm(QWidget):
         avg_pressure = round(msg.average_pressure / 10, 4)
 
         self.pressure.setText(f'Pressure: {pressure} (kPa)')
-        if msg.average_pressure != float():
+        if msg.average_pressure != 0.0:
             self.average_pressure.setText(f'Avg Pressure: {avg_pressure} (kPa)')
         else:
             self.average_pressure.setText(f'Avg Pressure: {self.counter}/5')

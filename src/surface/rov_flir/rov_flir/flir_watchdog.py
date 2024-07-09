@@ -24,9 +24,7 @@ class Watchdog:
         self.start_process()
 
     def start_process(self) -> None:
-        self.process = Popen(
-            self.args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        )
+        self.process = Popen(self.args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         if self.process.stdout is None:
             raise RuntimeError('Child process has not stdout')

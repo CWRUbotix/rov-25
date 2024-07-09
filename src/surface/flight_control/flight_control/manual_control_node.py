@@ -54,9 +54,7 @@ class ManualControlNode(Node):
     def __init__(self) -> None:
         super().__init__('manual_control_node')
 
-        mode_param = self.declare_parameter(
-            CONTROLLER_MODE_PARAM, value=ControllerMode.ARM
-        )
+        mode_param = self.declare_parameter(CONTROLLER_MODE_PARAM, value=ControllerMode.ARM)
 
         self.rc_pub = self.create_publisher(
             PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_system_default
@@ -111,8 +109,7 @@ class ManualControlNode(Node):
         instruction = PixhawkInstruction(
             forward=float(axes[LJOYY]),  # Left Joystick Y
             lateral=-float(axes[LJOYX]),  # Left Joystick X
-            vertical=float(axes[L2PRESS_PERCENT] - axes[R2PRESS_PERCENT])
-            / 2,  # L2/R2 triggers
+            vertical=float(axes[L2PRESS_PERCENT] - axes[R2PRESS_PERCENT]) / 2,  # L2/R2 triggers
             roll=float(buttons[L1] - buttons[R1]),  # L1/R1 buttons
             pitch=float(axes[RJOYY]),  # Right Joystick Y
             yaw=-float(axes[RJOYX]),  # Right Joystick X
@@ -131,9 +128,7 @@ class ManualControlNode(Node):
                 new_manip_state = not manip_button.is_active
                 manip_button.is_active = new_manip_state
 
-                manip_msg = Manip(
-                    manip_id=manip_button.claw, activated=manip_button.is_active
-                )
+                manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
                 self.manip_publisher.publish(manip_msg)
             manip_button.last_button_state = just_pressed
 
@@ -160,14 +155,10 @@ class ManualControlNode(Node):
             self.seen_left_cam = True
         elif buttons[MENU] == UNPRESSED and self.seen_right_cam:
             self.seen_right_cam = False
-            self.camera_toggle_publisher.publish(
-                CameraControllerSwitch(toggle_right=True)
-            )
+            self.camera_toggle_publisher.publish(CameraControllerSwitch(toggle_right=True))
         elif buttons[PAIRING_BUTTON] == UNPRESSED and self.seen_left_cam:
             self.seen_left_cam = False
-            self.camera_toggle_publisher.publish(
-                CameraControllerSwitch(toggle_right=False)
-            )
+            self.camera_toggle_publisher.publish(CameraControllerSwitch(toggle_right=False))
 
     def set_arming(self, msg: Joy) -> None:
         """Set the arming state using the menu and pairing buttons."""

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import rclpy
 from rclpy.duration import Duration
 from rclpy.executors import MultiThreadedExecutor
@@ -38,7 +36,7 @@ class TimerNode(Node):
         self.time_left = DEFAULT_DURATION
         self.is_running = False
 
-        self.last_timestamp: Optional[Time] = None
+        self.last_timestamp: Time | None = None
 
     def do_tick(self) -> None:
         """
