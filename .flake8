@@ -1,3 +1,0 @@
-[flake8]
-; Change line length to ros standard for project
-max-line-length=100
