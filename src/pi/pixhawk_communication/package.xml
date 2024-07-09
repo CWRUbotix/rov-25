@@ -27,6 +27,7 @@
 
   <!-- Dependencies for pymavlink -->
   <depend>python3-future</depend>
+  <depend>python-pymavlink</depend>
 
   <export>
     <build_type>ament_python</build_type>

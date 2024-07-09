@@ -10,7 +10,6 @@ dependencies = [
     'pytest-xvfb',
     'TCA9555@git+https://github.com/InvincibleRMC/TCA9555',
     'bluerobotics-tsys01@git+https://github.com/bluerobotics/tsys01-python',
-    'pymavlink',
     'mavproxy'
 ]
 
