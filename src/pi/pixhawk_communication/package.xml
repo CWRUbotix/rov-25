@@ -27,7 +27,8 @@
 
   <!-- Dependencies for pymavlink -->
   <depend>python3-future</depend>
-  <depend>python-pymavlink</depend>
+  <!-- Until rosdep can support pip on python3.11+ -->
+  <!-- <depend>python-pymavlink</depend> -->
 
   <export>
     <build_type>ament_python</build_type>
