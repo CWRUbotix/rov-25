@@ -29,7 +29,7 @@ git clone --recurse-submodules git@github.com:CWRUbotix/rov-25.git
 
 If you've never contributed to a git repository before, you might receive an error message saying you don't have access. In that case visit [this tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh) to set up SSH for local GitHub access.
 
-After cloning the code, we need to set up our IDE: VSCode. If you already have it, great. Otherwise follow [this](https://code.visualstudio.com/download) tutorial. We recommend installing the mypy, flake8 and autoDocstring VSCode extensions. Our setting for autoDocstring are set to Numpy and auto docstring on new line.
+After cloning the code, we need to set up our IDE: VSCode. If you already have it, great. Otherwise follow [this](https://code.visualstudio.com/download) tutorial. We recommend installing the mypy and autoDocstring VSCode extensions. Our setting for autoDocstring are set to Numpy and auto docstring on new line.
 
 ### Linux
 
@@ -160,7 +160,7 @@ In VSCode, press `F1` or `ctrl+shift+p` and enter `Tasks: Run Test Task` as anot
 
 It runs the tests and pipes the output to the terminal. To test pi_main make sure to type your password into the terminal after running the above command.
 
-If you install the flake8 and mypy extension they should help enforce the linters.
+If you install the mypy extension it should help enforce the linters.
 
 <!-- ### Automatic building for non-VSCode heathens
 
