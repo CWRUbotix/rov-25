@@ -51,6 +51,7 @@ class TimerNode(Node):
 
         if self.is_running and self.last_timestamp is not None:
             # Michael upstream typing oopsy
+            # https://github.com/ros2/rclpy/pull/1312
             time_left = self.last_timestamp + self.time_left - timestamp
             assert isinstance(time_left, Duration)
             self.time_left = time_left
