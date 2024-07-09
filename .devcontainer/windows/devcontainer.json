@@ -7,7 +7,7 @@
     "workspaceFolder": "/home/rov/rov-25",
     "customizations": {
         "vscode" : {
-            "extensions": ["ms-python.flake8", "ms-azuretools.vscode-docker",
+            "extensions": ["ms-azuretools.vscode-docker",
                            "streetsidesoftware.code-spell-checker", "ms-python.isort",
                            "ms-python.mypy-type-checker"]
         }
