@@ -5,7 +5,7 @@ from pi_main.run_on_boot import main
 
 def test_install_on_boot() -> None:
     """Test that file copying and systemd are made."""
-    # TODO update to clean up files
+    # TODO: update to clean up files
     return
 
     main()

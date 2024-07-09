@@ -19,7 +19,7 @@ def generate_launch_description() -> LaunchDescription:
     params_file = "sub.parm"
     params_path: str = os.path.join(rov_gazebo_path, "config", params_file)
 
-    # TODO gz_sim launch might be nice
+    # TODO: gz_sim launch might be nice
     start_gazebo = ExecuteProcess(
         cmd=['ign', 'gazebo', '-v', '3', '-r', world_path],
         output='screen'

@@ -104,7 +104,7 @@ class MultiplexerNode(Node):
         if msg.author == PixhawkInstruction.MANUAL_CONTROL and \
                 self.state == AutonomousFlight.Request.STOP:
             # Smooth out adjustments
-            # TODO look into maybe doing inheritance on a PixhawkInstruction
+            # TODO: look into maybe doing inheritance on a PixhawkInstruction
             MultiplexerNode.apply(msg, joystick_map)
         elif msg.author == PixhawkInstruction.KEYBOARD_CONTROL and \
                 self.state == AutonomousFlight.Request.STOP:

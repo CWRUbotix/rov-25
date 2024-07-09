@@ -31,5 +31,5 @@ def main() -> None:
     # Success Message
     print(process.stdout.decode())
 
-    # TODO would be nice to copy service file.
+    # TODO: would be nice to copy service file.
     # Also this file could get refactored.

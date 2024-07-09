@@ -81,7 +81,7 @@ RUN ./install_dependencies.sh \
 # Remove build warnings
 ENV PYTHONWARNINGS ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources
 
-# TODO for future nerd to do this via ENTRYPOINT which be better but, I could not get ENTRYPOINT to play with VsCODE.
+# TODO: for future nerd to do this via ENTRYPOINT which be better but, I could not get ENTRYPOINT to play with VsCODE.
 COPY .vscode/rov_setup.sh .
 RUN ./rov_setup.sh \
   && rm rov_setup.sh
