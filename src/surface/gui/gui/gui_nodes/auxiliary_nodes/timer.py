@@ -50,7 +50,10 @@ class TimerNode(Node):
         timestamp = self.get_clock().now()
 
         if self.is_running and self.last_timestamp is not None:
-            self.time_left = self.last_timestamp + self.time_left - timestamp
+            # Michael upstream typing oopsy
+            time_left = self.last_timestamp + self.time_left - timestamp
+            assert isinstance(time_left, Duration)
+            self.time_left = time_left
 
             if self.time_left < Duration(seconds=0):
                 self.is_running = False
