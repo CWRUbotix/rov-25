@@ -46,3 +46,11 @@ qt_api = "pyqt6"
 [tool.pylintrc]
 disable = ["duplicate-code", "fixme"]
 extension-pkg-whitelist = ["PyQt6", "cv2"]
+
+# For precommit CI
+[tool.ruff]
+format.quote-style = 'single'
+
+# Done to sort imports
+[tool.ruff.lint]
+extend-select = ["I"]
