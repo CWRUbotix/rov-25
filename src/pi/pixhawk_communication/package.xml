@@ -23,6 +23,7 @@
   <depend>python3-matplotlib</depend>
   <depend>python3-lxml</depend>
   <depend>python3-pygame</depend>
+  <depend>python3-numpy</depend>
 
   <!-- Dependencies for pymavlink -->
   <depend>python3-future</depend>
