@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+from mypy_extensions import NamedArg
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QFrame,
@@ -117,7 +118,7 @@ class SeagrassGrid(QWidget):
     def __init__(
         self,
         update_result_text: Callable[[], None],
-        set_other_button: Callable[[int, bool], None] | None = None,
+        set_other_button: Callable[[int, NamedArg(bool, 'recovered')], None] | None = None,
     ) -> None:
         super().__init__()
 
