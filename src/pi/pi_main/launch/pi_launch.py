@@ -8,6 +8,8 @@ from launch.launch_description import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import PushRosNamespace
 
+NAMESPACE = 'pi'
+
 
 def generate_launch_description() -> LaunchDescription:
     """
@@ -19,7 +21,6 @@ def generate_launch_description() -> LaunchDescription:
         Launches camera_streamer package and pixhawk_communication package.
 
     """
-    NAMESPACE = 'pi'
     # Manipulator Controller
     manip_path = get_package_share_directory('manipulators')
 

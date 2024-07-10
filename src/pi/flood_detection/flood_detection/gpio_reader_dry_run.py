@@ -20,7 +20,7 @@ def main() -> None:
         data = lgpio.gpio_read(gpio_chip, DETECT_PIN)
 
         if data != old_data or first_run:
-            print('Pin 17: %s' % data)
+            print(f'Pin 17: {data}')
 
             if data:
                 print('\nBad Flooding Thing')

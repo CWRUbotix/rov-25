@@ -77,50 +77,40 @@ class KeyboardListenerNode(Node):
         }
 
     def on_press(self, key: Key | KeyCode | None) -> None:
-        try:
-            key_name: str = ''
-            if isinstance(key, KeyCode):
-                key_name = key.char
-                if key_name is None:
-                    return
-            elif isinstance(key, Key):
-                key_name = key.name
-            else:
+        key_name: str = ''
+        if isinstance(key, KeyCode):
+            key_name = key.char
+            if key_name is None:
                 return
+        elif isinstance(key, Key):
+            key_name = key.name
+        else:
+            return
 
-            if key_name == HELP:
-                self.get_logger().info(HELP_MSG)
-            else:
-                self.status[key_name] = True
+        if key_name == HELP:
+            self.get_logger().info(HELP_MSG)
+        else:
+            self.status[key_name] = True
 
-            self.pub_rov_control()
-
-        except Exception as exception:
-            self.get_logger().error(str(exception))
-            raise exception
+        self.pub_rov_control()
 
     def on_release(self, key: Key | KeyCode | None) -> None:
-        try:
-            key_name: str = ''
-            if isinstance(key, KeyCode):
-                key_name = key.char
-                if key_name is None:
-                    return
-            elif isinstance(key, Key):
-                key_name = key.name
-            else:
+        key_name: str = ''
+        if isinstance(key, KeyCode):
+            key_name = key.char
+            if key_name is None:
                 return
+        elif isinstance(key, Key):
+            key_name = key.name
+        else:
+            return
 
-            if key_name == HELP:
-                pass
-            else:
-                self.status[key_name] = False
+        if key_name == HELP:
+            pass
+        else:
+            self.status[key_name] = False
 
-            self.pub_rov_control()
-
-        except Exception as exception:
-            self.get_logger().error(str(exception))
-            raise exception
+        self.pub_rov_control()
 
     def pub_rov_control(self) -> None:
         instruction = PixhawkInstruction(
