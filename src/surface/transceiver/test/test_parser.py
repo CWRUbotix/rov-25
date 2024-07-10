@@ -76,7 +76,7 @@ def test_message_parser(packet_handler: SerialReaderPacketHandler) -> None:
             5.671316623687744,
             5.687016487121582,
             5.702716827392578,
-        ],  # noqa 501
+        ],  # 501
         depth_data=[
             0.3828616142272949,
             0.38326960802078247,
@@ -109,7 +109,7 @@ def test_message_parser(packet_handler: SerialReaderPacketHandler) -> None:
             1.044724941253662,
             1.0454388856887817,
             1.04594886302948,
-        ],  # noqa 501
+        ],  # 501
     )
 
     with pytest.raises(ValueError, match='Packet expected 3 sections, found 2 sections'):
