@@ -123,7 +123,7 @@ def test_handle_ros_single(packet_handler: SerialReaderPacketHandler) -> None:
     test_queue: Queue[float] = Queue(5)
 
     for ros_single, test_value, expected_value in zip(
-        ROS_SINGLE_MSGS, TEST_VALUES, EXPECTED_VALUES, strict=False
+        ROS_SINGLE_MSGS, TEST_VALUES, EXPECTED_VALUES, strict=True
     ):
         packet_handler.handle_ros_single(ros_single)
         test_queue.put(test_value)
