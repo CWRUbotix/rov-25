@@ -122,7 +122,7 @@ class SeagrassGrid(QWidget):
     ) -> None:
         super().__init__()
 
-        self.set_other_button: Callable[[int, bool], None] | None = set_other_button
+        self.set_other_button = set_other_button
 
         self.setMaximumWidth(200)
 
@@ -181,7 +181,7 @@ class SeagrassButton(QPushButton):
         button_id: int,
         size: int,
         update_text: Callable[[], None],
-        set_other_button: Callable[[int, bool], None] | None = None,
+        set_other_button: Callable[[int, NamedArg(bool, 'recovered')], None] | None = None,
     ) -> None:
         super().__init__()
 
