@@ -10,6 +10,7 @@
   <depend>rclpy</depend>
 
   <test_depend>ament_mypy</test_depend>
+  <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <depend>ros_gz</depend>
