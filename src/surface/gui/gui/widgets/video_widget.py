@@ -147,7 +147,7 @@ class SwitchableVideoWidget(VideoWidget):
         camera_descriptions: list[CameraDescription],
         controller_button_topic: str | None = None,
         default_cam_num: int = 0,
-    ):
+    ) -> None:
         self.camera_descriptions = camera_descriptions
         self.active_cam = default_cam_num
 

@@ -1,9 +1,13 @@
+from typing import TYPE_CHECKING
+
 import rclpy.utilities
 from pynput.keyboard import Key, KeyCode, Listener
 from rclpy.node import Node
-from rclpy.publisher import Publisher
 from rclpy.qos import qos_profile_system_default
 from rov_msgs.msg import PixhawkInstruction
+
+if TYPE_CHECKING:
+    from rclpy.publisher import Publisher
 
 # key bindings
 FORWARD = 'w'

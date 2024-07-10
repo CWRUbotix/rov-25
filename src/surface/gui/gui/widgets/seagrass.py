@@ -13,6 +13,8 @@ from PyQt6.QtWidgets import (
 
 from gui.widgets.video_widget import CameraDescription, CameraType, PauseableVideoWidget
 
+N = 8
+
 
 class SeagrassWidget(QWidget):
     BUTTON_WIDTH = 120
@@ -134,7 +136,6 @@ class SeagrassGrid(QWidget):
         self.frame.setStyleSheet('border: 1px solid gray')
 
         self.all_buttons: list[SeagrassButton] = []
-        N = 8
         button_id = 0
 
         for row in range(N):
@@ -181,7 +182,7 @@ class SeagrassButton(QPushButton):
         update_text: Callable[[], None],
         set_other_button: Callable[[int, bool], None] | None = None,
     ) -> None:
-        super(SeagrassButton, self).__init__()
+        super().__init__()
 
         self.button_id: int = button_id
         self.setFixedSize(size, size)
@@ -202,10 +203,7 @@ class SeagrassButton(QPushButton):
     def set_color(self, recovered: bool) -> None:
         self.recovered = recovered
 
-        if recovered:
-            color = 'green'
-        else:
-            color = 'white'
+        color = 'green' if recovered else 'white'
 
         self.setStyleSheet(f'border: 1px solid gray; background-color :{color}')
 

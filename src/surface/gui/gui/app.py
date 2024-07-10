@@ -1,6 +1,6 @@
 import atexit
-import os
 import signal
+from pathlib import Path
 
 import qdarktheme
 import rclpy.utilities
@@ -31,14 +31,12 @@ class App(QWidget):
 
         # Apply theme
         theme_param = self.theme_param.get_parameter_value().string_value
-        theme_path = os.path.join(
-            get_package_share_directory('gui'), 'styles', theme_param + '.qss'
-        )
+        theme_path = Path(get_package_share_directory('gui')) / 'styles' / theme_param + '.qss'
 
         base_theme = 'dark' if theme_param == 'dark' else 'light'
         custom_styles = '\n'
-        if os.path.exists(theme_path):
-            with open(theme_path, encoding='utf-8') as theme_file:
+        if Path.exists(theme_path):
+            with Path.open(theme_path, encoding='utf-8') as theme_file:
                 custom_styles += theme_file.read()
 
         qdarktheme.setup_theme(base_theme, additional_qss=custom_styles)

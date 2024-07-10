@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from PyQt6.QtCore import QUrl, pyqtSignal, pyqtSlot
@@ -43,7 +43,7 @@ class FloodWarning(QWidget):
         flood_layout.addWidget(self.indicator)
         self.setLayout(flood_layout)
 
-        alarm_sound_path = os.path.join(get_package_share_directory('gui'), 'sounds', 'alarm.wav')
+        alarm_sound_path = Path(get_package_share_directory('gui')) / 'sounds' / 'alarm.wav'
         self.alarm_sound = QSoundEffect()
         self.alarm_sound.setSource(QUrl.fromLocalFile(alarm_sound_path))
         self.alarm_sound.setLoopCount(Q_SOUND_EFFECT_LOOP_FOREVER)

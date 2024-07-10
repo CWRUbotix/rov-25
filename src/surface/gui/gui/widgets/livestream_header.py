@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from PyQt6.QtCore import Qt
@@ -13,7 +13,7 @@ class LivestreamHeader(QWidget):
         root_layout = QHBoxLayout()
         self.setLayout(root_layout)
 
-        logo_path = os.path.join(get_package_share_directory('gui'), 'images', 'CWRUbotix Logo.png')
+        logo_path = Path(get_package_share_directory('gui')) / 'images' / 'CWRUbotix Logo.png'
 
         logo_pixmap = QPixmap(logo_path)
 

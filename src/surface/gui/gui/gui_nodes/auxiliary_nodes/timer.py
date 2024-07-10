@@ -1,11 +1,15 @@
+from typing import TYPE_CHECKING
+
 import rclpy
 from rclpy.duration import Duration
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
-from rclpy.time import Time
 from rov_msgs.msg import MissionTimerTick
 from rov_msgs.srv import MissionTimerSet
+
+if TYPE_CHECKING:
+    from rclpy.time import Time
 
 PUBLISH_RATE = 10  # Hz
 DEFAULT_DURATION = Duration(seconds=15 * 60)
@@ -51,8 +55,10 @@ class TimerNode(Node):
             # TODO: Michael upstream typing oopsy
             # https://github.com/ros2/rclpy/pull/1312
             time_left = self.last_timestamp + self.time_left - timestamp
-            assert isinstance(time_left, Duration)
-            self.time_left = time_left
+            if isinstance(time_left, Duration):
+                self.time_left = time_left
+            else:
+                raise TypeError('self.time_left is not Duration')
 
             if self.time_left < Duration(seconds=0):
                 self.is_running = False

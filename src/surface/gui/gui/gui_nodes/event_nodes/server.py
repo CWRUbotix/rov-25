@@ -16,7 +16,7 @@ class GUIEventServer(Node):
         srv_type: SrvType,
         topic: str,
         callback: Callable[[SrvTypeRequest, SrvTypeResponse], SrvTypeResponse],
-    ):
+    ) -> None:
         """
         Initialize this server with a CALLBACK for processing requests.
 
