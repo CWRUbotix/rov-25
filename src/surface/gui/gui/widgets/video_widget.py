@@ -2,9 +2,8 @@ from enum import IntEnum
 from typing import NamedTuple
 
 import cv2
-import numpy as np
+from cv2.typing import MatLike
 from cv_bridge import CvBridge
-from numpy.typing import NDArray
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
@@ -13,14 +12,6 @@ from sensor_msgs.msg import Image
 
 from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
 from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
-
-# TODO: Ubuntu26+
-# Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release
-# This what is actually implemented in cv2.typing:
-# MatLike = cv2.mat_wrapper.Mat | NDArray[np.integer[Any] | np.floating[Any]]
-# This should be possible in a newer version of mypy:
-# MatLike = NDArray[np.integer[Any] | np.floating[Any]]
-MatLike = NDArray[np.generic]
 
 WIDTH = 721
 HEIGHT = 541

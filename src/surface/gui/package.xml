@@ -17,7 +17,6 @@
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>ros2run</exec_depend>
   <exec_depend>rov_msgs</exec_depend>
-  <exec_depend>python3-numpy</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>python3-pyqtgraph</exec_depend>
 
