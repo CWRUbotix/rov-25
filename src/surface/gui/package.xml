@@ -8,6 +8,7 @@
   <license>Apache License 2.0</license>
 
   <test_depend>ament_mypy</test_depend>
+  <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <!-- For CI gui-less testing -->

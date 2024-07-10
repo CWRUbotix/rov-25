@@ -14,7 +14,7 @@ def main() -> None:
             print(
                 sensor.temperature(),  # Get temperature in default units (Centigrade)
                 '\t',
-                sensor.temperature(tsys01.UNITS_Farenheit)
+                sensor.temperature(tsys01.UNITS_Farenheit),
             )
         except OSError:
             print('Failed to read temperature, trying again')
@@ -22,5 +22,5 @@ def main() -> None:
         sleep(1)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

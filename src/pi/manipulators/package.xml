@@ -12,6 +12,7 @@
   <build_depend>git</build_depend>
 
   <test_depend>ament_mypy</test_depend>
+  <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <export>
