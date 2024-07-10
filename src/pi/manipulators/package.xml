@@ -8,6 +8,9 @@
   <maintainer email="rmc170@case.edu">Michael Carlstrom</maintainer>
   <license>Apache License, Version 2.0</license>
 
+  <!-- For pip installing git packages -->
+  <build_depend>git</build_depend>
+
   <test_depend>ament_mypy</test_depend>
   <test_depend>python3-pytest</test_depend>
 
