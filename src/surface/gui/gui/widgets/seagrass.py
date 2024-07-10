@@ -33,11 +33,11 @@ class SeagrassWidget(QWidget):
 
         set_all_green = QPushButton('Set All Green')
         set_all_green.setMaximumWidth(self.BUTTON_WIDTH)
-        set_all_green.clicked.connect(lambda: self.before_grid.reset_grid(True))
+        set_all_green.clicked.connect(lambda: self.before_grid.reset_grid(recovered=True))
 
         set_all_white = QPushButton('Set All White')
         set_all_white.setMaximumWidth(self.BUTTON_WIDTH)
-        set_all_white.clicked.connect(lambda: self.before_grid.reset_grid(False))
+        set_all_white.clicked.connect(lambda: self.before_grid.reset_grid(recovered=False))
 
         before_btns_layout.addWidget(set_all_green)
         before_btns_layout.addWidget(set_all_white)
@@ -149,9 +149,9 @@ class SeagrassGrid(QWidget):
 
                 button_id += 1
 
-    def reset_grid(self, recovered: bool) -> None:
+    def reset_grid(self, *, recovered: bool) -> None:
         for button in self.all_buttons:
-            button.set_color(recovered)
+            button.set_color(recovered=recovered)
 
     def get_num_recovered(self) -> int:
         num_recovered: int = 0
@@ -169,9 +169,9 @@ class SeagrassGrid(QWidget):
         for button in self.all_buttons:
             self.set_other_button(button.button_id, button.recovered)
 
-    def set_button(self, button_id: int, recovered: bool) -> None:
+    def set_button(self, button_id: int, *, recovered: bool) -> None:
         button = self.all_buttons[button_id]
-        button.set_color(recovered)
+        button.set_color(recovered=recovered)
 
 
 class SeagrassButton(QPushButton):
@@ -198,9 +198,9 @@ class SeagrassButton(QPushButton):
     def toggle_button_color(self) -> None:
         self.recovered = not self.recovered
 
-        self.set_color(self.recovered)
+        self.set_color(recovered=self.recovered)
 
-    def set_color(self, recovered: bool) -> None:
+    def set_color(self, *, recovered: bool) -> None:
         self.recovered = recovered
 
         color = 'green' if recovered else 'white'

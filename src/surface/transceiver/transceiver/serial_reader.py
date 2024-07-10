@@ -88,7 +88,7 @@ class SerialReader(Node):
             else:
                 msg = self.serial_packet_handler.message_parser(packet)
                 self.data_publisher.publish(msg)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.get_logger().error(f'Error {e} caught dropping packet')
 
 

@@ -21,6 +21,9 @@ class GuiType(enum.Enum):
     DEBUG = 'debug'
 
 
+TWO_MONITOR = 2
+THREE_MONITOR = 3
+
 TWO_MONITOR_CONFIG: dict[GuiType, int | None] = {GuiType.PILOT: None, GuiType.LIVESTREAM: 1}
 THREE_MONITOR_CONFIG: dict[GuiType, int | None] = {GuiType.PILOT: 2, GuiType.LIVESTREAM: 1}
 
@@ -32,7 +35,7 @@ class PilotApp(App):
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        simulation_param = self.node.declare_parameter('simulation', False)
+        simulation_param = self.node.declare_parameter('simulation', value=False)
         gui_param = self.node.declare_parameter('gui', 'pilot')
 
         if simulation_param.value:
@@ -163,9 +166,9 @@ class PilotApp(App):
         monitors = QScreen.virtualSiblings(screen)
 
         monitor_id: int | None
-        if len(monitors) == 2:
+        if len(monitors) == TWO_MONITOR:
             monitor_id = TWO_MONITOR_CONFIG[gui_type]
-        elif len(monitors) >= 3:
+        elif len(monitors) >= THREE_MONITOR:
             monitor_id = THREE_MONITOR_CONFIG[gui_type]
         else:
             return
