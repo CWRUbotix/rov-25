@@ -17,9 +17,7 @@ def generate_launch_description() -> LaunchDescription:
         executable='temp_sensor',
         emulate_tty=True,
         output='screen',
-        remappings=[('/pi/temperature', '/tether/temperature')]
+        remappings=[('/pi/temperature', '/tether/temperature')],
     )
 
-    return LaunchDescription([
-        temp_sensor
-    ])
+    return LaunchDescription([temp_sensor])

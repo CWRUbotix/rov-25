@@ -7,8 +7,7 @@ setup(
     version='1.2.0',
     packages=[PACKAGE_NAME],
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + PACKAGE_NAME]),
+        ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
         ('share/' + PACKAGE_NAME, ['package.xml']),
     ],
     install_requires=['setuptools'],

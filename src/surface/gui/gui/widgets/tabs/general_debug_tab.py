@@ -12,11 +12,13 @@ class GeneralDebugTab(QWidget):
         super().__init__()
 
         top_bar = QHBoxLayout()
-        top_bar.addWidget(IPWidget(), alignment=Qt.AlignmentFlag.AlignTop |
-                          Qt.AlignmentFlag.AlignLeft)
+        top_bar.addWidget(
+            IPWidget(), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
 
-        top_bar.addWidget(HeartbeatWidget(), alignment=Qt.AlignmentFlag.AlignTop |
-                          Qt.AlignmentFlag.AlignLeft)
+        top_bar.addWidget(
+            HeartbeatWidget(), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
 
         right_bar = QVBoxLayout()
         right_bar.addWidget(ThrusterTester())

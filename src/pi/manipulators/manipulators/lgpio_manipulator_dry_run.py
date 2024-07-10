@@ -15,7 +15,7 @@ def main() -> None:
     try:
         print('Starting loop')
         while True:
-            print("On")
+            print('On')
             lgpio.gpio_write(gpio_handle, MANIP_PIN_ONE, lgpio.HIGH)
             lgpio.gpio_write(gpio_handle, MANIP_PIN_TWO, lgpio.HIGH)
 
@@ -30,5 +30,5 @@ def main() -> None:
         lgpio.gpio_write(gpio_handle, MANIP_PIN_TWO, lgpio.LOW)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

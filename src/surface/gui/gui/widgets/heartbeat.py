@@ -1,14 +1,13 @@
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
-from gui.widgets.circle import CircleIndicator
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
-
 from rov_msgs.msg import VehicleState
+
+from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from gui.widgets.circle import CircleIndicator
 
 
 class HeartbeatWidget(QWidget):
-
     signal = pyqtSignal(VehicleState)
 
     def __init__(self) -> None:
@@ -21,7 +20,7 @@ class HeartbeatWidget(QWidget):
 
         heartbeat_layout = QVBoxLayout()
 
-        font = QFont("Arial", 14)
+        font = QFont('Arial', 14)
 
         pi_status_layout = QHBoxLayout()
         self.pi_indicator = QLabel('No Pi Status')

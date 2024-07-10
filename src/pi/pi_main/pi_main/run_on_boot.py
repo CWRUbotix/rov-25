@@ -1,8 +1,9 @@
 """When run sets up environment for the robot to run on boot."""
+
 import os
-import sys
-import subprocess
 import pathlib
+import subprocess
+import sys
 
 from ament_index_python.packages import get_package_share_directory
 

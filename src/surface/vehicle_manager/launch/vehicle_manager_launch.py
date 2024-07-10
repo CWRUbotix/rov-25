@@ -4,16 +4,14 @@ from launch_ros.actions import Node
 
 def generate_launch_description() -> LaunchDescription:
     heartbeat_node = Node(
-        package="vehicle_manager",
-        executable="connection_manager_node",
+        package='vehicle_manager',
+        executable='connection_manager_node',
         remappings=[
-            ("/surface/mavros/state", "/tether/mavros/state"),
-            ("/surface/pi_heartbeat", "/tether/pi_heartbeat")
+            ('/surface/mavros/state', '/tether/mavros/state'),
+            ('/surface/pi_heartbeat', '/tether/pi_heartbeat'),
         ],
         emulate_tty=True,
-        output='screen'
+        output='screen',
     )
 
-    return LaunchDescription([
-        heartbeat_node
-    ])
+    return LaunchDescription([heartbeat_node])

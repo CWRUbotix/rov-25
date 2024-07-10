@@ -1,12 +1,12 @@
 import atexit
-import signal
 import os
+import signal
 
 import qdarktheme
 import rclpy.utilities
+from ament_index_python.packages import get_package_share_directory
 from PyQt6.QtWidgets import QApplication, QWidget
 from rclpy.node import Node
-from ament_index_python.packages import get_package_share_directory
 
 
 class App(QWidget):
@@ -31,11 +31,12 @@ class App(QWidget):
 
         # Apply theme
         theme_param = self.theme_param.get_parameter_value().string_value
-        theme_path = os.path.join(get_package_share_directory("gui"),
-                                  "styles", theme_param + ".qss")
+        theme_path = os.path.join(
+            get_package_share_directory('gui'), 'styles', theme_param + '.qss'
+        )
 
-        base_theme = "dark" if theme_param == "dark" else "light"
-        custom_styles = "\n"
+        base_theme = 'dark' if theme_param == 'dark' else 'light'
+        custom_styles = '\n'
         if os.path.exists(theme_path):
             with open(theme_path, encoding='utf-8') as theme_file:
                 custom_styles += theme_file.read()

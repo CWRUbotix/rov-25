@@ -10,12 +10,10 @@ setup(
     version='1.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + PACKAGE_NAME]),
+        ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
         ('share/' + PACKAGE_NAME, ['package.xml']),
         # Include all launch files.
-        (os.path.join('share', PACKAGE_NAME, 'launch'),
-         glob('launch/*launch.[pxy][yma]*'))
+        (os.path.join('share', PACKAGE_NAME, 'launch'), glob('launch/*launch.[pxy][yma]*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,8 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "heartbeat_node = pi_info.heartbeat_node:main",
-            'ip_publisher = pi_info.ip_publisher:main'
+            'heartbeat_node = pi_info.heartbeat_node:main',
+            'ip_publisher = pi_info.ip_publisher:main',
         ],
     },
 )
