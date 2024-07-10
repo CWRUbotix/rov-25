@@ -168,7 +168,7 @@ class SeagrassGrid(QWidget):
             raise ValueError('self.set_other_button has been called on after grid')
 
         for button in self.all_buttons:
-            self.set_other_button(button.button_id, button.recovered)
+            self.set_other_button(button.button_id, recovered=button.recovered)
 
     def set_button(self, button_id: int, *, recovered: bool) -> None:
         button = self.all_buttons[button_id]
@@ -210,6 +210,6 @@ class SeagrassButton(QPushButton):
 
         # Update other button
         if self.set_other_button is not None:
-            self.set_other_button(self.button_id, self.recovered)
+            self.set_other_button(self.button_id, recovered=self.recovered)
 
         self.update_text()
