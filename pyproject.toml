@@ -6,7 +6,6 @@ requires-python = ">=3.10"
 
 dependencies = [
     'pyqt6',
-    'pyqtdarktheme',
     'pytest-qt',
     'pytest-xvfb',
     'TCA9555@git+https://github.com/InvincibleRMC/TCA9555',

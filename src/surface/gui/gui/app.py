@@ -2,7 +2,6 @@ import atexit
 import os
 import signal
 
-import qdarktheme
 import rclpy.utilities
 from ament_index_python.packages import get_package_share_directory
 from PyQt6.QtWidgets import QApplication, QWidget
@@ -40,8 +39,6 @@ class App(QWidget):
         if os.path.exists(theme_path):
             with open(theme_path, encoding='utf-8') as theme_file:
                 custom_styles += theme_file.read()
-
-        qdarktheme.setup_theme(base_theme, additional_qss=custom_styles)
 
         # Delete node now that we've used it to get params
         self.node.destroy_node()
