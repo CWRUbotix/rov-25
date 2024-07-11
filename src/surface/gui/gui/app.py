@@ -1,6 +1,5 @@
 import atexit
 import signal
-from pathlib import Path
 
 import rclpy.utilities
 from PyQt6.QtWidgets import QApplication, QWidget
