@@ -33,7 +33,7 @@
         {
             "label": "Run Unit Tests",
             "type": "shell",
-            "command": "colcon test --event-handlers=console_direct+",
+            "command": "pre-commit run --all-files && colcon test --event-handlers=console_direct+",
             "presentation": {
                 "reveal": "silent",
                 "revealProblems": "onProblem"
