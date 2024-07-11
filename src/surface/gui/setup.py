@@ -12,6 +12,7 @@ setup(
     packages=[
         PACKAGE_NAME,
         str(Path(PACKAGE_NAME) / 'widgets'),
+        str(Path(PACKAGE_NAME) / 'widgets' / 'tabs'),
         str(Path(PACKAGE_NAME) / 'styles'),
         str(Path(PACKAGE_NAME) / 'gui_nodes' / 'auxiliary_nodes'),
         str(Path(PACKAGE_NAME) / 'gui_nodes' / 'event_nodes'),
