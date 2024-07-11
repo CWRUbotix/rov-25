@@ -59,7 +59,7 @@
         {
             "label": "[TEST] Run Linter/Formatter & Tests",
             "dependsOrder": "sequence",
-            "dependsOn": ["[TEST] Run Linter & Formatter", "[TEST] Run Tests"],
+            "dependsOn": ["[TEST] Run Linter/Formatter", "[TEST] Run Tests"],
             "presentation": {
                 "reveal": "silent",
                 "revealProblems": "onProblem"

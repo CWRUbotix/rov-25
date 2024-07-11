@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
 
 from gui.widgets.video_widget import CameraDescription, CameraType, PauseableVideoWidget
 
-N = 8
+GRID_DIMENSION = 8
 
 
 class SeagrassWidget(QWidget):
@@ -139,8 +139,8 @@ class SeagrassGrid(QWidget):
         self.all_buttons: list[SeagrassButton] = []
         button_id = 0
 
-        for row in range(N):
-            for col in range(N):
+        for row in range(GRID_DIMENSION):
+            for col in range(GRID_DIMENSION):
                 seagrass_button: SeagrassButton = SeagrassButton(
                     button_id, 50, update_result_text, self.set_other_button
                 )
