@@ -11,8 +11,6 @@
   <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
 
-  <exec_depend>ros2launch</exec_depend>
-
   <export>
     <build_type>ament_python</build_type>
   </export>

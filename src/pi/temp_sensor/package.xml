@@ -10,7 +10,6 @@
   <!-- For pip installing git packages -->
   <build_depend>git</build_depend>
 
-  <exec_depend>ros2launch</exec_depend>
   <exec_depend>python3-smbus</exec_depend>
 
   <test_depend>ament_mypy</test_depend>
