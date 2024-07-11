@@ -4,7 +4,7 @@
   <xacro:arg name="params_path" default="$(find rov_gazebo)/description/rov_description_params.yaml"/> 
   <!-- Need argument to get from launch file -->
   <xacro:property name="params_path" value="$(arg params_path)"/> 
-  <!-- Need seperate property for xacro inorder processing -->
+  <!-- Need separate property for xacro inorder processing -->
   <xacro:property name="params" value="${xacro.load_yaml(params_path)}"/> 
   <!-- Read in the yaml dict as mp (short for model parameters) -->
 

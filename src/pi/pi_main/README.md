@@ -143,7 +143,7 @@ To kill the `pi_main` background task (**do this before starting the foreground 
 ```bash
 sudo systemctl stop pi_main.service
 ```
-To run the `pi_main` task in the foreground runs the shell scripst in the pi_main/scripts folder.
+To run the `pi_main` task in the foreground runs the shell scripts in the pi_main/scripts folder.
 
 ```bash
 source pi_main.sh

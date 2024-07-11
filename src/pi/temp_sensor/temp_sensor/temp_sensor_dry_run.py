@@ -14,7 +14,7 @@ def main() -> None:
             print(
                 sensor.temperature(),  # Get temperature in default units (Centigrade)
                 '\t',
-                sensor.temperature(tsys01.UNITS_Farenheit),
+                sensor.temperature(tsys01.UNITS_Fahrenheit),
             )
         except OSError:
             print('Failed to read temperature, trying again')

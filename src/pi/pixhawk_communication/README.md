@@ -17,7 +17,7 @@ To set up a Pixhawk USB port use [this](https://docs.px4.io/main/en/companion_co
 To remotely use QGroundControl ssh into the pi and run the following.
 
 ```bash
-mavproxy.py --out {Your IP adress}:14550
+mavproxy.py --out {Your IP address}:14550
 ```
 
 If you get this error:

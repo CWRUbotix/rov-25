@@ -28,7 +28,7 @@ class GUIEventSubscriber(Node):
         self.subscription = self.create_subscription(
             msg_type, topic, lambda data: signal.emit(data), qos_profile
         )
-        # Wrap in silly lambda becuase PyQ6 and ROS won't play nice
+        # Wrap in silly lambda because PyQ6 and ROS won't play nice
 
         custom_executor = SingleThreadedExecutor()
         custom_executor.add_node(self)

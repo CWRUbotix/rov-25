@@ -45,7 +45,7 @@ jobs:
         env: # either pass all entries explicitly
           DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
           ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-          # Done to avoid permssion errors in the ros-industrial ci.
+          # Done to avoid permission errors in the ros-industrial ci.
           DOCKER_RUN_OPTS: -u root
           ROS_REPO: ${{ matrix.ROS_REPO }}
           # Crazy one liner for install python dependencies
@@ -60,7 +60,7 @@ jobs:
         env: # either pass all entries explicitly
             # DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
             ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-            # Done to avoid permssion errors in the ros-industrial ci.
+            # Done to avoid permission errors in the ros-industrial ci.
             # DOCKER_RUN_OPTS: -u root
             ROS_REPO: ${{ matrix.ROS_REPO }}
             # Add to python3-pyqt6.multimedia rosdep

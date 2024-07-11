@@ -3,7 +3,7 @@
 git clone --recurse-submodules --depth 1  https://github.com/ArduPilot/ardupilot.git ~/ardupilot 
 cd ~/ardupilot
 ./Tools/environment_install/install-prereqs-ubuntu.sh -y
-./modules/waf/waf-light configure --board sitl \
+./modules/waf/waf-light configure --board still \
   && modules/waf/waf-light build --target bin/ardusub
 
 # Add ardusub to .bashrc only if it isn't already there

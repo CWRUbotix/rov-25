@@ -23,7 +23,7 @@ export GZ_SIM_RESOURCE_PATH=$GZ_SIM_RESOURCE_PATH:\
 gz sim -v 3 -r bluerov2_heavy_underwater.world
 ```
 
-### Run ArduPilot SITL
+### Run ArduPilot STILL
 
 ```bash
 Tools/autotest/sim_vehicle.py -L RATBeach -v ArduSub -f vectored_6dof --model=JSON --out=udp:0.0.0.0:14550 --console
