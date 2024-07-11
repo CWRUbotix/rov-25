@@ -1,9 +1,8 @@
 """When run sets up environment for the robot to run on boot."""
 
-import os
-import pathlib
 import subprocess
 import sys
+from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -17,8 +16,8 @@ def main() -> None:
     """
     pi_main_share = get_package_share_directory('pi_main')
 
-    file_location = pathlib.Path(__file__).parent.resolve()
-    udev_script = os.path.join(file_location, 'copy.py')
+    file_location = Path(__file__).parent.resolve()
+    udev_script = str(file_location / 'copy.py')
 
     cmd = ['/usr/bin/sudo', '/usr/bin/python3', udev_script, pi_main_share]
 
