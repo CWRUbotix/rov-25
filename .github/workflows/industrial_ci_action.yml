@@ -66,4 +66,4 @@ jobs:
             # Add to python3-pyqt6.multimedia rosdep
             ADDITIONAL_DEBS: 'python3-pyqt6.qtmultimedia'
             # Crazy one liner for install python dependencies
-            AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install /root/target_ws/src/rov-25 --user --break-system-packages && rm -r /root/target_ws/src/rov-25/build'
+            AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install /root/target_ws/src/rov-25 --user --break-system-packages && rm -r /root/target_ws/src/rov-25/build && export QT_DEBUG_PLUGINS=1'
