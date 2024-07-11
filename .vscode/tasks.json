@@ -57,7 +57,7 @@
             }
         }, 
         {
-            "label": "[TEST] Run Linter & Tests",
+            "label": "[TEST] Run Linter/Formatter & Tests",
             "dependsOrder": "sequence",
             "dependsOn": ["[TEST] Run Linter & Formatter", "[TEST] Run Tests"],
             "presentation": {
