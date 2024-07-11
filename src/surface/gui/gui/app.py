@@ -1,9 +1,7 @@
 import atexit
-import os
 import signal
 
 import rclpy.utilities
-from ament_index_python.packages import get_package_share_directory
 from PyQt6.QtWidgets import QApplication, QWidget
 from rclpy.node import Node
 
@@ -27,7 +25,6 @@ class App(QWidget):
     def run_gui(self) -> None:
         # Kills with Control + C
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-
 
         # TODO: New method of dark mode
         # Apply theme
