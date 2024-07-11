@@ -59,7 +59,7 @@ class FloatComm(QWidget):
 
         info_and_buttons = QHBoxLayout()
         info_and_buttons.addLayout(info_layout)
-        info_and_buttons.addLayout(self.setup_buttons())
+        info_and_buttons.addLayout(self.make_button_layout())
 
         self.console = QTextEdit()
         self.console.setReadOnly(True)
@@ -89,7 +89,7 @@ class FloatComm(QWidget):
 
         self.counter = 0
 
-    def setup_buttons(self) -> QHBoxLayout:
+    def make_button_layout(self) -> QHBoxLayout:
         button_layout = QHBoxLayout()
 
         command_pub = GUIEventPublisher(FloatCommand, 'float_command')

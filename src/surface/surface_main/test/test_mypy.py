@@ -10,6 +10,6 @@ from ament_mypy.main import main
 @pytest.mark.linter()
 def test_mypy() -> None:
     """Tests mypy on this module."""
-    path = str(Path(Path.cwd()) / '..' / '..' / '..' / 'pyproject.toml')
+    path = str(Path.cwd() / '..' / '..' / '..' / 'pyproject.toml')
     error_code = main(argv=['--config', path])
     assert error_code == 0, 'Found code style errors / warnings'
