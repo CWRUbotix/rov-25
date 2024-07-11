@@ -12,7 +12,7 @@ make -j4
 
 # Add IGN_GAZEBO_SYSTEM_PLUGIN_PATH to .bashrc only if it isn't already there
 ROS_LINE='export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=$HOME/ardupilot_gazebo/build:$IGN_GAZEBO_SYSTEM_PLUGIN_PATH'
-if ! grep -qF "$ROS_LINE" ~/.bashrc ; 
+if ! grep -qF "$ROS_LINE" ~/.bashrc ;
     then echo "$ROS_LINE" >> ~/.bashrc ;
 fi
 

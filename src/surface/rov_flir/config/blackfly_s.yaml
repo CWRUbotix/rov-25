@@ -111,7 +111,7 @@ parameters:
     # "LogicBlock<0,1>
     node: AcquisitionControl/TriggerSource
   - name: trigger_delay
-    # value >= 9 
+    # value >= 9
     type: float
     node: AcquisitionControl/TriggerDelay
   - name: trigger_overlap

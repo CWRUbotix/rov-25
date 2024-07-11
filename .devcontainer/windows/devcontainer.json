@@ -1,7 +1,7 @@
 {
     "name" : "ROV Windows",
     "image": "ghcr.io/cwrubotix/rov-25:iron",
-    "containerEnv": {  
+    "containerEnv": {
         "DISPLAY": "${localEnv:DISPLAY}"
     },
     "workspaceFolder": "/home/rov/rov-25",

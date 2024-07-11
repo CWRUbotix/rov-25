@@ -7,5 +7,5 @@
     <xacro:include filename="body.xacro" />
     <xacro:include filename="thruster.xacro" />
     <xacro:include filename="sensors.xacro" />
-    
+
 </robot>

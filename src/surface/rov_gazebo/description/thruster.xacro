@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="thruster">
 
-  <xacro:arg name="params_path" default="$(find rov_gazebo)/description/rov_description_params.yaml"/> 
+  <xacro:arg name="params_path" default="$(find rov_gazebo)/description/rov_description_params.yaml"/>
   <!-- Need argument to get from launch file -->
-  <xacro:property name="params_path" value="$(arg params_path)"/> 
+  <xacro:property name="params_path" value="$(arg params_path)"/>
   <!-- Need seperate property for xacro inorder processing -->
-  <xacro:property name="params" value="${xacro.load_yaml(params_path)}"/> 
+  <xacro:property name="params" value="${xacro.load_yaml(params_path)}"/>
   <!-- Read in the yaml dict as mp (short for model parameters) -->
 
   <xacro:property name="rov_description" value="${params['rov_description']}"/>
@@ -19,11 +19,11 @@
     <xacro:property name="width_from_center" value="${motor_object['width_from_center']}"/>
     <xacro:property name="length_from_center" value="${motor_object['length_from_center']}"/>
     <xacro:property name="height_from_center" value="${motor_object['height_from_center']}"/>
-    
+
     <xacro:property name="roll" value="${motor_object['roll']}"/>
     <xacro:property name="pitch" value="${motor_object['pitch']}"/>
     <xacro:property name="yaw" value="${motor_object['yaw']}"/>
-  
+
     <origin rpy="0 0 0" xyz="0 0 0"/>
 
     <joint name="body_${thruster_name}_joint" type="fixed">
@@ -130,8 +130,8 @@
           <propeller_diameter>0.2</propeller_diameter>
         </plugin>
     </gazebo>
-    
-  </xacro:macro>  
+
+  </xacro:macro>
 
   <xacro:thruster name="front_left" motor="top" reflectx="1" reflecty="1"/>
   <xacro:thruster name="front_right" motor="top" reflectx="1" reflecty="-1"/>
@@ -142,5 +142,5 @@
   <xacro:thruster name="front_right" motor="bottom" reflectx="1" reflecty="-1"/>
   <xacro:thruster name="back_left" motor="bottom" reflectx="-1" reflecty="1"/>
   <xacro:thruster name="back_right" motor="bottom" reflectx="-1" reflecty="-1"/>
-   
+
 </robot>

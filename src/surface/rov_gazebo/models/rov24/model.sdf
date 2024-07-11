@@ -5,7 +5,7 @@
 
     <!-- BlueROV2 thruster reference: http://www.ardusub.com/introduction/features.html -->
 
-      
+
 
     <link name="base_link">
       <inertial>

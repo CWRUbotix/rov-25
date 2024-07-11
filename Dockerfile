@@ -58,7 +58,7 @@ COPY src/surface/rov_gazebo/scripts/ardupilot_gazebo.sh .
 RUN ./ardupilot_gazebo.sh \
     && rm ardupilot_gazebo.sh
 # Update Pip
-RUN pip install --no-cache-dir --upgrade  pip==24.0 
+RUN pip install --no-cache-dir --upgrade  pip==24.0
 
 WORKDIR /home/${USER_NAME}/rov-25
 
@@ -100,7 +100,7 @@ COPY --chown=${USER_NAME}:${USER_NAME} . .
 ARG EXPECTED_OUTPUT="All system dependencies have been satisfied"
 
 # Checks that all rosdeps are installed.
-RUN if [[ $(rosdep check -r --from-paths src --ignore-src) != "${EXPECTED_OUTPUT}" ]]; \ 
+RUN if [[ $(rosdep check -r --from-paths src --ignore-src) != "${EXPECTED_OUTPUT}" ]]; \
   then echo "ROS deps not all installed. Try adding another /* directory layer to the COPY instruction labeled 'Copies in ROS deps'."; \
   rosdep check -r --from-paths src --ignore-src; \
   exit 1; \

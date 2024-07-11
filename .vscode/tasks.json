@@ -42,7 +42,7 @@
                 "kind": "test",
                 "isDefault": true
             }
-        }, 
+        },
         {
             "label": "[TEST] Run Tests",
             "type": "shell",
@@ -55,7 +55,7 @@
                 "kind": "test",
                 "isDefault": true
             }
-        }, 
+        },
         {
             "label": "[TEST] Run Linter/Formatter & Tests",
             "dependsOrder": "sequence",
