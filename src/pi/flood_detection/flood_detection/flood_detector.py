@@ -28,7 +28,7 @@ class FloodDetector(Node):
         self.publisher.publish(msg)
 
 
-def main(args: None = None) -> None:
+def main() -> None:
     rclpy.init()
     flood_detector = FloodDetector()
     rclpy.spin(flood_detector)

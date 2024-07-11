@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+from mypy_extensions import NamedArg
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QFrame,
@@ -12,6 +13,8 @@ from PyQt6.QtWidgets import (
 )
 
 from gui.widgets.video_widget import CameraDescription, CameraType, PauseableVideoWidget
+
+GRID_DIMENSION = 8
 
 
 class SeagrassWidget(QWidget):
@@ -31,11 +34,11 @@ class SeagrassWidget(QWidget):
 
         set_all_green = QPushButton('Set All Green')
         set_all_green.setMaximumWidth(self.BUTTON_WIDTH)
-        set_all_green.clicked.connect(lambda: self.before_grid.reset_grid(True))
+        set_all_green.clicked.connect(lambda: self.before_grid.reset_grid(recovered=True))
 
         set_all_white = QPushButton('Set All White')
         set_all_white.setMaximumWidth(self.BUTTON_WIDTH)
-        set_all_white.clicked.connect(lambda: self.before_grid.reset_grid(False))
+        set_all_white.clicked.connect(lambda: self.before_grid.reset_grid(recovered=False))
 
         before_btns_layout.addWidget(set_all_green)
         before_btns_layout.addWidget(set_all_white)
@@ -115,11 +118,11 @@ class SeagrassGrid(QWidget):
     def __init__(
         self,
         update_result_text: Callable[[], None],
-        set_other_button: Callable[[int, bool], None] | None = None,
+        set_other_button: Callable[[int, NamedArg(bool, 'recovered')], None] | None = None,
     ) -> None:
         super().__init__()
 
-        self.set_other_button: Callable[[int, bool], None] | None = set_other_button
+        self.set_other_button = set_other_button
 
         self.setMaximumWidth(200)
 
@@ -134,11 +137,10 @@ class SeagrassGrid(QWidget):
         self.frame.setStyleSheet('border: 1px solid gray')
 
         self.all_buttons: list[SeagrassButton] = []
-        N = 8
         button_id = 0
 
-        for row in range(N):
-            for col in range(N):
+        for row in range(GRID_DIMENSION):
+            for col in range(GRID_DIMENSION):
                 seagrass_button: SeagrassButton = SeagrassButton(
                     button_id, 50, update_result_text, self.set_other_button
                 )
@@ -148,9 +150,9 @@ class SeagrassGrid(QWidget):
 
                 button_id += 1
 
-    def reset_grid(self, recovered: bool) -> None:
+    def reset_grid(self, *, recovered: bool) -> None:
         for button in self.all_buttons:
-            button.set_color(recovered)
+            button.set_color(recovered=recovered)
 
     def get_num_recovered(self) -> int:
         num_recovered: int = 0
@@ -166,11 +168,11 @@ class SeagrassGrid(QWidget):
             raise ValueError('self.set_other_button has been called on after grid')
 
         for button in self.all_buttons:
-            self.set_other_button(button.button_id, button.recovered)
+            self.set_other_button(button.button_id, recovered=button.recovered)
 
-    def set_button(self, button_id: int, recovered: bool) -> None:
+    def set_button(self, button_id: int, *, recovered: bool) -> None:
         button = self.all_buttons[button_id]
-        button.set_color(recovered)
+        button.set_color(recovered=recovered)
 
 
 class SeagrassButton(QPushButton):
@@ -179,9 +181,9 @@ class SeagrassButton(QPushButton):
         button_id: int,
         size: int,
         update_text: Callable[[], None],
-        set_other_button: Callable[[int, bool], None] | None = None,
+        set_other_button: Callable[[int, NamedArg(bool, 'recovered')], None] | None = None,
     ) -> None:
-        super(SeagrassButton, self).__init__()
+        super().__init__()
 
         self.button_id: int = button_id
         self.setFixedSize(size, size)
@@ -197,20 +199,17 @@ class SeagrassButton(QPushButton):
     def toggle_button_color(self) -> None:
         self.recovered = not self.recovered
 
-        self.set_color(self.recovered)
+        self.set_color(recovered=self.recovered)
 
-    def set_color(self, recovered: bool) -> None:
+    def set_color(self, *, recovered: bool) -> None:
         self.recovered = recovered
 
-        if recovered:
-            color = 'green'
-        else:
-            color = 'white'
+        color = 'green' if recovered else 'white'
 
         self.setStyleSheet(f'border: 1px solid gray; background-color :{color}')
 
         # Update other button
         if self.set_other_button is not None:
-            self.set_other_button(self.button_id, self.recovered)
+            self.set_other_button(self.button_id, recovered=self.recovered)
 
         self.update_text()

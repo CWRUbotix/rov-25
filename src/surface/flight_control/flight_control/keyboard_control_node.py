@@ -1,9 +1,13 @@
+from typing import TYPE_CHECKING
+
 import rclpy.utilities
 from pynput.keyboard import Key, KeyCode, Listener
 from rclpy.node import Node
-from rclpy.publisher import Publisher
 from rclpy.qos import qos_profile_system_default
 from rov_msgs.msg import PixhawkInstruction
+
+if TYPE_CHECKING:
+    from rclpy.publisher import Publisher
 
 # key bindings
 FORWARD = 'w'
@@ -73,50 +77,38 @@ class KeyboardListenerNode(Node):
         }
 
     def on_press(self, key: Key | KeyCode | None) -> None:
-        try:
-            key_name: str = ''
-            if isinstance(key, KeyCode):
-                key_name = key.char
-                if key_name is None:
-                    return
-            elif isinstance(key, Key):
-                key_name = key.name
-            else:
+        if isinstance(key, KeyCode):
+            if key.char is None:
                 return
+            key_name = key.char
+        elif isinstance(key, Key):
+            key_name = key.name
+        else:
+            return
 
-            if key_name == HELP:
-                self.get_logger().info(HELP_MSG)
-            else:
-                self.status[key_name] = True
+        if key_name == HELP:
+            self.get_logger().info(HELP_MSG)
+        else:
+            self.status[key_name] = True
 
-            self.pub_rov_control()
-
-        except Exception as exception:
-            self.get_logger().error(str(exception))
-            raise exception
+        self.pub_rov_control()
 
     def on_release(self, key: Key | KeyCode | None) -> None:
-        try:
-            key_name: str = ''
-            if isinstance(key, KeyCode):
-                key_name = key.char
-                if key_name is None:
-                    return
-            elif isinstance(key, Key):
-                key_name = key.name
-            else:
+        if isinstance(key, KeyCode):
+            if key.char is None:
                 return
+            key_name = key.char
+        elif isinstance(key, Key):
+            key_name = key.name
+        else:
+            return
 
-            if key_name == HELP:
-                pass
-            else:
-                self.status[key_name] = False
+        if key_name == HELP:
+            pass
+        else:
+            self.status[key_name] = False
 
-            self.pub_rov_control()
-
-        except Exception as exception:
-            self.get_logger().error(str(exception))
-            raise exception
+        self.pub_rov_control()
 
     def pub_rov_control(self) -> None:
         instruction = PixhawkInstruction(

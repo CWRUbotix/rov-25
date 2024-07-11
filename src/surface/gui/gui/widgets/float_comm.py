@@ -1,6 +1,13 @@
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QTextCursor
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 from pyqtgraph import PlotWidget
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
@@ -28,8 +35,6 @@ class FloatComm(QWidget):
         GUIEventSubscriber(FloatSerial, 'float_serial', self.handle_serial_signal)
         GUIEventSubscriber(FloatSingle, 'transceiver_single', self.handle_data_single_signal)
 
-        command_pub = GUIEventPublisher(FloatCommand, 'float_command')
-
         info_layout = QVBoxLayout()
 
         single_layout = QHBoxLayout()
@@ -54,34 +59,7 @@ class FloatComm(QWidget):
 
         info_and_buttons = QHBoxLayout()
         info_and_buttons.addLayout(info_layout)
-
-        submerge_button = QPushButton('Submerge')
-        pump_button = QPushButton('Pump')
-        suck_button = QPushButton('Suck')
-        return_button = QPushButton('Return')
-        stop_button = QPushButton('Stop')
-
-        submerge_button.clicked.connect(
-            lambda: command_pub.publish(FloatCommand(command=FloatCommand.SUBMERGE))
-        )
-        pump_button.clicked.connect(
-            lambda: command_pub.publish(FloatCommand(command=FloatCommand.PUMP))
-        )
-        suck_button.clicked.connect(
-            lambda: command_pub.publish(FloatCommand(command=FloatCommand.SUCK))
-        )
-        return_button.clicked.connect(
-            lambda: command_pub.publish(FloatCommand(command=FloatCommand.RETURN))
-        )
-        stop_button.clicked.connect(
-            lambda: command_pub.publish(FloatCommand(command=FloatCommand.STOP))
-        )
-
-        info_and_buttons.addWidget(submerge_button)
-        info_and_buttons.addWidget(pump_button)
-        info_and_buttons.addWidget(suck_button)
-        info_and_buttons.addWidget(return_button)
-        info_and_buttons.addWidget(stop_button)
+        info_and_buttons.addLayout(self.make_button_layout())
 
         self.console = QTextEdit()
         self.console.setReadOnly(True)
@@ -110,6 +88,41 @@ class FloatComm(QWidget):
         self.completed_profile_one = False
 
         self.counter = 0
+
+    def make_button_layout(self) -> QHBoxLayout:
+        button_layout = QHBoxLayout()
+
+        command_pub = GUIEventPublisher(FloatCommand, 'float_command')
+
+        submerge_button = QPushButton('Submerge')
+        pump_button = QPushButton('Pump')
+        suck_button = QPushButton('Suck')
+        return_button = QPushButton('Return')
+        stop_button = QPushButton('Stop')
+
+        submerge_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.SUBMERGE))
+        )
+        pump_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.PUMP))
+        )
+        suck_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.SUCK))
+        )
+        return_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.RETURN))
+        )
+        stop_button.clicked.connect(
+            lambda: command_pub.publish(FloatCommand(command=FloatCommand.STOP))
+        )
+
+        button_layout.addWidget(submerge_button)
+        button_layout.addWidget(pump_button)
+        button_layout.addWidget(suck_button)
+        button_layout.addWidget(return_button)
+        button_layout.addWidget(stop_button)
+
+        return button_layout
 
     @pyqtSlot(FloatData)
     def handle_data(self, msg: FloatData) -> None:

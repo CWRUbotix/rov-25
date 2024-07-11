@@ -29,7 +29,7 @@ class TempSensor(Node):
             print('Failed to read temperature, skipping this read')
 
 
-def main(args: None = None) -> None:
+def main() -> None:
     rclpy.init()
     temp_sensor = TempSensor()
     rclpy.spin(temp_sensor)

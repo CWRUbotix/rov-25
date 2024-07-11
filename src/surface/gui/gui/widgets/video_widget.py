@@ -27,6 +27,10 @@ HEIGHT = 541
 # 1 Pixel larger than actual pixel dimensions
 
 
+COLOR = 3
+GREY_SCALE = 2
+
+
 class CameraType(IntEnum):
     """
     Enum Class for defining Camera Types.
@@ -113,14 +117,14 @@ class VideoWidget(QWidget):
             cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BAYER_BGGR2BGR)
 
         # Color image
-        if len(cv_img.shape) == 3:
+        if len(cv_img.shape) == COLOR:
             h, w, ch = cv_img.shape
             bytes_per_line = ch * w
 
             img_format = QImage.Format.Format_RGB888
 
         # Grayscale image
-        elif len(cv_img.shape) == 2:
+        elif len(cv_img.shape) == GREY_SCALE:
             h, w = cv_img.shape
             bytes_per_line = w
 
@@ -147,7 +151,7 @@ class SwitchableVideoWidget(VideoWidget):
         camera_descriptions: list[CameraDescription],
         controller_button_topic: str | None = None,
         default_cam_num: int = 0,
-    ):
+    ) -> None:
         self.camera_descriptions = camera_descriptions
         self.active_cam = default_cam_num
 
@@ -176,12 +180,12 @@ class SwitchableVideoWidget(VideoWidget):
 
     @pyqtSlot(CameraControllerSwitch)
     def controller_camera_switch(self, switch: CameraControllerSwitch) -> None:
-        self.camera_switch(switch.toggle_right)
+        self.camera_switch(toggle_right=switch.toggle_right)
 
     def gui_camera_switch(self) -> None:
         self.controller_publisher.publish(CameraControllerSwitch(toggle_right=True))
 
-    def camera_switch(self, toggle_right: bool) -> None:
+    def camera_switch(self, *, toggle_right: bool) -> None:
         if toggle_right:
             self.active_cam = (self.active_cam + 1) % self.num_of_cams
         else:

@@ -1,3 +1,4 @@
+import sys
 import time
 from queue import Queue
 from threading import Thread
@@ -55,7 +56,7 @@ class SerialReader(Node):
             self.serial = Serial('/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00', 115200)
         except SerialException:
             self.get_logger().error('Could not get serial device')
-            exit(1)
+            sys.exit(1)
 
         Thread(target=self.read_serial, daemon=True, name='Serial Reader').start()
 
@@ -87,7 +88,7 @@ class SerialReader(Node):
             else:
                 msg = self.serial_packet_handler.message_parser(packet)
                 self.data_publisher.publish(msg)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.get_logger().error(f'Error {e} caught dropping packet')
 
 

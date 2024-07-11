@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import IncludeLaunchDescription
@@ -11,7 +11,7 @@ def generate_launch_description() -> LaunchDescription:
 
     all_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [os.path.join(surface_path, 'launch', 'surface_all_nodes_launch.py')]
+            [str(Path(surface_path) / 'launch' / 'surface_all_nodes_launch.py')]
         ),
         launch_arguments=[('gui', 'livestream')],
     )

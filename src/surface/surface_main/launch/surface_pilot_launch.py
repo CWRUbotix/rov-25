@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import GroupAction, IncludeLaunchDescription
@@ -10,21 +10,21 @@ from launch_ros.actions import Node, PushRosNamespace
 
 
 def generate_launch_description() -> LaunchDescription:
-    gui_path: str = get_package_share_directory('gui')
-    controller_path: str = get_package_share_directory('ps5_controller')
+    gui_path = get_package_share_directory('gui')
+    controller_path = get_package_share_directory('ps5_controller')
     # flir_path: str = get_package_share_directory('rov_flir')
 
     simulation_configuration = LaunchConfiguration('simulation', default=False)
 
     # Launches Gui
     gui_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(gui_path, 'launch', 'pilot_launch.py')]),
+        PythonLaunchDescriptionSource([str(Path(gui_path) / 'launch' / 'pilot_launch.py')]),
     )
 
     # Launches Controller
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [os.path.join(controller_path, 'launch', 'controller_launch.py')]
+            [str(Path(controller_path) / 'launch' / 'controller_launch.py')]
         ),
     )
 

@@ -1,7 +1,6 @@
 """setup.py for pi_main module."""
 
-import os
-from glob import glob
+from pathlib import Path
 
 from setuptools import setup
 
@@ -16,9 +15,18 @@ setup(
         ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
         ('share/' + PACKAGE_NAME, ['package.xml']),
         # Include all launch files.
-        (os.path.join('share', PACKAGE_NAME, 'launch'), glob('launch/*launch.[pxy][yma]*')),
-        (os.path.join('share', PACKAGE_NAME, 'udev_rules'), glob('udev_rules/*')),
-        (os.path.join('share', PACKAGE_NAME, 'services'), glob('services/*')),
+        (
+            str(Path('share') / PACKAGE_NAME / 'launch'),
+            [str(path) for path in Path('launch').glob('*launch.[pxy][yma]*')],
+        ),
+        (
+            str(Path('share') / PACKAGE_NAME / 'udev_rules'),
+            [str(path) for path in Path('udev_rules').glob('*')],
+        ),
+        (
+            str(Path('share') / PACKAGE_NAME / 'services'),
+            [str(path) for path in Path('services').glob('*')],
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
