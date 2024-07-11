@@ -77,11 +77,10 @@ class KeyboardListenerNode(Node):
         }
 
     def on_press(self, key: Key | KeyCode | None) -> None:
-        key_name: str = ''
         if isinstance(key, KeyCode):
-            key_name = key.char
-            if key_name is None:
+            if key.char is None:
                 return
+            key_name = key.char
         elif isinstance(key, Key):
             key_name = key.name
         else:
@@ -95,11 +94,10 @@ class KeyboardListenerNode(Node):
         self.pub_rov_control()
 
     def on_release(self, key: Key | KeyCode | None) -> None:
-        key_name: str = ''
         if isinstance(key, KeyCode):
-            key_name = key.char
-            if key_name is None:
+            if key.char is None:
                 return
+            key_name = key.char
         elif isinstance(key, Key):
             key_name = key.name
         else:
