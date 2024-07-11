@@ -6,7 +6,7 @@ Runs the simulation as well as stores all the description files.
 
 ## Installation
 
-Run the `Setup Simulation` Task.
+Run the `[SETUP] Simulation` Task.
 
 ## Usage
 

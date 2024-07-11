@@ -44,7 +44,7 @@ Restart.
 
 Then install the Dev Containers VSCode extension.
 
-To open the container use `F1` or `ctrl+shift+p` to open the command bar and use `Tasks: Runs Task`. Then from the Task selection choose `Docker Rebuild`. This will build and run the docker container. Make sure to choose `ROV Linux` for which type to run.
+To open the container, open the repository with VSCode. Then use `F1` or `ctrl+shift+p` to open the command bar and select `Tasks: Run Task`. Then from the Task selection choose `Docker Rebuild`. This will build and run the docker container. Make sure to choose `ROV Linux` for which type to run.
 
 For gui apps run `xhost + local:docker` before launching docker or add to `.bashrc`.
 
@@ -52,7 +52,7 @@ To reopen after a build Go to File > Open Recent /stuff/rov-25 \[Dev Container]
 
 #### Bare Metal
 
-To run the install script use `F1` or `ctrl+shift+p` to open the command bar and use `Tasks: Runs Task`. Then from the Task selection choose `Setup Surface Environment`. This will install ROS and all our dependencies.
+To run the install script, open the repository with VSCode. Then use `F1` or `ctrl+shift+p` to open the command bar and select `Tasks: Run Task`. Then from the Task selection choose `[SETUP] Surface Environment`. This will install ROS and all our dependencies.
 
 ### Windows
 
@@ -62,7 +62,7 @@ Start by installing docker from [here](https://www.docker.com/get-started/).
 
 Then install the Dev Containers VSCode extension.
 
-To open the container use `F1` or `ctrl+shift+p` to open the command bar and use `Tasks: Runs Task`. Then from the Task selection choose `Docker Rebuild`. This will build and run the docker container. Make sure to choose `ROV Windows` for which type to run.
+To open the container, open the repository with VSCode. Then use `F1` or `ctrl+shift+p` to open the command bar and select `Tasks: Run Task`. Then from the Task selection choose `Docker Rebuild`. This will build and run the docker container. Make sure to choose `ROV Windows` for which type to run.
 
 To add your ssh keys into the container follow [this](https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials) guide.
 
@@ -90,7 +90,7 @@ After WSL has been installed follow [this](https://code.visualstudio.com/docs/re
 
 Then run the install script.
 
-To run the install script use `F1` or `ctrl+shift+p` to open the command bar and use `Tasks: Runs Task`. Then from the Task selection choose `Setup Surface Environment`. This will install ROS and all our dependencies.
+To run the install script, open the repository with VSCode. Then use `F1` or `ctrl+shift+p` to open the command bar and select `Tasks: Run Task`. Then from the Task selection choose `[SETUP] Surface Environment`. This will install ROS and all our dependencies.
 
 ### macOS
 
@@ -119,7 +119,7 @@ Make the settings look like this:
 
 ![image](/doc/images/macos_xserver_settings.jpg)
 
-To open the container use `F1` or `ctrl+shift+p` to open the command bar and use `Tasks: Runs Task`. Then from the Task selection choose `Docker Rebuild`. This will build and run the docker container. Make sure to choose `ROV macOS` for which type to run.
+To open the container, open the repository with VSCode. Then use `F1` or `ctrl+shift+p` to open the command bar and select `Tasks: Run Task`. Then from the Task selection choose `Docker Rebuild`. This will build and run the docker container. Make sure to choose `ROV macOS` for which type to run.
 
 To reopen after a build Go to File > Open Recent /stuff/rov-25 \[Dev Container]
 
@@ -153,7 +153,7 @@ corresponding option appear. Click or hit enter on that option.
 This whole process should become `F1`, `Enter`, `Enter` once you've done it once,
 although the magic of symlink should mean you won't need to build again for most things.
 
-If you're working on package's `setup.py` or rov_msgs, you'll need to run `🏃‍♂️ ROS Quick Build` or use `Control + Shift + B` every time you change something.
+If you're working on package's `setup.py` or rov_msgs, you'll need to run `[ROS] 🏃‍ Build Workspace` or use `Control + Shift + B` every time you change something.
 
 If you want to run our unit tests use this command `colcon test --event-handlers=console_direct+`.
 
