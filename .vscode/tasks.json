@@ -31,7 +31,7 @@
             }
         },
         {
-            "label": "[TEST] Run Linter & Formatter",
+            "label": "[TEST] Run Linter/Formatter",
             "type": "shell",
             "command": "pre-commit run --all-files",
             "presentation": {
