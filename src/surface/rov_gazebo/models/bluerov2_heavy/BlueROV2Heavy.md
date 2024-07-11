@@ -33,7 +33,7 @@ Tools/autotest/sim_vehicle.py -L RATBeach -v ArduSub -f vectored_6dof --model=JS
 
 ```
 arm throttle
-rc 3 1450     
+rc 3 1450
 rc 3 1500
 mode alt_hold
 rc 5 1550

@@ -12,7 +12,7 @@
                     iyy="${(2/5) * mass * (radius*radius)}" iyz="0.0"
                     izz="${(2/5) * mass * (radius*radius)}" />
         </inertial>
-    </xacro:macro>  
+    </xacro:macro>
 
 
     <xacro:macro name="inertial_box" params="mass x y z *origin">
