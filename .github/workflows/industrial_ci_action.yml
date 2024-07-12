@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false # uncomment if failing jobs should not cancel the others immediately
       matrix: # matrix is the product of entries
-        ROS_DISTRO: [iron, jazzy]
+        ROS_DISTRO: [jazzy]
         ROS_REPO: [main]
         # exclude: # specific configuration can be excludes
         #   - {ROS_DISTRO: melodic, ROS_REPO: testing}
@@ -38,25 +38,9 @@ jobs:
           key: ccache-${{ matrix.ROS_DISTRO }}-${{ matrix.ROS_REPO }}-${{github.run_id}}
           restore-keys: |
             ccache-${{ matrix.ROS_DISTRO }}-${{ matrix.ROS_REPO }}-
-
-      - uses: 'ros-industrial/industrial_ci@master' # run industrial_ci
-        # Only pulls docker for iron since jazzy one is not built yet
-        if: matrix.ROS_DISTRO == 'iron'
-        env: # either pass all entries explicitly
-          DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
-          ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-          # Done to avoid permssion errors in the ros-industrial ci.
-          DOCKER_RUN_OPTS: -u root
-          ROS_REPO: ${{ matrix.ROS_REPO }}
-          # Crazy one liner for install python dependencies
-
-        # Need since mypy < 0.981 does not work with type stubs.
-        # Ubuntu 24 has 1.9 so should be fine when we upgrade
-          AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install --upgrade pip && pip install /root/target_ws/src/rov-25 --user && pip install "mypy>=1.7" --user && rm -r /root/target_ws/src/rov-25/build'
-
+      
       # Once a :jazzy exists we can remove this section
       - uses: 'ros-industrial/industrial_ci@master' # run industrial_ci
-        if: matrix.ROS_DISTRO != 'iron'
         env: # either pass all entries explicitly
             # DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
             ROS_DISTRO: ${{ matrix.ROS_DISTRO }}

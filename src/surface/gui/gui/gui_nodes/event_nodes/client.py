@@ -10,16 +10,14 @@ from rclpy.node import Node
 class GUIEventClient(Node):
     """Multithreaded client for sending service requests from the GUI."""
 
-    # TODO: in the release after Iron can add back the Optional around timeout
-    # The fix internally is already out on Rolling
-    # Set to None for no timeout limits on service requests
+    # Set timeout to None for no timeout limits on service requests
     # else set to float number of seconds to limit request spinning
     def __init__(
         self,
         srv_type: SrvType,
         topic: str,
         signal: pyqtBoundSignal,
-        timeout: float = 3.0,
+        timeout: float | None = 3.0,
         expected_namespace: str = '/surface/gui',
     ) -> None:
         # Name this node with a sanitized version of the topic
