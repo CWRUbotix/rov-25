@@ -52,7 +52,7 @@ class FloodWarning(QWidget):
     def refresh(self, msg: Flooding) -> None:
         if msg.flooding:
             self.indicator.setText('FLOODING')
-            self.get_logger().error('Robot is actively flooding, do something!')
+            GUINode().get_logger().error('Robot is actively flooding, do something!')
             self.warning_msg_latch = True
             self.indicator_circle.set_off()
 
@@ -63,6 +63,6 @@ class FloodWarning(QWidget):
             self.indicator.setText('No Water present')
             self.indicator_circle.set_on()
             if self.warning_msg_latch:
-                self.get_logger().warning('Robot flooding has reset itself.')
+                GUINode().get_logger().warning('Robot flooding has reset itself.')
                 self.warning_msg_latch = False
                 self.alarm_sound.setLoopCount(0)
