@@ -107,7 +107,7 @@ class ThrusterTester(QWidget):
 
     def send_test_message(self) -> None:
         for motor_index in range(self.MOTOR_COUNT):
-            self.get_logger().info(f'Testing thruster {motor_index}')
+            GUINode().get_logger().info(f'Testing thruster {motor_index}')
             self.test_motor_for_time(motor_index, self.TEST_THROTTLE, self.TEST_LENGTH)
             self.test_motor_for_time(motor_index, 0.0, 0.5)
 
@@ -119,4 +119,4 @@ class ThrusterTester(QWidget):
 
     @pyqtSlot(CommandLong.Response)
     def command_response_handler(self, res: CommandLong.Response) -> None:
-        self.get_logger().debug(f'Test response: {res.success}, {res.result}')
+        GUINode().get_logger().debug(f'Test response: {res.success}, {res.result}')
