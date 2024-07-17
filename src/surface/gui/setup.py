@@ -15,7 +15,6 @@ setup(
         str(Path(PACKAGE_NAME) / 'widgets' / 'tabs'),
         str(Path(PACKAGE_NAME) / 'styles'),
         str(Path(PACKAGE_NAME) / 'gui_nodes' / 'auxiliary_nodes'),
-        str(Path(PACKAGE_NAME) / 'gui_nodes' / 'event_nodes'),
     ],
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),

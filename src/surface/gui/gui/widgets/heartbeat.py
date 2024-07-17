@@ -3,7 +3,9 @@ from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from rov_msgs.msg import VehicleState
 
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from rclpy.node import Node
+
+from gui.widgets.node_singleton import GUINode
 from gui.widgets.circle import CircleIndicator
 
 
@@ -14,7 +16,7 @@ class HeartbeatWidget(QWidget):
         super().__init__()
 
         self.signal.connect(self.refresh)
-        self.subscription = GUIEventSubscriber(VehicleState, 'vehicle_state_event', self.signal)
+        GUINode().create_event_subscription(VehicleState, 'vehicle_state_event', self.signal)
         # Create a latch variable
         self.warning_msg_latch: bool = False
 

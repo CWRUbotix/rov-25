@@ -6,7 +6,8 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-from gui.gui_nodes.event_nodes.client import GUIEventClient
+from rclpy.node import Node
+from gui.widgets.node_singleton import GUINode
 
 
 class ThrusterTester(QWidget):
@@ -21,8 +22,8 @@ class ThrusterTester(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        self.cmd_client: GUIEventClient = GUIEventClient(
-            CommandLong, 'mavros/cmd/command', self.command_response_signal
+        self.cmd_client = GUINode().create_event_client(
+            CommandLong, 'mavros/cmd/command'
         )
         self.command_response_signal.connect(self.command_response_handler)
 
@@ -89,7 +90,8 @@ class ThrusterTester(QWidget):
 
         start_time = time.time()
         while time.time() - start_time < duration:
-            self.cmd_client.send_request_async(
+            GUINode.send_request_multithreaded(
+                self.cmd_client,
                 CommandLong.Request(
                     command=209,  # MAV_CMD_DO_MOTOR_TEST
                     param1=float(motor_index),  # Motor number
@@ -98,9 +100,9 @@ class ThrusterTester(QWidget):
                     param4=0.0,  # Time between tests
                     param5=0.0,  # Number of motors to test
                     param6=2.0,  # MOTOR_TEST_ORDER_BOARD
-                )
+                ),
+                self.command_response_signal
             )
-
             time.sleep(0.05)
 
     def async_send_message(self) -> None:
@@ -108,7 +110,7 @@ class ThrusterTester(QWidget):
 
     def send_test_message(self) -> None:
         for motor_index in range(self.MOTOR_COUNT):
-            self.cmd_client.get_logger().info(f'Testing thruster {motor_index}')
+            self.get_logger().info(f'Testing thruster {motor_index}')
             self.test_motor_for_time(motor_index, self.TEST_THROTTLE, self.TEST_LENGTH)
             self.test_motor_for_time(motor_index, 0.0, 0.5)
 
@@ -120,4 +122,4 @@ class ThrusterTester(QWidget):
 
     @pyqtSlot(CommandLong.Response)
     def command_response_handler(self, res: CommandLong.Response) -> None:
-        self.cmd_client.get_logger().debug(f'Test response: {res.success}, {res.result}')
+        self.get_logger().debug(f'Test response: {res.success}, {res.result}')

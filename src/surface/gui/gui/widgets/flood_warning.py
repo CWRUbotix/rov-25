@@ -7,7 +7,9 @@ from PyQt6.QtMultimedia import QSoundEffect
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from rov_msgs.msg import Flooding
 
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from gui.widgets.node_singleton import GUINode
+
+from rclpy.node import Node
 from gui.widgets.circle import CircleIndicator
 
 # The 'Loop' enum has int values, not 'Loop', unbeknownst to mypy
@@ -21,7 +23,7 @@ class FloodWarning(QWidget):
         super().__init__()
 
         self.signal.connect(self.refresh)
-        self.subscription = GUIEventSubscriber(Flooding, 'flooding', self.signal)
+        GUINode().create_event_subscription(Flooding, 'flooding', self.signal)
         # Create a latch variable
         self.warning_msg_latch = False
         # Create basic 2 vertical stacked boxes layout
@@ -52,7 +54,7 @@ class FloodWarning(QWidget):
     def refresh(self, msg: Flooding) -> None:
         if msg.flooding:
             self.indicator.setText('FLOODING')
-            self.subscription.get_logger().error('Robot is actively flooding, do something!')
+            self.get_logger().error('Robot is actively flooding, do something!')
             self.warning_msg_latch = True
             self.indicator_circle.set_off()
 
@@ -63,6 +65,6 @@ class FloodWarning(QWidget):
             self.indicator.setText('No Water present')
             self.indicator_circle.set_on()
             if self.warning_msg_latch:
-                self.subscription.get_logger().warning('Robot flooding has reset itself.')
+                self.get_logger().warning('Robot flooding has reset itself.')
                 self.warning_msg_latch = False
                 self.alarm_sound.setLoopCount(0)

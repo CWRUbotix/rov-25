@@ -18,7 +18,7 @@ def generate_launch_description() -> LaunchDescription:
     # ls /dev/v4l/by-path for usb slot based symlinks
 
     # USB 3.0 front (fisheye)
-    front_cam_node: Node = Node(
+    front_cam_node = Node(
         exec_name='front_cam',
         package='v4l2_camera',
         executable='v4l2_camera_node',
@@ -34,7 +34,7 @@ def generate_launch_description() -> LaunchDescription:
     )
 
     # USB 3.0 bottom
-    bottom_cam_node: Node = Node(
+    bottom_cam_node = Node(
         exec_name='bottom_cam',
         package='v4l2_camera',
         executable='v4l2_camera_node',

@@ -2,6 +2,7 @@ import atexit
 import signal
 
 import rclpy.utilities
+from gui.widgets.node_singleton import GUINode
 from PyQt6.QtWidgets import QApplication, QWidget
 from rclpy.node import Node
 
@@ -15,12 +16,12 @@ class App(QWidget):
         if not rclpy.utilities.ok():
             rclpy.init()
         super().__init__()
-        self.node = Node(node_name, parameter_overrides=[])
+        self.node = GUINode(node_name)
 
         self.theme_param = self.node.declare_parameter('theme', '')
         self.resize(1850, 720)
 
-        atexit.register(clean_shutdown)
+        atexit.register(self._clean_shutdown)
 
     def run_gui(self) -> None:
         # Kills with Control + C
@@ -39,15 +40,12 @@ class App(QWidget):
 
         # qdarktheme.setup_theme(base_theme, additional_qss=custom_styles)
 
-        # Delete node now that we've used it to get params
-        self.node.destroy_node()
-
         self.show()
 
         # TODO: when the app closes it causes an error. Make not cause error?
         self.app.exec()
 
-
-def clean_shutdown() -> None:
-    if rclpy.utilities.ok():
-        rclpy.shutdown()
+    def _clean_shutdown(self) -> None:
+        if rclpy.utilities.ok():
+            self.node.destroy_node()
+            rclpy.shutdown()

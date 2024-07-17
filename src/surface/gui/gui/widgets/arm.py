@@ -2,9 +2,8 @@ from mavros_msgs.srv import CommandBool
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 from rov_msgs.msg import VehicleState
-
-from gui.gui_nodes.event_nodes.client import GUIEventClient
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from rclpy.node import Node
+from gui.widgets.node_singleton import GUINode
 from gui.styles.custom_styles import ButtonIndicator
 
 
@@ -51,14 +50,12 @@ class Arm(QWidget):
 
         self.command_response_signal.connect(self.arm_status)
 
-        self.arm_client = GUIEventClient(
+        self.arm_client = GUINode().create_event_client(
             CommandBool,
-            'mavros/cmd/arming',
-            self.command_response_signal,
-            expected_namespace='/tether',
+            'mavros/cmd/arming'
         )
 
-        self.mavros_subscription = GUIEventSubscriber(
+        GUINode().create_event_subscription(
             VehicleState,
             'vehicle_state_event',
             self.vehicle_state_signal,
@@ -67,15 +64,17 @@ class Arm(QWidget):
         self.vehicle_state_signal.connect(self.vehicle_state_callback)
 
     def arm_clicked(self) -> None:
-        self.arm_client.send_request_async(self.ARM_REQUEST)
+        GUINode.send_request_multithreaded(self.arm_client, self.ARM_REQUEST,
+                                              self.command_response_signal)
 
     def disarm_clicked(self) -> None:
-        self.arm_client.send_request_async(self.DISARM_REQUEST)
+        GUINode.send_request_multithreaded(self.arm_client, self.DISARM_REQUEST,
+                                              self.command_response_signal)
 
     @pyqtSlot(CommandBool.Response)
     def arm_status(self, res: CommandBool.Response) -> None:
         if not res:
-            self.arm_client.get_logger().warn('Failed to arm or disarm.')
+            GUINode().get_logger().warning('Failed to arm or disarm.')
 
     @pyqtSlot(VehicleState)
     def vehicle_state_callback(self, msg: VehicleState) -> None:

@@ -10,9 +10,7 @@ from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 from rov_msgs.msg import CameraControllerSwitch
 from sensor_msgs.msg import Image
-
-from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from gui.widgets.node_singleton import GUINode
 
 # TODO: Ubuntu26+
 # Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release
@@ -96,7 +94,7 @@ class VideoWidget(QWidget):
         self.cv_bridge = CvBridge()
 
         self.handle_frame_signal.connect(self.handle_frame)
-        self.camera_subscriber: GUIEventSubscriber = GUIEventSubscriber(
+        self.camera_subscriber = GUINode().create_event_subscription(
             Image, camera_description.topic, self.handle_frame_signal
         )
 
@@ -171,10 +169,10 @@ class SwitchableVideoWidget(VideoWidget):
 
         if controller_button_topic is not None:
             self.controller_signal.connect(self.controller_camera_switch)
-            self.controller_publisher = GUIEventPublisher(
+            self.controller_publisher = GUINode().create_event_publisher(
                 CameraControllerSwitch, controller_button_topic
             )
-            self.controller_subscriber = GUIEventSubscriber(
+            self.controller_subscriber = GUINode().create_event_subscription(
                 CameraControllerSwitch, controller_button_topic, self.controller_signal
             )
 
@@ -194,8 +192,8 @@ class SwitchableVideoWidget(VideoWidget):
         # Update Camera Description
         self.camera_description = self.camera_descriptions[self.active_cam]
 
-        self.camera_subscriber.destroy_node()
-        self.camera_subscriber = GUIEventSubscriber(
+        self.camera_subscriber.destroy()
+        self.camera_subscriber = GUINode().create_event_subscription(
             Image, self.camera_description.topic, self.handle_frame_signal
         )
         self.button.setText(self.camera_description.label)
