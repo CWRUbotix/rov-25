@@ -28,6 +28,26 @@ class GUINode(Node):
         signal: pyqtBoundSignal,
         qos_profile: QoSProfile = qos_profile_default,
     ) -> Subscription:
+        """Create a subscription that emits messages to the given signal.
+        See rclpy.node.Node.create_subcription for creating subscriptions
+            based on callback methods instead of signals.
+
+        Parameters
+        ----------
+        msg_type : type[MsgType]
+            The message type of the subscription
+        topic : str
+            The topic name to subscribe to
+        signal : pyqtBoundSignal
+            The PyQt signal to emit messages to
+        qos_profile : QoSProfile, optional
+            The QoS profile for the subscription, by default qos_profile_default
+
+        Returns
+        -------
+        Subscription
+            The created Subscription
+        """
         def wrapper(data: MsgType) -> None:
             return signal.emit(data)
 
@@ -40,6 +60,23 @@ class GUINode(Node):
     def create_client_multithreaded(
         self, srv_type: type[SrvType], srv_name: str, timeout: float = 10.0
     ) -> Client:
+        """Create a service client.
+        On another thread, print warnings until it connects.
+
+        Parameters
+        ----------
+        srv_type : type[SrvType]
+            The service message type
+        srv_name : str
+            The topic name for this service
+        timeout : float, optional
+            The timeout between warning logs, by default 10.0
+
+        Returns
+        -------
+        Client
+            The created Client
+        """
         cli = super().create_client(srv_type, srv_name)
         Thread(
             target=self.__connect_to_service,
@@ -50,7 +87,15 @@ class GUINode(Node):
         return cli
 
     def __connect_to_service(self, client: Client, timeout: float) -> None:
-        """Connect this client to a server in a separate thread."""
+        """Print warnings until the given client connects (blocking).
+
+        Parameters
+        ----------
+        client : Client
+            The client to wait for
+        timeout : float
+            The timeout between warning logs
+        """
         while not client.wait_for_service(timeout):
             super().get_logger().warning(
                 'Service for GUI event client node on topic'
@@ -61,7 +106,18 @@ class GUINode(Node):
     def send_request_multithreaded(
         client: Client, request: SrvTypeRequest, signal: pyqtBoundSignal
     ) -> None:
-        """Send request to server in separate thread."""
+        """Send a request from the given client on a separate thread.
+        Emit the result to the given signal.
+
+        Parameters
+        ----------
+        client : Client
+            The client to make the request from
+        request : SrvTypeRequest
+            The request to send
+        signal : pyqtBoundSignal
+            The signal to emit the result to
+        """
 
         def wrapper(request: SrvTypeRequest) -> None:
             signal.emit(client.call(request))
