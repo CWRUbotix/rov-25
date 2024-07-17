@@ -53,6 +53,6 @@ class App(QWidget):
 
     def _clean_shutdown(self) -> None:
         if rclpy.utilities.ok():
-            self.node.get_logger().info("Exiting.")
+            self.node.get_logger().info('Exiting.')
             self.node.destroy_node()
             rclpy.shutdown()
