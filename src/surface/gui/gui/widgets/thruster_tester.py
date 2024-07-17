@@ -21,7 +21,7 @@ class ThrusterTester(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        self.cmd_client = GUINode().create_event_client(CommandLong, 'mavros/cmd/command')
+        self.cmd_client = GUINode().create_client_multithreaded(CommandLong, 'mavros/cmd/command')
         self.command_response_signal.connect(self.command_response_handler)
 
         layout = QVBoxLayout()

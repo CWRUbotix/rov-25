@@ -22,17 +22,8 @@ class GUINode(Node):
         if name:
             super().__init__(name)
 
-    # TODO: update publishers and sub to be generic in release after Jazzy
-    def create_event_publisher(
-        self, msg_type: type[MsgType], topic: str, qos_profile: QoSProfile = qos_profile_default
-    ) -> Publisher:
-        return super().create_publisher(
-            msg_type,
-            topic,
-            qos_profile,
-        )
-
-    def create_event_subscription(
+    # TODO: update sub to be generic in release after Jazzy
+    def create_signal_subscription(
         self,
         msg_type: type[MsgType],
         topic: str,
@@ -44,19 +35,11 @@ class GUINode(Node):
 
         return super().create_subscription(msg_type, topic, wrapper, qos_profile)
 
-    def create_event_service(
-        self,
-        srv_type: type[SrvType],
-        srv_name: str,
-        callback: Callable[[SrvTypeRequest, SrvTypeResponse], SrvTypeResponse],
-    ) -> Service:
-        return super().create_service(srv_type, srv_name, callback)
-
     # # TODO: in the release after Iron can add back the Optional around timeout
     # # The fix internally is already out on Rolling
     # # Set to None for no timeout limits on service requests
     # # else set to float number of seconds to limit request spinning
-    def create_event_client(
+    def create_client_multithreaded(
         self, srv_type: type[SrvType], srv_name: str, timeout: float = 10.0
     ) -> Client:
         cli = super().create_client(srv_type, srv_name)

@@ -49,7 +49,7 @@ class Logger(QWidget):
         self.terminal_font.setPointSize(11)
 
         self.print_log_signal.connect(self.print_log)
-        GUINode().create_event_subscription(Log, '/rosout', self.print_log_signal)
+        GUINode().create_signal_subscription(Log, '/rosout', self.print_log_signal)
 
     @pyqtSlot(Log)
     def print_log(self, message: Log) -> None:

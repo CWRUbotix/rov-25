@@ -95,7 +95,7 @@ class VideoWidget(QWidget):
         self.cv_bridge = CvBridge()
 
         self.handle_frame_signal.connect(self.handle_frame)
-        self.camera_subscriber = GUINode().create_event_subscription(
+        self.camera_subscriber = GUINode().create_signal_subscription(
             Image, camera_description.topic, self.handle_frame_signal
         )
 
@@ -170,10 +170,10 @@ class SwitchableVideoWidget(VideoWidget):
 
         if controller_button_topic is not None:
             self.controller_signal.connect(self.controller_camera_switch)
-            self.controller_publisher = GUINode().create_event_publisher(
+            self.controller_publisher = GUINode().create_publisher(
                 CameraControllerSwitch, controller_button_topic
             )
-            self.controller_subscriber = GUINode().create_event_subscription(
+            self.controller_subscriber = GUINode().create_signal_subscription(
                 CameraControllerSwitch, controller_button_topic, self.controller_signal
             )
 
@@ -194,7 +194,7 @@ class SwitchableVideoWidget(VideoWidget):
         self.camera_description = self.camera_descriptions[self.active_cam]
 
         self.camera_subscriber.destroy()
-        self.camera_subscriber = GUINode().create_event_subscription(
+        self.camera_subscriber = GUINode().create_signal_subscription(
             Image, self.camera_description.topic, self.handle_frame_signal
         )
         self.button.setText(self.camera_description.label)

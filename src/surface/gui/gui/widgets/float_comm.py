@@ -23,9 +23,9 @@ class FloatComm(QWidget):
         self.handle_data_signal.connect(self.handle_data)
         self.handle_serial_signal.connect(self.handle_serial)
         self.handle_data_single_signal.connect(self.handle_single)
-        GUINode().create_event_subscription(FloatData, 'transceiver_data', self.handle_data_signal)
-        GUINode().create_event_subscription(FloatSerial, 'float_serial', self.handle_serial_signal)
-        GUINode().create_event_subscription(
+        GUINode().create_signal_subscription(FloatData, 'transceiver_data', self.handle_data_signal)
+        GUINode().create_signal_subscription(FloatSerial, 'float_serial', self.handle_serial_signal)
+        GUINode().create_signal_subscription(
             FloatSingle, 'transceiver_single', self.handle_data_single_signal
         )
 
@@ -86,7 +86,7 @@ class FloatComm(QWidget):
     def make_button_layout(self) -> QHBoxLayout:
         button_layout = QHBoxLayout()
 
-        command_pub = GUINode().create_event_publisher(FloatCommand, 'float_command')
+        command_pub = GUINode().create_publisher(FloatCommand, 'float_command')
 
         submerge_button = QPushButton('Submerge')
         pump_button = QPushButton('Pump')

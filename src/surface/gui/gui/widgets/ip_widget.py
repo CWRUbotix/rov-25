@@ -12,7 +12,7 @@ class IPWidget(QWidget):
         super().__init__()
 
         self.signal.connect(self.refresh)
-        GUINode().create_event_subscription(IPAddress, 'ip_address', self.signal)
+        GUINode().create_signal_subscription(IPAddress, 'ip_address', self.signal)
 
         ip_layout = QVBoxLayout()
         wired_str = f'Last known Pi Wired IP: {IPAddress.ETHERNET_ADDRESS__DEFAULT}'

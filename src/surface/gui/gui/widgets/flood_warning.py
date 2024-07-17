@@ -21,7 +21,7 @@ class FloodWarning(QWidget):
         super().__init__()
 
         self.signal.connect(self.refresh)
-        GUINode().create_event_subscription(Flooding, 'flooding', self.signal)
+        GUINode().create_signal_subscription(Flooding, 'flooding', self.signal)
         # Create a latch variable
         self.warning_msg_latch = False
         # Create basic 2 vertical stacked boxes layout

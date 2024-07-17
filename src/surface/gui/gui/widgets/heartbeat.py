@@ -14,7 +14,7 @@ class HeartbeatWidget(QWidget):
         super().__init__()
 
         self.signal.connect(self.refresh)
-        GUINode().create_event_subscription(VehicleState, 'vehicle_state_event', self.signal)
+        GUINode().create_signal_subscription(VehicleState, 'vehicle_state_event', self.signal)
         # Create a latch variable
         self.warning_msg_latch: bool = False
 

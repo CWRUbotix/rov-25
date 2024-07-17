@@ -50,9 +50,9 @@ class Arm(QWidget):
 
         self.command_response_signal.connect(self.arm_status)
 
-        self.arm_client = GUINode().create_event_client(CommandBool, 'mavros/cmd/arming')
+        self.arm_client = GUINode().create_client_multithreaded(CommandBool, 'mavros/cmd/arming')
 
-        GUINode().create_event_subscription(
+        GUINode().create_signal_subscription(
             VehicleState,
             'vehicle_state_event',
             self.vehicle_state_signal,

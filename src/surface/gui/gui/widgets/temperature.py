@@ -18,7 +18,7 @@ class TemperatureSensor(QWidget):
         super().__init__()
 
         self.temperature_reading_signal.connect(self.temperature_received)
-        GUINode().create_event_subscription(
+        GUINode().create_signal_subscription(
             Temperature, 'temperature', self.temperature_reading_signal
         )
 

@@ -19,7 +19,7 @@ class TimerDisplay(QLabel):
         """Initialize a ROS subscriber and set up a Qt label."""
         super().__init__()
 
-        GUINode().create_event_subscription(
+        GUINode().create_signal_subscription(
             MissionTimerTick,
             'mission_timer',
             self.mission_timer_signal,
@@ -76,7 +76,7 @@ class InteractiveTimer(QWidget):
         """
         super().__init__()
 
-        self.set_timer_client = GUINode().create_event_client(MissionTimerSet, 'set_mission_timer')
+        self.set_timer_client = GUINode().create_client_multithreaded(MissionTimerSet, 'set_mission_timer')
         self.set_timer_response_signal.connect(self.set_time_response_callback)
 
         self.timer = TimerDisplay()

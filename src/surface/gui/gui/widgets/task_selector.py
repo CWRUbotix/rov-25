@@ -16,7 +16,7 @@ class TaskSelector(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        self.task_controller = GUINode().create_event_client(
+        self.task_controller = GUINode().create_client_multithreaded(
             AutonomousFlight, 'auto_control_toggle'
         )
 
