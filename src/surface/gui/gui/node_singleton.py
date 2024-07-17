@@ -48,6 +48,7 @@ class GUINode(Node):
         Subscription
             The created Subscription
         """
+
         def wrapper(data: MsgType) -> None:
             return signal.emit(data)
 
