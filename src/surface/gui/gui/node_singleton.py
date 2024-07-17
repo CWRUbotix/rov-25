@@ -9,8 +9,7 @@ from rclpy.subscription import Subscription
 
 
 class GUINode(Node):
-    """
-    This singleton class should be instantiated for each PyQt App.
+    """Singleton class that should be instantiated for each PyQt App.
     Then any Widget can import this class and call `GUINode()`
         to get access to that single instantiation.
     The first time `GUINode()` is called it creates a new node,
