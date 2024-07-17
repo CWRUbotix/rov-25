@@ -5,6 +5,7 @@ from pyqtgraph import PlotWidget
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
 from gui.widgets.node_singleton import GUINode
+from rclpy.qos import qos_profile_default
 
 
 class FloatComm(QWidget):
@@ -86,7 +87,7 @@ class FloatComm(QWidget):
     def make_button_layout(self) -> QHBoxLayout:
         button_layout = QHBoxLayout()
 
-        command_pub = GUINode().create_publisher(FloatCommand, 'float_command')
+        command_pub = GUINode().create_publisher(FloatCommand, 'float_command', qos_profile_default)
 
         submerge_button = QPushButton('Submerge')
         pump_button = QPushButton('Pump')
