@@ -165,7 +165,7 @@ class SwitchableVideoWidget(VideoWidget):
         if isinstance(layout, QVBoxLayout):
             layout.addWidget(self.button, alignment=Qt.AlignmentFlag.AlignCenter)
         else:
-            self.camera_subscriber.get_logger().error('Missing Layout')
+            GUINode().get_logger().error('Missing Layout')
 
         if controller_button_topic is not None:
             self.controller_signal.connect(self.controller_camera_switch)
@@ -221,7 +221,7 @@ class PauseableVideoWidget(VideoWidget):
         if isinstance(layout, QVBoxLayout):
             layout.addWidget(self.button, alignment=Qt.AlignmentFlag.AlignCenter)
         else:
-            self.camera_subscriber.get_logger().error('Missing Layout')
+            GUINode().get_logger().error('Missing Layout')
 
         self.is_paused = False
 
