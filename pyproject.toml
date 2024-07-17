@@ -36,7 +36,7 @@ line-length = 100
 flake8-quotes.inline-quotes='single'
 extend-select = ["ALL"]
 fixable = ["ALL"]
-ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "T201", "FIX002", "TD003", "TD002", "TRY003", "EM101", "EM102", "RET504", "D211", "COM812", "ISC001", "ERA001", "S602", "S603"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "T201", "FIX002", "TD003", "TD002", "TRY003", "EM101", "EM102", "RET504", "D211", "COM812", "ISC001", "ERA001", "S602", "S603", "D205"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
