@@ -1,9 +1,10 @@
 import atexit
 import signal
+from threading import Thread
 
 import rclpy.utilities
 from PyQt6.QtWidgets import QApplication, QWidget
-
+from rclpy.executors import MultiThreadedExecutor
 from gui.widgets.node_singleton import GUINode
 
 
@@ -39,6 +40,10 @@ class App(QWidget):
         #         custom_styles += theme_file.read()
 
         # qdarktheme.setup_theme(base_theme, additional_qss=custom_styles)
+
+        executor = MultiThreadedExecutor()
+        executor.add_node(self.node)
+        Thread(target=executor.spin, daemon=True).start()
 
         self.show()
 
