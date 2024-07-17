@@ -6,8 +6,7 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-from gui.widgets.node_singleton import GUINode
-
+from gui.node_singleton import GUINode
 
 class ThrusterTester(QWidget):
     """Widget to command the pixhawk to test the thrusters, and reassign thruster ports."""

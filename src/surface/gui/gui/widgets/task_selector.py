@@ -3,8 +3,7 @@ from PyQt6.QtWidgets import QGridLayout, QPushButton, QWidget
 from rov_msgs.srv import AutonomousFlight
 
 from gui.styles.custom_styles import ButtonIndicator
-from gui.widgets.node_singleton import GUINode
-
+from gui.node_singleton import GUINode
 WIDTH = 200
 
 

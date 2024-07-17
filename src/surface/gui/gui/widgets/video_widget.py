@@ -12,7 +12,7 @@ from rov_msgs.msg import CameraControllerSwitch
 from sensor_msgs.msg import Image
 from rclpy.qos import qos_profile_default
 
-from gui.widgets.node_singleton import GUINode
+from gui.node_singleton import GUINode
 
 # TODO: Ubuntu26+
 # Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release

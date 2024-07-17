@@ -4,8 +4,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QWidget
 from rov_msgs.msg import VehicleState
 
 from gui.styles.custom_styles import ButtonIndicator
-from gui.widgets.node_singleton import GUINode
-
+from gui.node_singleton import GUINode
 
 class Arm(QWidget):
     """Arm widget for sending Arm Commands."""

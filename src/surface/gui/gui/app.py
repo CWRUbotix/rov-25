@@ -6,8 +6,7 @@ import rclpy.utilities
 from PyQt6.QtWidgets import QApplication, QWidget
 from rclpy.executors import MultiThreadedExecutor
 
-from gui.widgets.node_singleton import GUINode
-
+from gui.node_singleton import GUINode
 
 class App(QWidget):
     """Main app window."""

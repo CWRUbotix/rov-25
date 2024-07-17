@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLa
 from pyqtgraph import PlotWidget
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
-from gui.widgets.node_singleton import GUINode
+from gui.node_singleton import GUINode
 from rclpy.qos import qos_profile_default
 
 

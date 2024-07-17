@@ -2,8 +2,7 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 from rov_msgs.msg import IPAddress
 
-from gui.widgets.node_singleton import GUINode
-
+from gui.node_singleton import GUINode
 
 class IPWidget(QWidget):
     signal = pyqtSignal(IPAddress)

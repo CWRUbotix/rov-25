@@ -4,8 +4,7 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 from rov_msgs.msg import Temperature
 
-from gui.widgets.node_singleton import GUINode
-
+from gui.node_singleton import GUINode
 MIN_TEMP_C = 0
 MAX_TEMP_C = 200
 QUEUE_LEN = 5
