@@ -6,7 +6,7 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-from gui.node_singleton import GUINode
+from gui.gui_node import GUINode
 
 
 class ThrusterTester(QWidget):
