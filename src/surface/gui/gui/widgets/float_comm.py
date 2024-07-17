@@ -2,10 +2,10 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
 from pyqtgraph import PlotWidget
+from rclpy.qos import qos_profile_default
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
 from gui.widgets.node_singleton import GUINode
-from rclpy.qos import qos_profile_default
 
 
 class FloatComm(QWidget):

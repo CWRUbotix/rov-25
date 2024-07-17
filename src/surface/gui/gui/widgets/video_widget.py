@@ -8,9 +8,9 @@ from numpy.typing import NDArray
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from rclpy.qos import qos_profile_default
 from rov_msgs.msg import CameraControllerSwitch
 from sensor_msgs.msg import Image
-from rclpy.qos import qos_profile_default
 
 from gui.widgets.node_singleton import GUINode
 
@@ -172,8 +172,7 @@ class SwitchableVideoWidget(VideoWidget):
         if controller_button_topic is not None:
             self.controller_signal.connect(self.controller_camera_switch)
             self.controller_publisher = GUINode().create_publisher(
-                CameraControllerSwitch, controller_button_topic,
-                qos_profile_default
+                CameraControllerSwitch, controller_button_topic, qos_profile_default
             )
             self.controller_subscriber = GUINode().create_signal_subscription(
                 CameraControllerSwitch, controller_button_topic, self.controller_signal
