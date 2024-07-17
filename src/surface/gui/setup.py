@@ -14,7 +14,7 @@ setup(
         str(Path(PACKAGE_NAME) / 'widgets'),
         str(Path(PACKAGE_NAME) / 'widgets' / 'tabs'),
         str(Path(PACKAGE_NAME) / 'styles'),
-        str(Path(PACKAGE_NAME) / 'gui_nodes' / 'auxiliary_nodes'),
+        str(Path(PACKAGE_NAME) / 'auxiliary_nodes'),
     ],
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
@@ -51,7 +51,7 @@ setup(
         'console_scripts': [
             'run_pilot = gui.pilot_app:run_gui_pilot',
             'run_operator = gui.operator_app:run_gui_operator',
-            'run_timer = gui.gui_nodes.auxiliary_nodes.timer:run_timer',
+            'run_timer = gui.auxiliary_nodes.timer:run_timer',
         ],
     },
 )
