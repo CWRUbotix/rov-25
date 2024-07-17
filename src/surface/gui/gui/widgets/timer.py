@@ -76,7 +76,9 @@ class InteractiveTimer(QWidget):
         """
         super().__init__()
 
-        self.set_timer_client = GUINode().create_client_multithreaded(MissionTimerSet, 'set_mission_timer')
+        self.set_timer_client = GUINode().create_client_multithreaded(
+            MissionTimerSet, 'set_mission_timer'
+        )
         self.set_timer_response_signal.connect(self.set_time_response_callback)
 
         self.timer = TimerDisplay()

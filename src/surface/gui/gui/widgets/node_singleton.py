@@ -1,12 +1,10 @@
-from collections.abc import Callable
 from threading import Thread
 
 from PyQt6.QtCore import pyqtBoundSignal
-from rclpy.client import Client, SrvType, SrvTypeRequest, SrvTypeResponse
+from rclpy.client import Client, SrvType, SrvTypeRequest
 from rclpy.node import Node
-from rclpy.publisher import MsgType, Publisher
+from rclpy.publisher import MsgType
 from rclpy.qos import QoSProfile, qos_profile_default
-from rclpy.service import Service
 from rclpy.subscription import Subscription
 
 
