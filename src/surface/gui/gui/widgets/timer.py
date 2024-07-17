@@ -5,7 +5,6 @@ from rclpy.duration import Duration
 from rov_msgs.msg import MissionTimerTick
 from rov_msgs.srv import MissionTimerSet
 
-from rclpy.node import Node
 from gui.widgets.node_singleton import GUINode
 
 RESET_SECONDS = 15 * 60  # The number of seconds to set the timer to when reset is clicked
@@ -77,9 +76,7 @@ class InteractiveTimer(QWidget):
         """
         super().__init__()
 
-        self.set_timer_client = GUINode().create_event_client(
-            MissionTimerSet, 'set_mission_timer'
-        )
+        self.set_timer_client = GUINode().create_event_client(MissionTimerSet, 'set_mission_timer')
         self.set_timer_response_signal.connect(self.set_time_response_callback)
 
         self.timer = TimerDisplay()
@@ -122,7 +119,7 @@ class InteractiveTimer(QWidget):
         GUINode.send_request_multithreaded(
             self.set_timer_client,
             MissionTimerSet.Request(set_running=True, running=not self.timer.running),
-            self.set_timer_response_signal
+            self.set_timer_response_signal,
         )
 
     def reset_timer(self) -> None:
@@ -135,9 +132,8 @@ class InteractiveTimer(QWidget):
                 set_running=True,
                 running=False,
             ),
-            self.set_timer_response_signal
+            self.set_timer_response_signal,
         )
-
 
     @pyqtSlot(MissionTimerSet.Response)
     def set_time_response_callback(self, res: MissionTimerSet.Response) -> None:

@@ -2,9 +2,9 @@ import atexit
 import signal
 
 import rclpy.utilities
-from gui.widgets.node_singleton import GUINode
 from PyQt6.QtWidgets import QApplication, QWidget
-from rclpy.node import Node
+
+from gui.widgets.node_singleton import GUINode
 
 
 class App(QWidget):

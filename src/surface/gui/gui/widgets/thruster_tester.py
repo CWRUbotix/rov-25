@@ -6,7 +6,6 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-from rclpy.node import Node
 from gui.widgets.node_singleton import GUINode
 
 
@@ -22,9 +21,7 @@ class ThrusterTester(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        self.cmd_client = GUINode().create_event_client(
-            CommandLong, 'mavros/cmd/command'
-        )
+        self.cmd_client = GUINode().create_event_client(CommandLong, 'mavros/cmd/command')
         self.command_response_signal.connect(self.command_response_handler)
 
         layout = QVBoxLayout()
@@ -101,7 +98,7 @@ class ThrusterTester(QWidget):
                     param5=0.0,  # Number of motors to test
                     param6=2.0,  # MOTOR_TEST_ORDER_BOARD
                 ),
-                self.command_response_signal
+                self.command_response_signal,
             )
             time.sleep(0.05)
 

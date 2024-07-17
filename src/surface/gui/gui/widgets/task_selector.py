@@ -2,9 +2,8 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QGridLayout, QPushButton, QWidget
 from rov_msgs.srv import AutonomousFlight
 
-from rclpy.node import Node
-from gui.widgets.node_singleton import GUINode
 from gui.styles.custom_styles import ButtonIndicator
+from gui.widgets.node_singleton import GUINode
 
 WIDTH = 200
 
@@ -27,9 +26,10 @@ class TaskSelector(QWidget):
         # Create Start button
         self.start_btn = ButtonIndicator('Start Auto')
         self.start_btn.clicked.connect(
-            lambda: GUINode.send_request_multithreaded(self.task_controller,
+            lambda: GUINode.send_request_multithreaded(
+                self.task_controller,
                 AutonomousFlight.Request(state=AutonomousFlight.Request.START),
-                self.scheduler_response_signal
+                self.scheduler_response_signal,
             )
         )
         self.start_btn.setFixedHeight(75)
@@ -38,9 +38,10 @@ class TaskSelector(QWidget):
         # Create Stop button
         stop_btn = QPushButton('Stop Auto')
         stop_btn.clicked.connect(
-            lambda: GUINode.send_request_multithreaded(self.task_controller,
+            lambda: GUINode.send_request_multithreaded(
+                self.task_controller,
                 AutonomousFlight.Request(state=AutonomousFlight.Request.STOP),
-                self.scheduler_response_signal
+                self.scheduler_response_signal,
             )
         )
         stop_btn.setFixedHeight(75)

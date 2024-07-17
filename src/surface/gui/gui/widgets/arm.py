@@ -2,9 +2,9 @@ from mavros_msgs.srv import CommandBool
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 from rov_msgs.msg import VehicleState
-from rclpy.node import Node
-from gui.widgets.node_singleton import GUINode
+
 from gui.styles.custom_styles import ButtonIndicator
+from gui.widgets.node_singleton import GUINode
 
 
 class Arm(QWidget):
@@ -50,10 +50,7 @@ class Arm(QWidget):
 
         self.command_response_signal.connect(self.arm_status)
 
-        self.arm_client = GUINode().create_event_client(
-            CommandBool,
-            'mavros/cmd/arming'
-        )
+        self.arm_client = GUINode().create_event_client(CommandBool, 'mavros/cmd/arming')
 
         GUINode().create_event_subscription(
             VehicleState,
@@ -64,12 +61,14 @@ class Arm(QWidget):
         self.vehicle_state_signal.connect(self.vehicle_state_callback)
 
     def arm_clicked(self) -> None:
-        GUINode.send_request_multithreaded(self.arm_client, self.ARM_REQUEST,
-                                              self.command_response_signal)
+        GUINode.send_request_multithreaded(
+            self.arm_client, self.ARM_REQUEST, self.command_response_signal
+        )
 
     def disarm_clicked(self) -> None:
-        GUINode.send_request_multithreaded(self.arm_client, self.DISARM_REQUEST,
-                                              self.command_response_signal)
+        GUINode.send_request_multithreaded(
+            self.arm_client, self.DISARM_REQUEST, self.command_response_signal
+        )
 
     @pyqtSlot(CommandBool.Response)
     def arm_status(self, res: CommandBool.Response) -> None:

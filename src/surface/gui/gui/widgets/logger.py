@@ -4,7 +4,6 @@ from PyQt6.QtWidgets import QCheckBox, QHBoxLayout, QTextEdit, QVBoxLayout, QWid
 from rcl_interfaces.msg import Log
 from rclpy.impl.logging_severity import LoggingSeverity
 
-from rclpy.node import Node
 from gui.widgets.node_singleton import GUINode
 
 # Dictionary linking LoggingSeverity to a QColor

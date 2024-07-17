@@ -1,19 +1,11 @@
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QTextCursor
-from PyQt6.QtWidgets import (
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QTextEdit,
-    QVBoxLayout,
-    QWidget
-)
-
-from rclpy.node import Node
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
 from pyqtgraph import PlotWidget
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
 from gui.widgets.node_singleton import GUINode
+
 
 class FloatComm(QWidget):
     """FloatComm widget for sending Float Communication Commands."""
@@ -33,7 +25,9 @@ class FloatComm(QWidget):
         self.handle_data_single_signal.connect(self.handle_single)
         GUINode().create_event_subscription(FloatData, 'transceiver_data', self.handle_data_signal)
         GUINode().create_event_subscription(FloatSerial, 'float_serial', self.handle_serial_signal)
-        GUINode().create_event_subscription(FloatSingle, 'transceiver_single', self.handle_data_single_signal)
+        GUINode().create_event_subscription(
+            FloatSingle, 'transceiver_single', self.handle_data_single_signal
+        )
 
         info_layout = QVBoxLayout()
 

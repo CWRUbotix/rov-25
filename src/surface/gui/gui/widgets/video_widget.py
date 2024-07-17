@@ -10,6 +10,7 @@ from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 from rov_msgs.msg import CameraControllerSwitch
 from sensor_msgs.msg import Image
+
 from gui.widgets.node_singleton import GUINode
 
 # TODO: Ubuntu26+
