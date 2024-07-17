@@ -6,7 +6,6 @@ from rclpy.qos import qos_profile_default
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
 from gui.node_singleton import GUINode
-from rclpy.qos import qos_profile_default
 
 
 class FloatComm(QWidget):

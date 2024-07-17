@@ -6,6 +6,7 @@ from rov_msgs.msg import MissionTimerTick
 from rov_msgs.srv import MissionTimerSet
 
 from gui.node_singleton import GUINode
+
 RESET_SECONDS = 15 * 60  # The number of seconds to set the timer to when reset is clicked
 
 

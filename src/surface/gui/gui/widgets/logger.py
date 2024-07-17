@@ -5,6 +5,7 @@ from rcl_interfaces.msg import Log
 from rclpy.impl.logging_severity import LoggingSeverity
 
 from gui.node_singleton import GUINode
+
 # Dictionary linking LoggingSeverity to a QColor
 SEVERITY_LEVELS_DICT = {
     LoggingSeverity.UNSET: QColor(0, 0, 0),

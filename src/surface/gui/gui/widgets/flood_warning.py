@@ -7,8 +7,9 @@ from PyQt6.QtMultimedia import QSoundEffect
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from rov_msgs.msg import Flooding
 
-from gui.widgets.circle import CircleIndicator
 from gui.node_singleton import GUINode
+from gui.widgets.circle import CircleIndicator
+
 # The 'Loop' enum has int values, not 'Loop', unbeknownst to mypy
 Q_SOUND_EFFECT_LOOP_FOREVER: int = QSoundEffect.Loop.Infinite.value  # type: ignore[assignment]
 

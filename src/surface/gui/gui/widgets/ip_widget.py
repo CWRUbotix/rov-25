@@ -4,6 +4,7 @@ from rov_msgs.msg import IPAddress
 
 from gui.node_singleton import GUINode
 
+
 class IPWidget(QWidget):
     signal = pyqtSignal(IPAddress)
 

@@ -8,6 +8,7 @@ from rclpy.executors import MultiThreadedExecutor
 
 from gui.node_singleton import GUINode
 
+
 class App(QWidget):
     """Main app window."""
 
