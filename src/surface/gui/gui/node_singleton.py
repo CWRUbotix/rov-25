@@ -9,6 +9,26 @@ from rclpy.subscription import Subscription
 
 
 class GUINode(Node):
+    """
+    This singleton class should be instantiated for each PyQt App.
+    Then any Widget can import this class and call `GUINode()`
+        to get access to that single instantiation.
+    The first time `GUINode()` is called it creates a new node,
+        and every following call to `GUINode()` retrieves that
+        same node from memory.
+
+    - Create publisher: `GUINode().create_publisher(...)`
+    - Create subscription (calls callback function when message received):
+    `GUINode().create_subscription(...)`
+    - Create subscription (emits signal when message received):
+    `GUINode().create_signal_subscription(...)`
+    - Create client: `GUINode().create_client_multithreaded(...)`
+    - Send client request (emits signal when request returns):
+    `GUINode().send_request_multithreaded(...)`
+    - Create service: `GUINode().create_service(...)`
+    - Access logger: `GUINode().get_logger()`
+    """
+
     __instance: 'GUINode | None' = None
 
     def __new__(cls, _: str | None = None) -> 'GUINode':
@@ -54,10 +74,10 @@ class GUINode(Node):
 
         return super().create_subscription(msg_type, topic, wrapper, qos_profile)
 
-    # # TODO: in the release after Iron can add back the Optional around timeout
-    # # The fix internally is already out on Rolling
-    # # Set to None for no timeout limits on service requests
-    # # else set to float number of seconds to limit request spinning
+    # TODO: in the release after Iron can add back the Optional around timeout
+    # The fix internally is already out on Rolling
+    # Set to None for no timeout limits on service requests
+    # else set to float number of seconds to limit request spinning
     def create_client_multithreaded(
         self, srv_type: type[SrvType], srv_name: str, timeout: float = 10.0
     ) -> Client:
@@ -103,9 +123,8 @@ class GUINode(Node):
                 f' {client.srv_name} unavailable, waiting again...'
             )
 
-    @staticmethod
     def send_request_multithreaded(
-        client: Client, request: SrvTypeRequest, signal: pyqtBoundSignal
+        self, client: Client, request: SrvTypeRequest, signal: pyqtBoundSignal
     ) -> None:
         """Send a request from the given client on a separate thread.
         Emit the result to the given signal.

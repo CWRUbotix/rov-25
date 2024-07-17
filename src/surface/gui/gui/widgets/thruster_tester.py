@@ -87,7 +87,7 @@ class ThrusterTester(QWidget):
 
         start_time = time.time()
         while time.time() - start_time < duration:
-            GUINode.send_request_multithreaded(
+            GUINode().send_request_multithreaded(
                 self.cmd_client,
                 CommandLong.Request(
                     command=209,  # MAV_CMD_DO_MOTOR_TEST

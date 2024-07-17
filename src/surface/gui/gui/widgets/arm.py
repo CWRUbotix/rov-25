@@ -61,12 +61,12 @@ class Arm(QWidget):
         self.vehicle_state_signal.connect(self.vehicle_state_callback)
 
     def arm_clicked(self) -> None:
-        GUINode.send_request_multithreaded(
+        GUINode().send_request_multithreaded(
             self.arm_client, self.ARM_REQUEST, self.command_response_signal
         )
 
     def disarm_clicked(self) -> None:
-        GUINode.send_request_multithreaded(
+        GUINode().send_request_multithreaded(
             self.arm_client, self.DISARM_REQUEST, self.command_response_signal
         )
 

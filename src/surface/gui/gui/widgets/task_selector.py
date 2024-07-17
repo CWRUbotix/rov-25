@@ -26,7 +26,7 @@ class TaskSelector(QWidget):
         # Create Start button
         self.start_btn = ButtonIndicator('Start Auto')
         self.start_btn.clicked.connect(
-            lambda: GUINode.send_request_multithreaded(
+            lambda: GUINode().send_request_multithreaded(
                 self.task_controller,
                 AutonomousFlight.Request(state=AutonomousFlight.Request.START),
                 self.scheduler_response_signal,
@@ -38,7 +38,7 @@ class TaskSelector(QWidget):
         # Create Stop button
         stop_btn = QPushButton('Stop Auto')
         stop_btn.clicked.connect(
-            lambda: GUINode.send_request_multithreaded(
+            lambda: GUINode().send_request_multithreaded(
                 self.task_controller,
                 AutonomousFlight.Request(state=AutonomousFlight.Request.STOP),
                 self.scheduler_response_signal,
