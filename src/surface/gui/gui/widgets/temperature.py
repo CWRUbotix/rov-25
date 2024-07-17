@@ -4,7 +4,7 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 from rov_msgs.msg import Temperature
 
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from gui.gui_node import GUINode
 
 MIN_TEMP_C = 0
 MAX_TEMP_C = 200
@@ -18,7 +18,7 @@ class TemperatureSensor(QWidget):
         super().__init__()
 
         self.temperature_reading_signal.connect(self.temperature_received)
-        self.temp_subscriber: GUIEventSubscriber = GUIEventSubscriber(
+        GUINode().create_signal_subscription(
             Temperature, 'temperature', self.temperature_reading_signal
         )
 

@@ -1,18 +1,11 @@
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QTextCursor
-from PyQt6.QtWidgets import (
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QTextEdit,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
 from pyqtgraph import PlotWidget
+from rclpy.qos import qos_profile_default
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
-from gui.gui_nodes.event_nodes.publisher import GUIEventPublisher
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
+from gui.gui_node import GUINode
 
 
 class FloatComm(QWidget):
@@ -31,9 +24,11 @@ class FloatComm(QWidget):
         self.handle_data_signal.connect(self.handle_data)
         self.handle_serial_signal.connect(self.handle_serial)
         self.handle_data_single_signal.connect(self.handle_single)
-        GUIEventSubscriber(FloatData, 'transceiver_data', self.handle_data_signal)
-        GUIEventSubscriber(FloatSerial, 'float_serial', self.handle_serial_signal)
-        GUIEventSubscriber(FloatSingle, 'transceiver_single', self.handle_data_single_signal)
+        GUINode().create_signal_subscription(FloatData, 'transceiver_data', self.handle_data_signal)
+        GUINode().create_signal_subscription(FloatSerial, 'float_serial', self.handle_serial_signal)
+        GUINode().create_signal_subscription(
+            FloatSingle, 'transceiver_single', self.handle_data_single_signal
+        )
 
         info_layout = QVBoxLayout()
 
@@ -92,7 +87,7 @@ class FloatComm(QWidget):
     def make_button_layout(self) -> QHBoxLayout:
         button_layout = QHBoxLayout()
 
-        command_pub = GUIEventPublisher(FloatCommand, 'float_command')
+        command_pub = GUINode().create_publisher(FloatCommand, 'float_command', qos_profile_default)
 
         submerge_button = QPushButton('Submerge')
         pump_button = QPushButton('Pump')
