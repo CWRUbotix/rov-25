@@ -2,7 +2,10 @@
 
 ## Overview
 
-This package is for all the code related go the driver station gui. The gui is comprised of our custom widgets found in the gui/widgets folder. For connecting our gui with the rest of the ROS network we have implemented nodes which communicate between pyqt and ROS found in gui/event_nodes. Lastly we have the app.py which is the a custom super class which inherits from ROS Node and PyQT QWidget. Then operator_app.py and pilot_app.py inherit from App to make each custom gui.
+This package is for all the code related go the driver station GUI. The GUI is comprised of our custom widgets found in the `gui/widgets` folder.
+`gui_node.GUINode` is initialized for each GUI, and includes helper methods to interact with the ROS network from the GUI.
+`app.py` is the a custom superclass which inherits from a PyQT QWidget.
+Then `operator_app.py` and `pilot_app.py` inherit from App to make our two custom GUIs.
 
 ## Installation
 
@@ -12,13 +15,13 @@ pip install pyqt6 pyqtdarktheme opencv-python opencv-python-headless
 
 ## Usage
 
-Run the operator gui with
+Run the operator GUI with
 
 ```bash
 ros2 launch gui operator_launch.py
 ```
 
-Run the pilot gui with
+Run the pilot GUI with
 
 ```bash
 ros2 launch gui pilot_launch.py
@@ -26,33 +29,18 @@ ros2 launch gui pilot_launch.py
 
 ## Launch files
 
-* **operator_launch.py:** Launches the operator gui, ex. `ros2 launch gui operator_launch.py theme:=watermelon`
+* **operator_launch.py:** Launches the operator GUI, ex. `ros2 launch gui operator_launch.py theme:=watermelon`
 
-  * **`theme`** : Theme used by the gui; options are `dark`, `light`, `watermelon`. Default: `dark`.
+  * **`theme`** : Theme used by the GUI; options are `dark`, `light`, `watermelon`. Default: `dark`.
 
-* **pilot_launch.py:** Launches the pilot gui, ex. `ros2 launch gui pilot_launch.py theme:=watermelon gui:=debug`
+* **pilot_launch.py:** Launches the pilot GUI, ex. `ros2 launch gui pilot_launch.py theme:=watermelon gui:=debug`
 
-  * **`theme`** : Theme used by the gui; options are `dark`, `light`, `watermelon`. Default: `dark`.
+  * **`theme`** : Theme used by the GUI; options are `dark`, `light`, `watermelon`. Default: `dark`.
 
-  * **`gui`** : Whether to use vertical or debug gui; options are `pilot`, `debug`. Default: `pilot`.
+  * **`gui`** : Whether to use vertical or debug GUI; options are `pilot`, `debug`. Default: `pilot`.
 
-## Event Nodes
-
-### GUIEventClient
-
-Multithreaded client for sending service requests from the GUI.
-
-### GUIEventPublisher
-
-Publisher for sending messages from the GUI.
-
-### GUIEventServer
-
-Multithreaded server for processing server requests to update GUI.
-
-### GUIEventSubscriber
-
-Multithreaded subscriber for receiving messages to the GUI.
+## GUI Node
+Singleton ROS Node subclass which has helper methods for creating publishers, subscriptions, clients, and services for each GUI.
 
 ## Widgets
 
