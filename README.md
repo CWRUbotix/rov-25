@@ -3,6 +3,7 @@
 [![Continuous Integration](https://github.com/CWRUbotix/rov-25/actions/workflows/industrial_ci_action.yml/badge.svg)](https://github.com/CWRUbotix/rov-25/actions/workflows/industrial_ci_action.yml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/CWRUbotix/rov-25/main.svg)](https://results.pre-commit.ci/latest/github/CWRUbotix/rov-25/main)
 [![Apache License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 # Table of Contents
 
