@@ -11,13 +11,19 @@ repos:
     # Run the formatter.
     - id: ruff-format
 
--  repo: https://github.com/pre-commit/mirrors-clang-format
-   rev: v18.1.8
-   hooks:
-   -  id: clang-format
+- repo: https://github.com/pre-commit/mirrors-clang-format
+  rev: v18.1.8
+  hooks:
+    - id: clang-format
       types_or: [c++, c]
       args: ["-style=file"]
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-      - id: trailing-whitespace
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+    - id: trailing-whitespace
+
+- repo: https://github.com/google/yamlfmt
+  rev: v0.10.0
+  hooks:
+    - id: yamlfmt
