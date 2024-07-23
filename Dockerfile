@@ -52,8 +52,10 @@ COPY . .
 
 RUN git submodule init && git submodule update
 
+# TODO: can probably remove the arg passing when iron support is dropped
+RUN .vscode/install_dependencies.sh ROS_DISTRO
+
 # TODO: for future nerd to do this via ENTRYPOINT which be better but, I could not get ENTRYPOINT to play with VsCODE.
-RUN .vscode/install_dependencies.sh
 RUN .vscode/rov_setup.sh
 
 # Setup Models and Gazebo Environment
