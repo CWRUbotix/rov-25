@@ -2,7 +2,6 @@
 # For troubleshooting, see README (https://github.com/ros-industrial/industrial_ci/blob/master/README.rst)
 
 name: Continuous Integration
-
 on: # this determines when this workflow is run
   push:
   #   branches: [ master, melodic-devel ] #  when master or melodic-devel branch is pushed to
@@ -11,7 +10,6 @@ on: # this determines when this workflow is run
   # schedule: # uncomment to run periodically
   #  - cron: '0 4 * * *' # every day at 4 AM (UTC)
   workflow_dispatch: # allow manually starting this workflow
-
 jobs:
   industrial_ci:
     name: ROS ${{ matrix.ROS_DISTRO }} (${{ matrix.ROS_REPO }})
@@ -38,7 +36,6 @@ jobs:
           key: ccache-${{ matrix.ROS_DISTRO }}-${{ matrix.ROS_REPO }}-${{github.run_id}}
           restore-keys: |
             ccache-${{ matrix.ROS_DISTRO }}-${{ matrix.ROS_REPO }}-
-
       - uses: 'ros-industrial/industrial_ci@master' # run industrial_ci
         # Only pulls docker for iron since jazzy one is not built yet
         if: matrix.ROS_DISTRO == 'iron'
@@ -50,20 +47,19 @@ jobs:
           ROS_REPO: ${{ matrix.ROS_REPO }}
           # Crazy one liner for install python dependencies
 
-        # Need since mypy < 0.981 does not work with type stubs.
-        # Ubuntu 24 has 1.9 so should be fine when we upgrade
+          # Need since mypy < 0.981 does not work with type stubs.
+          # Ubuntu 24 has 1.9 so should be fine when we upgrade
           AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install --upgrade pip && pip install /root/target_ws/src/rov-25 --user && pip install "mypy>=1.7" --user && rm -r /root/target_ws/src/rov-25/build'
-
       # Once a :jazzy exists we can remove this section
       - uses: 'ros-industrial/industrial_ci@master' # run industrial_ci
         if: matrix.ROS_DISTRO != 'iron'
         env: # either pass all entries explicitly
-            # DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
-            ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-            # Done to avoid permssion errors in the ros-industrial ci.
-            # DOCKER_RUN_OPTS: -u root
-            ROS_REPO: ${{ matrix.ROS_REPO }}
-            # Add to python3-pyqt6.multimedia rosdep
-            ADDITIONAL_DEBS: 'python3-pyqt6.qtmultimedia'
-            # Crazy one liner for install python dependencies
-            AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install /root/target_ws/src/rov-25 --user --break-system-packages && rm -r /root/target_ws/src/rov-25/build'
+          # DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
+          ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
+          # Done to avoid permssion errors in the ros-industrial ci.
+          # DOCKER_RUN_OPTS: -u root
+          ROS_REPO: ${{ matrix.ROS_REPO }}
+          # Add to python3-pyqt6.multimedia rosdep
+          ADDITIONAL_DEBS: 'python3-pyqt6.qtmultimedia'
+          # Crazy one liner for install python dependencies
+          AFTER_INSTALL_TARGET_DEPENDENCIES_EMBED: 'pip install /root/target_ws/src/rov-25 --user --break-system-packages && rm -r /root/target_ws/src/rov-25/build'
