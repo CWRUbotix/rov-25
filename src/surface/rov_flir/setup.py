@@ -18,7 +18,7 @@ setup(
         ),
         (
             str(Path('share') / PACKAGE_NAME / 'config'),
-            [str(path) for path in Path('config').glob('config/*')],
+            [str(path) for path in Path('config').glob('*')],
         ),
     ],
     install_requires=['setuptools'],
