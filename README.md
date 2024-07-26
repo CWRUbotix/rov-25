@@ -126,10 +126,6 @@ To reopen after a build Go to File > Open Recent /stuff/rov-25 \[Dev Container]
 
 <!-- https://gist.github.com/cschiewek/246a244ba23da8b9f0e7b11a68bf3285 -->
 
-## Upgrading Environment
-
-If you are upgrading to a newer ROS version make sure to remove `source /opt/ros/$PREVIOUS_ROS_DISTRO/setup.bash`. If you are using Docker you can simply build the new container and delete the old one.
-
 ## Test environment
 
 After running the script open a terminal and run
