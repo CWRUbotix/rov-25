@@ -46,7 +46,6 @@ parameters:
   - name: offset_y
     type: int
     node: ImageFormatControl/OffsetY
-
   #
   # -------- analog control
   #
