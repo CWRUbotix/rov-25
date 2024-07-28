@@ -23,7 +23,9 @@
 
 ## Setup
 
-Start by opening up a terminal and navigating to where you want the code to be saved and entering the following command.
+If you have GitHub Desktop, click the green `Code` button above, then `Open with GitHub Desktop`.
+
+If you have the Git CLI, start by opening up a terminal and navigating to where you want the code to be saved and entering the following command:
 
 ```bash
 git clone --recurse-submodules git@github.com:CWRUbotix/rov-25.git
