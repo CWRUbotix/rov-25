@@ -19,7 +19,7 @@
         1. [Docker](#docker-2)
         2. [UTM](#utm)
 2. [Test Your Environment](#test-your-environment)
-3. [Code Building](#building-with-colcon)
+3. [Run Our Code](#run-our-code)
 4. [Directory Structure](#directory-structure)
 5. [Documentation Structure](#documentation-structure)
 
@@ -42,7 +42,7 @@ Now select the guide below that fits your operating system. Some operating syste
  - **Windows**: You should create a dual boot, then follow the Linux instructions for your new Ubuntu OS. Otherwise, we recommend using WSL, although Docker has similar capabilities.
  - **MacOS**: We recommend using Docker. UTM should theoretically have more capabilities than Docker, but it has a long setup time and we're not sure it works.
 
-Once you're finished setting up, go to the [Test Your Environment](#test-your-environment) section to confirm everything's working.
+Once you're finished setting up, go to the [Test Your Environment](#test-your-environment) section to confirm everything's working, then [Run Our Code](#run-our-code)!
 
 ### Linux
 
@@ -186,15 +186,6 @@ If you have a different (i.e. Intel) CPU:
  - Once the installation is complete, follow the instructions in this README for [Bare Metal (Ubuntu only)](#bare-metal-ubuntu-only).
 
 
-## Building with Colcon
-
-Now, anytime you want to build, perform one of these options in VSCode:
- - Press `ctrl` `shift` `b`
- - Press `F1` or `ctrl` `shift` `p`, choose `Tasks: Run Task`, then choose `[ROS] 🏃‍ Build Workspace`
-
-The magic of symlinks should mean you won't need to build again for most things, but you'll need to build every time you change a package's `setup.py` or anything in the `rov_msgs` package.
-
-
 ## Test Your Environment
 
 After setting up your environment, open a terminal (make sure it's in VSCode if you're using Docker) and run an example publisher node:
@@ -209,7 +200,18 @@ Open a second terminal and run an example subscriber node:
 ros2 run demo_nodes_py listener
 ```
 
-If that works, and once you've built with Colcon according to the previous section, source your workspace:
+If the listener receives the messages published by the talker, then ROS was successfully installed on your system.
+
+
+## Run Our Code
+
+Perform one of these options in VSCode to build the codebase:
+ - Press `ctrl` `shift` `b`
+ - Press `F1` or `ctrl` `shift` `p`, choose `Tasks: Run Task`, then choose `[ROS] 🏃‍ Build Workspace`
+
+The magic of symlinks should mean you won't need to build again for most things, but you'll need to build every time you change a package's `setup.py` or anything in the `rov_msgs` package.
+
+If that works, source your workspace to tell ROS to look for packages in your current workspace:
 
 ```bash
 . install/setup.sh
