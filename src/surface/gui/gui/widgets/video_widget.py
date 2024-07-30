@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import NamedTuple
+from typing import NamedTuple, TypeAlias
 
 import cv2
 import numpy as np
@@ -20,7 +20,7 @@ from gui.gui_node import GUINode
 # MatLike = cv2.mat_wrapper.Mat | NDArray[np.integer[Any] | np.floating[Any]]
 # This should be possible in a newer version of mypy:
 # MatLike = NDArray[np.integer[Any] | np.floating[Any]]
-MatLike = NDArray[np.generic]
+MatLike: TypeAlias = NDArray[np.generic]
 
 WIDTH = 721
 HEIGHT = 541
