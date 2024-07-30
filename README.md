@@ -186,6 +186,14 @@ If you have a different (i.e. Intel) CPU:
  - Once the installation is complete, follow the instructions in this README for [Bare Metal (Ubuntu only)](#bare-metal-ubuntu-only).
 
 
+## Building with Colcon
+
+Now, anytime you want to build, perform one of these options in VSCode:
+ - Press `ctrl` `shift` `b`
+ - Press `F1` or `ctrl` `shift` `p`, choose `Tasks: Run Task`, then choose `[ROS] 🏃‍ Build Workspace`
+
+The magic of symlinks should mean you won't need to build again for most things, but you'll need to build every time you change a package's `setup.py` or anything in the `rov_msgs` package.
+
 
 ## Test Your Environment
 
@@ -201,28 +209,18 @@ Open a second terminal and run an example subscriber node:
 ros2 run demo_nodes_py listener
 ```
 
-If that works, try launching our GUI:
-
-```bash
-ros2 launch surface_main surface_all_nodes_launch.py
-```
-
-You might have to build (see the next section for how to do that) and then source your ROS workspace first if ROS can't find `surface_main`.
-
-To source your workspace, run:
+If that works, and once you've built with Colcon according to the previous section, source your workspace:
 
 ```bash
 . install/setup.sh
 ```
 
+Then try launching our GUI:
 
-## Building with Colcon
+```bash
+ros2 launch surface_main surface_all_nodes_launch.py
+```
 
-Now, anytime you want to build, perform one of these options in VSCode:
- - Press `ctrl` `shift` `b`
- - Press `F1` or `ctrl` `shift` `p`, choose `Tasks: Run Task`, then choose `[ROS] 🏃‍ Build Workspace`
-
-The magic of symlinks should mean you won't need to build again for most things, but you'll need to build every time you change a package's `setup.py` or anything in the `rov_msgs` package.
 
 ## Unit tests
 
