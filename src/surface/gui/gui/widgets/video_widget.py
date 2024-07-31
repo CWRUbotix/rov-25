@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import NamedTuple, TypeAlias
+from typing import NamedTuple
 
 import cv2
 import numpy as np
