@@ -11,7 +11,7 @@ sudo apt-get update -y
 rm -rf build install log
 
 # Install python dependencies
-pip install .
+pip install --break-system-packages .
 
 # Install some random package that PyQt requires
 sudo apt-get install libxcb-cursor0 -y

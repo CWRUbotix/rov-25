@@ -9,10 +9,6 @@ Then `operator_app.py` and `pilot_app.py` inherit from App to make our two custo
 
 ## Installation
 
-```bash
-pip install pyqt6 pyqtdarktheme opencv-python opencv-python-headless
-```
-
 ## Usage
 
 Run the operator GUI with
