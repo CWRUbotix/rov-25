@@ -12,7 +12,7 @@ Add the following line to `.bashrc`
 SPINNAKER_GENTL64_CTI=/opt/ros/${ROS_DISTRO}/lib/spinnaker-gentl/Spinnaker_GenTL.cti
 ```
 
-Run the setup file from spinnaker_camera_driver cannot be in VSCode for some reason.
+Run the following spinnaker_camera_driver setup from a regular terminal. Don't run it in the VSCode terminal (it doesn't work there for some reason).
 
 ```bash
 ros2 run spinnaker_camera_driver linux_setup_flir
