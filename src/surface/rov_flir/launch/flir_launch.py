@@ -31,6 +31,7 @@ def generate_launch_description() -> LaunchDescription:
         # 'user_set_selector': 'UserSet0',
         # 'user_set_load': 'Yes',
         # These are useful for GigE cameras
+        # Uncomment throughput_limit & packet_size to enable jumbo packets
         # 'device_link_throughput_limit': 380000000,
         # 'gev_scps_packet_size': 9000,
         # ---- to reduce the sensor width and shift the crop
