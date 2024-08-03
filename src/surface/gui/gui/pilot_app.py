@@ -24,6 +24,8 @@ class GuiType(enum.Enum):
 TWO_MONITOR = 2
 THREE_MONITOR = 3
 
+# Use 1 or 2 to launch fullscreen on the corresponding monitor
+# Use `None` to launch in windowed mode
 TWO_MONITOR_CONFIG: dict[GuiType, int | None] = {
     GuiType.PILOT: None,
     GuiType.LIVESTREAM: 1,
