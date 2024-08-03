@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sdf version="1.6">
+  <model name="rov24_with_brain_coral">
+    <include>
+      <uri>model://rov24</uri>
+    </include>
+
+    <include>  
+      <uri>model://brain_coral</uri>
+      <pose>0.275 -0.135 -0.085 0 0 -0.7854</pose>
+    </include>
+
+    <link name="gripper_intermediate">
+      <pose>0.275 -0.135 0.025 0 0 0</pose>
+      <inertial>
+        <inertia>
+          <ixx>0</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0</iyy>
+          <iyz>0</iyz>
+          <izz>0</izz>
+        </inertia>
+        <mass>0</mass>
+      </inertial>
+    </link>
+
+    <joint name="gripper_joint" type="revolute">
+      <parent>rov24::base_link</parent>
+      <child>gripper_intermediate</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>1 0 0</xyz>
+      </axis>
+    </joint>
+
+    <joint name="gripper_joint_2" type="revolute">
+      <parent>gripper_intermediate</parent>
+      <child>brain_coral::base_link</child>
+      <pose>0 0 0.11 0 0 0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+  </model>
+</sdf>

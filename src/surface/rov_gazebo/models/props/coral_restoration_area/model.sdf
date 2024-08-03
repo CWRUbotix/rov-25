@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sdf version="1.6">
+    <model name="coral_restoration_area">
+        <pose>0 0 0 0 0 0</pose>
+        <static>true</static>
+
+        <link name="base_link">
+            <pose>0 0 0 0 0 0</pose>
+            <visual name="base_link_visual">
+              <geometry>
+                <mesh>
+                  <uri>model://coral_restoration_area/meshes/Coral_Restoration_Area.dae</uri>
+                </mesh>
+              </geometry>
+            </visual>
+
+            <!-- <collision name="base_link_collision">
+              <geometry>
+                <mesh>
+                  <uri>model://coral_restoration_area/meshes/coral_restoration_area.dae</uri>
+                </mesh>
+              </geometry>
+          </collision> -->
+        </link>
+        
+    </model>
+</sdf>
