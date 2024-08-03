@@ -32,8 +32,6 @@ setup(
             'dry_run_manipulators = manipulators.manipulator_dry_run:main',
             'valve_manipulator = manipulators.valve_manipulator_node:main',
             'dry_run_valve_manipulator = manipulators.valve_manipulator_dry_run:main',
-            'lgpio_manipulator = manipulators.lgpio_manipulator:main',
-            'dry_run_lgpio_manipulator = manipulators.lgpio_manipulator_dry_run:main',
         ],
     },
 )

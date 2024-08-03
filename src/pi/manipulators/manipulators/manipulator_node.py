@@ -3,9 +3,10 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_system_default
 from rov_msgs.msg import Manip
-from tca9555 import TCA9555
+from smbus2 import SMBus, i2c_msg
 
-ALL_BITS = (0, 1, 2, 3, 4, 5)
+ADRRESS = 0x20
+CMD_BYTE = 0x06
 
 
 class Manipulator(Node):
@@ -21,13 +22,8 @@ class Manipulator(Node):
             parameters=[('left', Parameter.Type.INTEGER), ('right', Parameter.Type.INTEGER)],
         )
 
-        # Initialize with standard I2C-bus address of TCA9555 a.k.a 0x20
-        self.i2c = TCA9555()  # can put in the address as a param in hexadecimal
-        self.get_logger().info(str(self.i2c.format_config()))
-
-        # Set pins 0 through 5 as output
-        self.i2c.set_direction(0, bits=ALL_BITS)
-        self.i2c.unset_bits(bits=ALL_BITS)
+        self.i2c = SMBus(1)
+        self.state = 0
 
     def manip_callback(self, message: Manip) -> None:
         manip_id = message.manip_id
@@ -36,10 +32,12 @@ class Manipulator(Node):
         if manip_id != 'valve':
             pin = self.get_parameter(manip_id).get_parameter_value().integer_value
 
+            self.state &= ~(2**pin)  # Unset the pin with a bitmask
             if activated:
-                self.i2c.set_bits(bits=(pin))
-            else:
-                self.i2c.unset_bits(bits=(pin))
+                self.state |= 2**pin  # Set the pin
+
+            msg = i2c_msg.write(ADRRESS, [CMD_BYTE, self.state])
+            self.i2c.i2c_rdwr(msg)
 
 
 def main() -> None:
