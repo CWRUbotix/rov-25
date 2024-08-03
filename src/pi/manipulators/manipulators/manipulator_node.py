@@ -9,6 +9,7 @@ from smbus2 import SMBus, i2c_msg
 ADRRESS = 0x20
 CMD_BYTE = 0x06
 
+
 class Manipulator(Node):
     def __init__(self) -> None:
         super().__init__('manipulator', parameter_overrides=[])
@@ -34,10 +35,10 @@ class Manipulator(Node):
             pin = self.get_parameter(manip_id).get_parameter_value().integer_value
 
             if activated:
-                self.state += 2 ** pin
+                self.state += 2**pin
                 msg = i2c_msg.write(ADRRESS, [CMD_BYTE, self.state])
             else:
-                self.state -= 2 ** pin
+                self.state -= 2**pin
                 msg = i2c_msg.write(ADRRESS, [CMD_BYTE, self.state])
 
             self.i2c.i2c_rdwr(msg)
