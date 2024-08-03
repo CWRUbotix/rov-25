@@ -24,8 +24,10 @@ class GuiType(enum.Enum):
 TWO_MONITOR = 2
 THREE_MONITOR = 3
 
-TWO_MONITOR_CONFIG: dict[GuiType, int | None] = {GuiType.PILOT: None, GuiType.LIVESTREAM: 1}
-THREE_MONITOR_CONFIG: dict[GuiType, int | None] = {GuiType.PILOT: 2, GuiType.LIVESTREAM: 1}
+TWO_MONITOR_CONFIG: dict[GuiType, int | None] = {
+    GuiType.PILOT: None, GuiType.LIVESTREAM: 1, GuiType.DEBUG: None}
+THREE_MONITOR_CONFIG: dict[GuiType, int | None] = {
+    GuiType.PILOT: 2, GuiType.LIVESTREAM: 1, GuiType.DEBUG: None}
 
 
 class PilotApp(App):
