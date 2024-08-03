@@ -32,13 +32,11 @@ class Manipulator(Node):
         if manip_id != 'valve':
             pin = self.get_parameter(manip_id).get_parameter_value().integer_value
 
+            self.state &= ~(2**pin)  # Unset the pin with a bitmask
             if activated:
-                self.state += 2**pin
-                msg = i2c_msg.write(ADRRESS, [CMD_BYTE, self.state])
-            else:
-                self.state -= 2**pin
-                msg = i2c_msg.write(ADRRESS, [CMD_BYTE, self.state])
-
+                self.state |= 2**pin  # Set the pin
+              
+            msg = i2c_msg.write(ADRRESS, [CMD_BYTE, self.state])
             self.i2c.i2c_rdwr(msg)
 
 
