@@ -20,20 +20,23 @@ def generate_launch_description() -> LaunchDescription:
 
     parameters = {
         'debug': False,
-        'acquisition_timeout': 0.5,
         'compute_brightness': False,
         'adjust_timestamp': True,
         'dump_node_map': False,
         # set parameters defined in blackfly_s.yaml
         'gain_auto': 'Continuous',
-        'pixel_format': 'BayerRG8',
+        # 'pixel_format': 'BayerRG8',
         'exposure_auto': 'Continuous',
+        # to use a user set, do this:
+        # 'user_set_selector': 'UserSet0',
+        # 'user_set_load': 'Yes',
         # These are useful for GigE cameras
-        'device_link_throughput_limit': 125000000,
-        'gev_scps_packet_size': 9000,
+        # Uncomment throughput_limit & packet_size to enable jumbo packets
+        # 'device_link_throughput_limit': 380000000,
+        # 'gev_scps_packet_size': 9000,
         # ---- to reduce the sensor width and shift the crop
-        'image_width': 720,
-        'image_height': 540,
+        # 'image_width': 1408,
+        # 'image_height': 1080,
         # 'offset_x': 16,
         # 'offset_y': 0,
         'binning_x': 2,
@@ -42,7 +45,7 @@ def generate_launch_description() -> LaunchDescription:
         'frame_rate_auto': 'Off',
         'frame_rate': 60.0,
         'frame_rate_enable': True,
-        'buffer_queue_size': 1,
+        'buffer_queue_size': 10,
         'trigger_mode': 'Off',
         'chunk_mode_active': True,
         'chunk_selector_frame_id': 'FrameID',

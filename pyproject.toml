@@ -2,12 +2,11 @@
 name = "rov-25"
 # I know Ben hates this but this required lol
 version = "1.2.0"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 
 dependencies = [
-    'pyqt6',
     'pytest-qt',
-    'TCA9555@git+https://github.com/InvincibleRMC/TCA9555',
+    'smbus2',
     'bluerobotics-tsys01@git+https://github.com/bluerobotics/tsys01-python',
     'pymavlink',
     'mavproxy'
