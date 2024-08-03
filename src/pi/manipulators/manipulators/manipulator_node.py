@@ -5,7 +5,6 @@ from rclpy.qos import qos_profile_system_default
 from rov_msgs.msg import Manip
 from smbus2 import SMBus, i2c_msg
 
-# ALL_BITS = (0, 1, 2, 3, 4, 5)/
 ADRRESS = 0x20
 CMD_BYTE = 0x06
 
@@ -23,7 +22,6 @@ class Manipulator(Node):
             parameters=[('left', Parameter.Type.INTEGER), ('right', Parameter.Type.INTEGER)],
         )
 
-        # Initialize with standard I2C-bus address of TCA9555 a.k.a 0x20
         self.i2c = SMBus(1)
         self.state = 0
 
