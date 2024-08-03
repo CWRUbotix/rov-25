@@ -35,7 +35,7 @@ class Manipulator(Node):
             self.state &= ~(2**pin)  # Unset the pin with a bitmask
             if activated:
                 self.state |= 2**pin  # Set the pin
-              
+
             msg = i2c_msg.write(ADRRESS, [CMD_BYTE, self.state])
             self.i2c.i2c_rdwr(msg)
 
