@@ -6,7 +6,6 @@ requires-python = ">=3.12"
 
 dependencies = [
     'pytest-qt',
-    'smbus2',
     'bluerobotics-tsys01@git+https://github.com/bluerobotics/tsys01-python',
     'pymavlink',
     'mavproxy'
