@@ -6,6 +6,9 @@ This package reads from the temperature sensor.
 
 ## Installation
 
+```bash
+sudo pip install bluerobotics-tsys01@git+https://github.com/bluerobotics/tsys01-python
+```
 
 ## Usage
 
