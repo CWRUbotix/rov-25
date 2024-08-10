@@ -1,12 +1,11 @@
 [project]
 name = "rov-25"
-# I know Ben hates this but this required lol
+# I know Ben hates this but this is required lol
 version = "1.2.0"
 requires-python = ">=3.12"
 
 dependencies = [
     'pytest-qt',
-    'smbus2',
     'bluerobotics-tsys01@git+https://github.com/bluerobotics/tsys01-python',
     'pymavlink',
     'mavproxy'
@@ -14,9 +13,9 @@ dependencies = [
 
 [tool.mypy]
 strict = true
-# Done becuase tons of python packages are missing stubs or py.typed markers
+# Done because tons of Python packages are missing stubs or py.typed markers
 ignore_missing_imports = true
-# Done because some calls insides rclpy are not typed
+# Done because some calls inside rclpy are not typed
 disallow_untyped_calls = false
 # Done because rclpy Node has type Any
 disallow_subclassing_any = false
@@ -24,7 +23,7 @@ disallow_subclassing_any = false
 [tool.pytest.ini_options]
 qt_api = "pyqt6"
 
-# For precommit CI
+# For pre-commit CI
 [tool.ruff]
 format.quote-style = 'single'
 exclude = ["src/surface/ros2_video_streamer"]
