@@ -9,6 +9,3 @@ sudo apt-get update -y
 
 # Deletes ROS build directories
 rm -rf build install log
-
-# Install some random package that PyQt requires
-sudo apt-get install libxcb-cursor0 -y
