@@ -6,12 +6,6 @@ This package is used to toggle manipulators plugged into the I2C bus on the moth
 
 ## Installation
 
-These should be done for you but, in case something has gone wrong use these command and it should fix your installation.
-
-```bash
-sudo apt install python3-lgpio
-```
-
 ## Usage
 
 Run the main node with
