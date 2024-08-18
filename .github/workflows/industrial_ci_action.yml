@@ -44,7 +44,8 @@ jobs:
           # Done to avoid permssion errors in the ros-industrial ci.
           # DOCKER_RUN_OPTS: -u root
           ROS_REPO: ${{ matrix.ROS_REPO }}
-          # Allows pip packages in Python3.11+
-          PIP_BREAK_SYSTEM_PACKAGES: 1
+          # # Allows pip packages in Python3.11+
+          # PIP_BREAK_SYSTEM_PACKAGES: 1
+          BEFORE_INSTALL_TARGET_DEPENDENCIES_EMBED: 'export PIP_BREAK_SYSTEM_PACKAGES=1'
           # # Create config file to allow pip packacages in Python3.11+
           # BEFORE_INSTALL_TARGET_DEPENDENCIES_EMBED: 'printf "[install]\nbreak-system-packages = true\n" | sudo tee -a /etc/pip.conf'
