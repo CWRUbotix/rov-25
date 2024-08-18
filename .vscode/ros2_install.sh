@@ -49,6 +49,3 @@ source ~/.bashrc
 sudo rosdep init
 rosdep update
 source ~/.bashrc
-
-# Create Config File for Python3.11+ Pip Packages
-printf "[install]\nbreak-system-packages = true\n" | sudo tee -a /etc/pip.conf

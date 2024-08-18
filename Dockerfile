@@ -54,8 +54,6 @@ RUN ./ardusub.sh \
 COPY src/surface/rov_gazebo/scripts/ardupilot_gazebo.sh .
 RUN ./ardupilot_gazebo.sh \
     && rm ardupilot_gazebo.sh
-# Update Pip
-RUN pip install --no-cache-dir --upgrade  pip==24.0
 
 WORKDIR /home/${USER_NAME}/rov-25
 
