@@ -3,8 +3,9 @@ from queue import Queue
 from typing import TypeVar
 
 import pytest
-from rov_msgs.msg import FloatData
 from transceiver.serial_reader import SerialReaderPacketHandler
+
+from rov_msgs.msg import FloatData
 
 T = TypeVar('T')
 
@@ -32,7 +33,7 @@ TEST_VALUES = (992.4500, 994.4299, 992.9600, 993.3699, 993.26)
 EXPECTED_VALUES = (992.4500, 993.43995, 993.27996666666, 993.30245, 993.29396)
 
 
-@pytest.fixture()
+@pytest.fixture
 def packet_handler() -> SerialReaderPacketHandler:
     return SerialReaderPacketHandler()
 

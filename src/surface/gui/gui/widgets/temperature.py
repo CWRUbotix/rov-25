@@ -2,9 +2,9 @@ from collections import deque
 
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
-from rov_msgs.msg import Temperature
 
 from gui.gui_node import GUINode
+from rov_msgs.msg import Temperature
 
 MIN_TEMP_C = 0
 MAX_TEMP_C = 200
