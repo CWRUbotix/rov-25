@@ -2,8 +2,9 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_system_default
-from rov_msgs.msg import Manip
 from smbus2 import SMBus, i2c_msg
+
+from rov_msgs.msg import Manip
 
 ADRRESS = 0x20
 CMD_BYTE = 0x06
