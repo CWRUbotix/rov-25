@@ -46,6 +46,7 @@ jobs:
           ROS_REPO: ${{ matrix.ROS_REPO }}
           # # Allows pip packages in Python3.11+
           # PIP_BREAK_SYSTEM_PACKAGES: 1
-          BEFORE_INSTALL_TARGET_DEPENDENCIES_EMBED: 'export PIP_BREAK_SYSTEM_PACKAGES=1'
+          # upgrade rosdep to 0.25
+          BEFORE_INSTALL_TARGET_DEPENDENCIES_EMBED: 'sudo apt upgrade -y && export PIP_BREAK_SYSTEM_PACKAGES=1'
           # # Create config file to allow pip packacages in Python3.11+
           # BEFORE_INSTALL_TARGET_DEPENDENCIES_EMBED: 'printf "[install]\nbreak-system-packages = true\n" | sudo tee -a /etc/pip.conf'
