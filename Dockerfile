@@ -26,7 +26,7 @@ RUN apt-get update -y \
 SHELL ["/bin/bash", "-c"]
 RUN . <(wget -qO- https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh)
 
-WORKDIR /home/ 
+WORKDIR /home/
 # Setup Ardusub
 COPY src/surface/rov_gazebo/scripts/ardusub.sh .
 RUN ./ardusub.sh \
