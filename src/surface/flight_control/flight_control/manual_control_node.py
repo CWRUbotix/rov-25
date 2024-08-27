@@ -6,8 +6,9 @@ from mavros_msgs.srv import CommandBool
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
-from rov_msgs.msg import CameraControllerSwitch, Manip, PixhawkInstruction, ValveManip
 from sensor_msgs.msg import Joy
+
+from rov_msgs.msg import CameraControllerSwitch, Manip, PixhawkInstruction, ValveManip
 
 if TYPE_CHECKING:
     from collections.abc import MutableSequence

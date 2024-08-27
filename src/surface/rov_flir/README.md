@@ -6,7 +6,13 @@ This is a boilerplate package which launches the camera_driver_node from the fli
 
 ## Setup
 
-Run the setup file from spinnaker_camera_driver
+Add the following line to `.bashrc`
+
+```bash
+SPINNAKER_GENTL64_CTI=/opt/ros/${ROS_DISTRO}/lib/spinnaker-gentl/Spinnaker_GenTL.cti
+```
+
+Run the following spinnaker_camera_driver setup from a regular terminal. Don't run it in the VSCode terminal (it doesn't work there for some reason).
 
 ```bash
 ros2 run spinnaker_camera_driver linux_setup_flir

@@ -10,14 +10,10 @@ updates:
     directory: "." # Location of package manifests
     schedule:
       interval: "daily"
-
-  # ros2_video_streamer not included because it is a submodule.
-
   - package-ecosystem: "github-actions" # See documentation for possible values
     directory: "/.github/workflows" # Location of package manifests
     schedule:
       interval: "daily"
-
   - package-ecosystem: "gitsubmodule" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:

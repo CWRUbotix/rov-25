@@ -4,8 +4,21 @@
 # This file maps the ros parameters to the corresponding Spinnaker "nodes" in the camera.
 # For more details on how to modify this file, see the README on camera configuration files.
 
-
 parameters:
+  #
+  # -------- user set control
+  #
+  - name: default_user_set
+    type: enum
+    # allowed values: UserSet0 UserSet1
+    node: UserSetControl/DefaultUserSet
+  - name: user_set_selector
+    type: enum
+    # allowed values: UserSet0 UserSet1
+    node: UserSetControl/UserSetSelector
+  - name: user_set_load
+    type: command
+    node: UserSetControl/UserSetLoad
   #
   # -------- image format control
   #
@@ -15,25 +28,24 @@ parameters:
     # Some formats are e.g. "Mono8", "BayerRG8", "BGR8", "BayerRG16"
     # default is "BayerRG8"
     node: ImageFormatControl/PixelFormat
-  - name: image_width
-    type: int
-    node: ImageFormatControl/Width
-  - name: image_height
-    type: int
-    node: ImageFormatControl/Height
-  - name: offset_x  # offset must come after image width reduction!
-    type: int
-    node: ImageFormatControl/OffsetX
-  - name: offset_y
-    type: int
-    node: ImageFormatControl/OffsetY
-    # Added by ROV
   - name: binning_x
     type: int
     node: ImageFormatControl/BinningHorizontal
   - name: binning_y
     type: int
     node: ImageFormatControl/BinningVertical
+  - name: image_width
+    type: int
+    node: ImageFormatControl/Width
+  - name: image_height
+    type: int
+    node: ImageFormatControl/Height
+  - name: offset_x # offset must come after image width reduction!
+    type: int
+    node: ImageFormatControl/OffsetX
+  - name: offset_y
+    type: int
+    node: ImageFormatControl/OffsetY
   #
   # -------- analog control
   #
@@ -60,25 +72,25 @@ parameters:
   #
   # -------- digital IO control
   #
-  - name: line0_selector  # black wire: opto-isolated input
+  - name: line0_selector # black wire: opto-isolated input
     type: enum
     node: DigitalIOControl/LineSelector
-  - name: line1_selector  # white wire: opto-isolated output
+  - name: line1_selector # white wire: opto-isolated output
     type: enum
     node: DigitalIOControl/LineSelector
-  - name: line1_linemode  # valid values: "Input", "Output"
+  - name: line1_linemode # valid values: "Input", "Output"
     type: enum
     node: DigitalIOControl/LineMode
-  - name: line2_selector  # red wire: non-isolated input/output
+  - name: line2_selector # red wire: non-isolated input/output
     type: enum
     node: DigitalIOControl/LineSelector
   - name: line2_v33enable # red wire: 3.3V power
     type: bool
     node: DigitalIOControl/V3_3Enable
-  - name: line3_selector  # green wire: aux voltage input and non-isolated input
+  - name: line3_selector # green wire: aux voltage input and non-isolated input
     type: enum
     node: DigitalIOControl/LineSelector
-  - name: line3_linemode  # valid values: "Input", "Output"
+  - name: line3_linemode # valid values: "Input", "Output"
     type: enum
     node: DigitalIOControl/LineMode
   #
@@ -118,6 +130,10 @@ parameters:
     type: enum
     # valid values: "Off" and "ReadOut"
     node: AcquisitionControl/TriggerOverlap
+  - name: trigger_activation
+    type: enum
+    # valid values: "LevelLow", "LevelHigh", "FallingEdge", "RisingEdge", "AnyEdge",
+    node: AcquisitionControl/TriggerActivation
   #
   # --------- chunk control
   #
@@ -152,3 +168,10 @@ parameters:
   - name: chunk_enable_timestamp
     type: bool
     node: ChunkDataControl/ChunkEnable
+  #
+  # ------- stream layer
+  #
+  - name: "stream_buffer_handling_mode"
+    type: enum
+    # valid values: "NewestFirst", "OldestFirst", "NewestOnly", "OldestFirstOverwrite"
+    node: BufferHandlingControl/StreamBufferHandlingMode

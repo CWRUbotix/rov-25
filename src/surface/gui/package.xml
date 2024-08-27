@@ -19,6 +19,8 @@
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>python3-pyqtgraph</exec_depend>
+  <exec_depend>pyqt6-dev-tools</exec_depend>
+  <exec_depend>python3-pyqt6.qtmultimedia</exec_depend>
 
   <depend>mavros</depend>
 

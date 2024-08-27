@@ -15,8 +15,6 @@ RUN apt-get update -y \
   python3-pip \
   # Install geographiclib dependencies for mavros.
   geographiclib-tools \
-  # For git
-  ssh \
   && apt-get upgrade -y \
   # Clean for better performance
   && apt-get clean \

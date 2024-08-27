@@ -2,6 +2,7 @@ import rclpy
 import tsys01
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
+
 from rov_msgs.msg import Temperature
 
 READING_TIMER_PERIOD = 0.5  # Seconds
@@ -23,7 +24,7 @@ class TempSensor(Node):
             self.sensor.read()
             temp_reading = self.sensor.temperature()
 
-            # If any of the sensors detect water, send true to /tether/flooding
+            # If any of the sensors detect water, send true to /tether/temperature
             self.publisher.publish(Temperature(reading=temp_reading))
         except OSError:
             print('Failed to read temperature, skipping this read')
