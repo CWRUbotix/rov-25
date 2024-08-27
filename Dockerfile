@@ -11,6 +11,8 @@ RUN apt-get update -y \
   usbutils \
   # Install nano
   nano \
+  # Install ssh
+  ssh \
   # Install pip
   python3-pip \
   # Install geographiclib dependencies for mavros.
