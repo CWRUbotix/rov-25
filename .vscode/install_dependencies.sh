@@ -1,7 +1,5 @@
 #!/bin/bash
 
-ROS_DISTRO=$1
-
 # Update ROS dependencies
 . /opt/ros/jazzy/setup.sh && rosdep update
 sudo apt-get update -y

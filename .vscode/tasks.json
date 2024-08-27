@@ -69,9 +69,9 @@
         {
             "label": "Docker Pull",
             "type": "shell",
-            "command": "sudo docker pull ghcr.io/cwrubotix/rov-25:iron",
+            "command": "sudo docker pull ghcr.io/cwrubotix/rov-25:jazzy",
             "windows": {
-                "command": "docker pull ghcr.io/cwrubotix/rov-25:iron"
+                "command": "docker pull ghcr.io/cwrubotix/rov-25:jazzy"
             },
             "hide": true
         },
@@ -110,8 +110,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/.vscode/install_dependencies.sh",
-                "iron"
+                "${workspaceFolder}/.vscode/install_dependencies.sh"
             ],
             "presentation": {
                 "revealProblems": "onProblem"
