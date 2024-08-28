@@ -43,9 +43,6 @@ WORKDIR /home/${USER_NAME}/rov-25
 
 COPY . .
 
-RUN git submodule init && git submodule update
-
-# TODO: can probably remove the arg passing when iron support is dropped
 RUN .vscode/install_dependencies.sh
 
 # TODO: for future nerd to do this via ENTRYPOINT which be better but, I could not get ENTRYPOINT to play with VsCODE.
