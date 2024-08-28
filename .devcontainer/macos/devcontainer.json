@@ -7,11 +7,11 @@
     "mounts": [
         "type=bind,source=/Users/${localEnv:USER}/.ssh,target=/home/rov/.ssh,readonly",
     ],
-    "workspaceFolder": "/home/rov/rov-25",
+    "workspaceFolder": "/home/root/rov-25",
     "customizations": {
         "vscode" : {
             "extensions": ["ms-azuretools.vscode-docker",
-                           "streetsidesoftware.code-spell-checker", "ms-python.isort",
+                           "streetsidesoftware.code-spell-checker", "charliermarsh.ruff",
                            "ms-python.mypy-type-checker"]
         }
     },
