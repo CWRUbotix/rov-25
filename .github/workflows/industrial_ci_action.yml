@@ -42,5 +42,4 @@ jobs:
           DOCKER_IMAGE: ghcr.io/cwrubotix/rov-25:${{matrix.ROS_DISTRO}}
           ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           ROS_REPO: ${{ matrix.ROS_REPO }}
-          # upgrade rosdep to 0.25
-          BEFORE_INSTALL_TARGET_DEPENDENCIES_EMBED: 'sudo apt upgrade -y && ls'
+          BEFORE_INSTALL_TARGET_DEPENDENCIES_EMBED: './.vscode/install_dependencies.sh'
