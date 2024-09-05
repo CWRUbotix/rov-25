@@ -11,11 +11,6 @@
   <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
 
-  <!-- For CI gui-less testing -->
-  <test_depend>xvfb</test_depend>
-  <test_depend>python3-pytest-xvfb</test_depend>
-  <test_depend>python-pytest-qt-pip</test_depend>
-
   <exec_depend>rov_msgs</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
