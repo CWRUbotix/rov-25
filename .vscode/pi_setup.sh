@@ -50,12 +50,7 @@ source ~/.bashrc
 
 # Install only Pi dependencies
 # Installs ROS dependencies
-source /opt/ros/jazzy/setup.sh && rosdep install --from-paths src/pi --ignore-src -r -y
-
-# Crazy one liner for install python dependencies
-for d in src/pi/*/; do sudo pip install --break-system-packages -e "$d"; done
-# Delete generated files
-sudo rm -rf $(find . | grep .egg-info)
+source /opt/ros/jazzy/setup.sh && export PIP_BREAK_SYSTEM_PACKAGES=1 && rosdep install --from-paths src/pi --ignore-src -r -y
 
 # Add setup.bash to .bashrc
 source "$(pwd)/.vscode/rov_setup.sh"

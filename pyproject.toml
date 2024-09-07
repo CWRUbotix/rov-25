@@ -4,13 +4,6 @@ name = "rov-25"
 version = "1.2.0"
 requires-python = ">=3.12"
 
-dependencies = [
-    'pytest-qt',
-    'bluerobotics-tsys01@git+https://github.com/bluerobotics/tsys01-python',
-    'pymavlink',
-    'mavproxy'
-]
-
 [tool.mypy]
 strict = true
 # Done because tons of Python packages are missing stubs or py.typed markers
