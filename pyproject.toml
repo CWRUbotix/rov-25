@@ -13,9 +13,6 @@ disallow_untyped_calls = false
 # Done because rclpy Node has type Any
 disallow_subclassing_any = false
 
-[tool.pytest.ini_options]
-qt_api = "pyqt6"
-
 # For pre-commit CI
 [tool.ruff]
 format.quote-style = 'single'
