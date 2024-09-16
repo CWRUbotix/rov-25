@@ -9,10 +9,10 @@ from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 from rclpy.qos import qos_profile_default
-from rov_msgs.msg import CameraControllerSwitch
 from sensor_msgs.msg import Image
 
 from gui.gui_node import GUINode
+from rov_msgs.msg import CameraControllerSwitch
 
 # TODO: Ubuntu26+
 # Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release

@@ -1,6 +1,6 @@
 {
     "name" : "ROV Linux",
-    "image": "ghcr.io/cwrubotix/rov-25:iron",
+    "image": "ghcr.io/cwrubotix/rov-25:jazzy",
     "containerEnv": {
         "DISPLAY": "${localEnv:DISPLAY}"
     },
@@ -12,11 +12,11 @@
         // gitconfig
         "type=bind,source=/home/${localEnv:USER}/.gitconfig,target=/home/rov/.gitconfig,readonly"
     ],
-    "workspaceFolder": "/home/rov/rov-25",
+    "workspaceFolder": "/home/root/rov-25",
     "customizations": {
         "vscode" : {
             "extensions": ["ms-azuretools.vscode-docker",
-                           "streetsidesoftware.code-spell-checker", "ms-python.isort",
+                           "streetsidesoftware.code-spell-checker", "charliermarsh.ruff",
                            "ms-python.mypy-type-checker"]
         }
     },

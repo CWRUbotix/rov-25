@@ -46,7 +46,7 @@ setup(
     maintainer_email='bwp18@case.edu',
     description='MATE ROV GUI and related ROS nodes',
     license='Apache License 2.0',
-    tests_require=['pytest', 'pytest-qt', 'pytest-xvfb'],
+    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'run_pilot = gui.pilot_app:run_gui_pilot',

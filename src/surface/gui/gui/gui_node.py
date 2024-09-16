@@ -73,12 +73,10 @@ class GUINode(Node):
 
         return super().create_subscription(msg_type, topic, wrapper, qos_profile)
 
-    # TODO: in the release after Iron can add back the Optional around timeout
-    # The fix internally is already out on Rolling
     # Set to None for no timeout limits on service requests
     # else set to float number of seconds to limit request spinning
     def create_client_multithreaded(
-        self, srv_type: type[SrvType], srv_name: str, timeout: float = 10.0
+        self, srv_type: type[SrvType], srv_name: str, timeout: float | None = 10.0
     ) -> Client:
         """Create a service client.
         On another thread, print warnings until it connects.

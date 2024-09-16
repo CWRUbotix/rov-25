@@ -7,9 +7,6 @@
   <maintainer email="bwp18@case.edu">Benjamin Poulin</maintainer>
   <license>Apache License 2.0</license>
 
-  <!-- For pip installing git packages -->
-  <build_depend>git</build_depend>
-
   <exec_depend>python3-smbus</exec_depend>
 
   <test_depend>ament_mypy</test_depend>

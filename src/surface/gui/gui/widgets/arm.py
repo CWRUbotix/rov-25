@@ -1,10 +1,10 @@
 from mavros_msgs.srv import CommandBool
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
-from rov_msgs.msg import VehicleState
 
 from gui.gui_node import GUINode
 from gui.styles.custom_styles import ButtonIndicator
+from rov_msgs.msg import VehicleState
 
 
 class Arm(QWidget):

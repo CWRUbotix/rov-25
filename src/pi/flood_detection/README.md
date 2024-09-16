@@ -6,10 +6,6 @@ This package launches flood detection.
 
 ## Installation
 
-```bash
-sudo apt-get install python3-lgpio
-```
-
 ## Usage
 
 ```bash
