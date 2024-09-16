@@ -121,8 +121,8 @@
 
     <gazebo>
       <plugin
-          filename="ignition-gazebo-thruster-system"
-          name="ignition::gazebo::systems::Thruster">
+          filename="gz-sim-gazebo-thruster-system"
+          name="gz::sim::systems::Thruster">
           <namespace>rov</namespace>
           <joint_name>${thruster_name}_body_blade_joint</joint_name>
           <thrust_coefficient>0.004422</thrust_coefficient>

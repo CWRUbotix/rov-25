@@ -131,8 +131,8 @@
 
     <!-- Hydrodynamics plugin -->
     <plugin
-        filename="ignition-gazebo-hydrodynamics-system"
-        name="ignition::gazebo::systems::Hydrodynamics">
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
       <link_name>base_link</link_name>
       <water_density>1000.0</water_density>
       <!-- Added mass: -->
@@ -407,8 +407,8 @@
     </joint>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster1_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
@@ -421,8 +421,8 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster2_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
@@ -435,8 +435,8 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster3_joint</joint_name>
       <!-- Reverse spin to balance torque -->
@@ -450,8 +450,8 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster4_joint</joint_name>
       <!-- Reverse spin to balance torque -->
@@ -465,8 +465,8 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster5_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
@@ -479,8 +479,8 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster6_joint</joint_name>
       <!-- Reverse spin to balance torque -->
@@ -494,8 +494,8 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster7_joint</joint_name>
       <!-- Reverse spin to balance torque -->
@@ -509,8 +509,8 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster8_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>

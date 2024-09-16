@@ -21,7 +21,7 @@ def generate_launch_description() -> LaunchDescription:
 
     # TODO: gz_sim launch might be nice
     start_gazebo = ExecuteProcess(
-        cmd=['ign', 'gazebo', '-v', '3', '-r', world_path], output='screen'
+        cmd=['gz', 'sim', '-v', '3', '-r', world_path], output='screen'
     )
 
     start_ardusub = ExecuteProcess(

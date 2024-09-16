@@ -122,8 +122,8 @@
 
     <gazebo>
         <plugin
-            filename="ignition-gazebo-hydrodynamics-system"
-            name="ignition::gazebo::systems::Hydrodynamics">
+            filename="gz-sim-hydrodynamics-system"
+            name="gz::sim::systems::Hydrodynamics">
             <link_name>body</link_name>
             <water_density>1000</water_density>
             <!-- Added mass -->
