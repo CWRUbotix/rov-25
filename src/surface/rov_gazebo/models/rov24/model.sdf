@@ -164,7 +164,7 @@
         <pose>0 0 0 -1.571 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://rov24/meshes/t200_ccw_prop.dae</uri>
+            <uri>model://rov24/meshes/t200_cw_prop.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -251,7 +251,7 @@
     </link>
 
     <link name="thruster5">
-      <pose>0.0985 -0.2408 0.0577 0 0 0</pose>
+      <pose>0.0985 -0.2408 0.0577 3.141 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 1.571</pose>
         <geometry>
@@ -274,7 +274,7 @@
     </link>
 
     <link name="thruster6">
-      <pose>0.0985 0.2408 0.0577 0 0 0</pose>
+      <pose>0.0985 0.2408 0.0577 3.141 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 1.571</pose>
         <geometry>
@@ -297,7 +297,7 @@
     </link>
 
     <link name="thruster7">
-      <pose>-0.0985 -0.2408 0.0577 0 0 0</pose>
+      <pose>-0.0985 -0.2408 0.0577 3.141 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 1.571</pose>
         <geometry>
@@ -320,7 +320,7 @@
     </link>
 
     <link name="thruster8">
-      <pose>-0.0985 0.2408 0.0577 0 0 0</pose>
+      <pose>-0.0985 0.2408 0.0577 3.141 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 1.571</pose>
         <geometry>
