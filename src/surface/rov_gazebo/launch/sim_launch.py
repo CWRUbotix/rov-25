@@ -20,9 +20,7 @@ def generate_launch_description() -> LaunchDescription:
     params_path = str(Path(rov_gazebo_path) / 'config' / params_file)
 
     # TODO: gz_sim launch might be nice
-    start_gazebo = ExecuteProcess(
-        cmd=['gz', 'sim', '-v', '3', '-r', world_path], output='screen'
-    )
+    start_gazebo = ExecuteProcess(cmd=['gz', 'sim', '-v', '3', '-r', world_path], output='screen')
 
     start_ardusub = ExecuteProcess(
         cmd=['ardusub', '-S', '-w', '-M', 'JSON', '--defaults', params_path, '-I0'], output='screen'

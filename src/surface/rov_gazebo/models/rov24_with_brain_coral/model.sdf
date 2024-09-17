@@ -5,7 +5,7 @@
       <uri>model://rov24</uri>
     </include>
 
-    <include>  
+    <include>
       <uri>model://brain_coral</uri>
       <pose>0.275 -0.135 -0.085 0 0 -0.7854</pose>
     </include>
