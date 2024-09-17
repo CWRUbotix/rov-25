@@ -164,7 +164,7 @@
         <pose>0 0 0 -1.571 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://rov24/meshes/t200_cw_prop.dae</uri>
+            <uri>model://rov24/meshes/t200_ccw_prop.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -182,7 +182,7 @@
     </link>
 
     <link name="thruster2">
-      <pose>0.1848 0.2104 0.1651 -1.571 1.571 -2.269</pose>
+      <pose>0.1848 0.2104 0.1651 1.571 1.571 -2.269</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 0</pose>
         <geometry>
@@ -228,7 +228,7 @@
     </link>
 
     <link name="thruster4">
-      <pose>-0.1848 0.2104 0.1651 -1.571 1.571 2.269</pose>
+      <pose>-0.1848 0.2104 0.1651 1.571 1.571 2.269</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 0</pose>
         <geometry>
@@ -251,12 +251,12 @@
     </link>
 
     <link name="thruster5">
-      <pose>0.0985 -0.2408 0.0577 3.141 0 0</pose>
+      <pose>0.0985 -0.2408 0.0577 0 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 1.571</pose>
         <geometry>
           <mesh>
-            <uri>model://rov24/meshes/t200_cw_prop.dae</uri>
+            <uri>model://rov24/meshes/t200_ccw_prop.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -274,12 +274,12 @@
     </link>
 
     <link name="thruster6">
-      <pose>0.0985 0.2408 0.0577 3.141 0 0</pose>
+      <pose>0.0985 0.2408 0.0577 0 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 1.571</pose>
         <geometry>
           <mesh>
-            <uri>model://rov24/meshes/t200_ccw_prop.dae</uri>
+            <uri>model://rov24/meshes/t200_cw_prop.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -297,12 +297,12 @@
     </link>
 
     <link name="thruster7">
-      <pose>-0.0985 -0.2408 0.0577 3.141 0 0</pose>
+      <pose>-0.0985 -0.2408 0.0577 0 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 1.571</pose>
         <geometry>
           <mesh>
-            <uri>model://rov24/meshes/t200_ccw_prop.dae</uri>
+            <uri>model://rov24/meshes/t200_cw_prop.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -320,12 +320,12 @@
     </link>
 
     <link name="thruster8">
-      <pose>-0.0985 0.2408 0.0577 3.141 0 0</pose>
+      <pose>-0.0985 0.2408 0.0577 0 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 1.571</pose>
         <geometry>
           <mesh>
-            <uri>model://rov24/meshes/t200_cw_prop.dae</uri>
+            <uri>model://rov24/meshes/t200_ccw_prop.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -425,7 +425,8 @@
         name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster2_joint</joint_name>
-      <thrust_coefficient>0.02</thrust_coefficient>
+      <!-- Reverse spin to balance torque -->
+      <thrust_coefficient>-0.02</thrust_coefficient>
       <max_thrust_cmd>36.4</max_thrust_cmd>
       <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
@@ -454,8 +455,7 @@
         name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster4_joint</joint_name>
-      <!-- Reverse spin to balance torque -->
-      <thrust_coefficient>-0.02</thrust_coefficient>
+      <thrust_coefficient>0.02</thrust_coefficient>
       <max_thrust_cmd>36.4</max_thrust_cmd>
       <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
