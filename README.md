@@ -296,3 +296,10 @@ def __init__(self, srv_type: SrvType, topic: str, signal: pyqtBoundSignal,
             _description_, by default '/surface/gui'
         """
 ```
+
+## Axis Orientation
+For the ROV:
+ - +X is forward
+ - +Y is left
+ - +Z is up
+
