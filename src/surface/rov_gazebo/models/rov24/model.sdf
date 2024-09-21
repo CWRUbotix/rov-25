@@ -24,7 +24,6 @@
         <geometry>
           <mesh>
             <uri>model://rov24/meshes/rov24.dae</uri>
-            <!-- <scale>0.0254 0.0254 0.0254</scale> -->
           </mesh>
         </geometry>
       </visual>
