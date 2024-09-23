@@ -21,8 +21,7 @@ bool printRFStatus = true;
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-const uint8_t LEGAL_COMMANDS_LEN = 5;
-const String LEGAL_COMMANDS[LEGAL_COMMANDS_LEN] = {"submerge", "suck", "pump", "stop", "return"};
+const String LEGAL_COMMANDS[] = {"submerge", "suck", "pump", "stop", "return"};
 
 void setup() {
   Serial.begin(115200);
@@ -73,9 +72,9 @@ void loop() {
       printRFStatus = false;
     }
 
-    for (int i = 0; i < LEGAL_COMMANDS_LEN; i++) {
-      if (command.startsWith(LEGAL_COMMANDS[i])) {
-        sendCommand(LEGAL_COMMANDS[i]);
+    for (auto legalCommand : LEGAL_COMMANDS) {
+      if (command.startsWith(legalCommand)) {
+        sendCommand(legalCommand);
         return;
       }
     }

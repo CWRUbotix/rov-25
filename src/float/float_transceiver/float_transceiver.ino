@@ -58,7 +58,7 @@ struct Stage {
 OverrideState overrideState = OverrideState::NoOverride;
 uint8_t currentStage = 0;
 
-const Stage SCHEDULE[SCHEDULE_LENGTH] = {
+const Stage SCHEDULE[] = {
   // Pump immediately in case we just rebooted at the bottom of the pool
   {StageType::Pump,             PUMP_MAX    },
 
