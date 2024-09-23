@@ -26,7 +26,7 @@ const String LEGAL_COMMANDS[] = {"submerge", "suck", "pump", "stop", "return"};
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial) {}
+  while (!Serial);
 
   Serial.println("Surface Transceiver");
   pinMode(RFM95_RST, OUTPUT);
@@ -41,7 +41,7 @@ void setup() {
 
   if (!rf95.init()) {
     Serial.println("RFM95 radio init failed");
-    while (1) {}
+    while (1);
   }
   Serial.println("RFM95 radio init OK!");
 
@@ -50,7 +50,7 @@ void setup() {
   // But we override frequency
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
-    while (1) {}
+    while (1);
   }
 
   // The default transmitter power is 13dBm, using PA_BOOST.
@@ -68,12 +68,12 @@ void loop() {
     Serial.println("Getting serial command...");
     String command = Serial.readString();
 
-    if (command.startsWith("submerge")) {
+    if (command.equals("submerge")) {
       printRFStatus = false;
     }
 
     for (auto legalCommand : LEGAL_COMMANDS) {
-      if (command.startsWith(legalCommand)) {
+      if (command.equals(legalCommand)) {
         sendCommand(legalCommand);
         return;
       }
@@ -158,8 +158,8 @@ bool receivePacket() {
       byteBuffer[PKT_IDX_PROFILE_HALF]);
     for (int i = PKT_HEADER_LEN; i < len;) {
       // Wonky pointer casting to convert four bytes into a long (time)
-      serialPrintf("%l,", *reinterpret_cast<uint32_t*>(byteBuffer + i));
-      i += sizeof(uint32_t);
+      serialPrintf("%l,", *reinterpret_cast<unsigned long*>(byteBuffer + i));
+      i += sizeof(unsigned long);
 
       // Same thing for a float (pressure)
       Serial.print(*reinterpret_cast<float*>(byteBuffer + i));
