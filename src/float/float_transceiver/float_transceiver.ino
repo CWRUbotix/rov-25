@@ -434,7 +434,7 @@ void initRadio() {
 
   if (!rf95.init()) {
     Serial.println("RFM95 radio init failed");
-    while (1){}
+    while (1) {}
   }
   Serial.println("RFM95 radio init OK!");
 
