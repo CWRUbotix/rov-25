@@ -26,7 +26,7 @@ const String LEGAL_COMMANDS[] = {"submerge", "suck", "pump", "stop", "return"};
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial);
+  while (!Serial){}
 
   Serial.println("Surface Transceiver");
   pinMode(RFM95_RST, OUTPUT);
@@ -41,7 +41,7 @@ void setup() {
 
   if (!rf95.init()) {
     Serial.println("RFM95 radio init failed");
-    while (1);
+    while (1){}
   }
   Serial.println("RFM95 radio init OK!");
 
@@ -50,7 +50,7 @@ void setup() {
   // But we override frequency
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
-    while (1);
+    while (1){}
   }
 
   // The default transmitter power is 13dBm, using PA_BOOST.
