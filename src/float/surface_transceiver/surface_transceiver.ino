@@ -73,7 +73,7 @@ void loop() {
     }
 
     for (auto legalCommand : LEGAL_COMMANDS) {
-      if (command.equals(legalCommand)) {
+      if (command.startsWith(legalCommand)) {
         sendCommand(legalCommand);
         return;
       }
