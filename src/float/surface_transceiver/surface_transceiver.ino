@@ -68,7 +68,7 @@ void loop() {
     Serial.println("Getting serial command...");
     String command = Serial.readString();
 
-    if (command.equals("submerge")) {
+    if (command.startsWith("submerge")) {
       printRFStatus = false;
     }
 
