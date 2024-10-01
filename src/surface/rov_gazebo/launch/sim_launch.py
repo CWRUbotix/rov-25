@@ -12,6 +12,7 @@ NAMESPACE = 'simulation'
 def generate_launch_description() -> LaunchDescription:
     rov_gazebo_path = get_package_share_directory('rov_gazebo')
     surface_main_path = get_package_share_directory('surface_main')
+    gz_sim_path = get_package_share_directory('ros_gz_sim')
 
     world_file = 'rov24_coral.sdf'
     world_path = str(Path(rov_gazebo_path) / 'worlds' / world_file)
@@ -19,8 +20,12 @@ def generate_launch_description() -> LaunchDescription:
     params_file = 'sub.parm'
     params_path = str(Path(rov_gazebo_path) / 'config' / params_file)
 
-    # TODO: gz_sim launch might be nice
-    start_gazebo = ExecuteProcess(cmd=['gz', 'sim', '-v', '3', '-r', world_path], output='screen')
+    start_gazebo = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [str(Path(gz_sim_path) / 'launch' / 'gz_sim.launch.py')]
+        ),
+        launch_arguments=[('gz_args', f'sim -v 3 -r {world_path}')],
+    )
 
     start_ardusub = ExecuteProcess(
         cmd=['ardusub', '-S', '-w', '-M', 'JSON', '--defaults', params_path, '-I0'], output='screen'
