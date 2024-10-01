@@ -21,9 +21,7 @@ def generate_launch_description() -> LaunchDescription:
     params_path = str(Path(rov_gazebo_path) / 'config' / params_file)
 
     start_gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [str(Path(gz_sim_path) / 'launch' / 'gz_sim.launch.py')]
-        ),
+        PythonLaunchDescriptionSource([str(Path(gz_sim_path) / 'launch' / 'gz_sim.launch.py')]),
         launch_arguments=[('gz_args', f'sim -v 3 -r {world_path}')],
     )
 
