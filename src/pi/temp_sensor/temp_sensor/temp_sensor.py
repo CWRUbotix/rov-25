@@ -20,6 +20,7 @@ class TempSensor(Node):
         self.timer = self.create_timer(READING_TIMER_PERIOD, self.timer_callback)
 
     def timer_callback(self) -> None:
+        """Read & publish the temperature from the temperature sensor."""
         try:
             self.sensor.read()
             temp_reading = self.sensor.temperature()

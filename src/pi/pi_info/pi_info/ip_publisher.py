@@ -20,7 +20,7 @@ class IPPublisher(Node):
         self.failed_wireless = False
 
     def timer_callback(self) -> None:
-        """On timer publishes the ip address of the computer."""
+        """Publish the IP address of this device on a timer."""
         msg = IPAddress()
 
         try:

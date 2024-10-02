@@ -28,6 +28,21 @@ class AutoDocker(Node):
     def task_control_callback(
         self, request: AutonomousFlight.Request, response: AutonomousFlight.Response
     ) -> AutonomousFlight.Response:
+        """
+        Change whether the robot is in autonomous or manual mode.
+
+        Parameters
+        ----------
+        request : AutonomousFlight.Request
+            ROS service request changing the movement mode
+        response : AutonomousFlight.Response
+            ROS service response that will be rilled out by this function
+
+        Returns
+        -------
+        AutonomousFlight.Response
+            The filled out response for the service
+        """
         self.current_state = request.state
         response.current_state = request.state
         return response

@@ -27,6 +27,14 @@ class Manipulator(Node):
         self.state = 0
 
     def manip_callback(self, message: Manip) -> None:
+        """
+        Handle manipulator control message; toggle physical manipulators.
+
+        Parameters
+        ----------
+        message : Manip
+            the ROS message specifying how to change manips
+        """
         manip_id = message.manip_id
         activated = message.activated
 

@@ -9,13 +9,6 @@ from rov_msgs.msg import CameraControllerSwitch, PixhawkInstruction
 JOYSTICK_EXPONENT = 3
 
 
-def joystick_map(raw: float) -> float:
-    mapped = abs(raw) ** JOYSTICK_EXPONENT
-    if raw < 0:
-        mapped *= -1
-    return mapped
-
-
 class ControlInverterNode(Node):
     def __init__(self) -> None:
         super().__init__('control_inverter_node', parameter_overrides=[])
@@ -41,9 +34,25 @@ class ControlInverterNode(Node):
         )
 
     def invert_callback(self, _: CameraControllerSwitch) -> None:
+        """
+        Toggles the inversion of piloting controls (for driving backward).
+
+        Parameters
+        ----------
+        _ : CameraControllerSwitch
+            Ignored CameraControllerSwitch message
+        """
         self.inverted = not self.inverted
 
     def control_callback(self, msg: PixhawkInstruction) -> None:
+        """
+        Repeat the PixhawkInstruction on uninverted_pixhawk_control. Invert if necessary.
+
+        Parameters
+        ----------
+        msg : PixhawkInstruction
+            The PixhawkInstruction to repeat
+        """
         if self.inverted:
             msg.forward *= -1
             msg.lateral *= -1

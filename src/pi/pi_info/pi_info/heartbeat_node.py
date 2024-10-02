@@ -19,6 +19,7 @@ class HeartbeatNode(Node):
         self.timer = self.create_timer(1 / PUBLISH_RATE, self.timer_callback)
 
     def timer_callback(self) -> None:
+        """Send heartbeat on a timer."""
         self.publisher.publish(Heartbeat())
 
 

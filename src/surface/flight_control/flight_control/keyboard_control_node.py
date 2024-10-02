@@ -78,6 +78,14 @@ class KeyboardListenerNode(Node):
         }
 
     def on_press(self, key: Key | KeyCode | None) -> None:
+        """
+        Set key status matching pressed key and publish control message.
+
+        Parameters
+        ----------
+        key : Key | KeyCode | None
+            The key pressed
+        """
         if isinstance(key, KeyCode):
             if key.char is None:
                 return
@@ -95,6 +103,14 @@ class KeyboardListenerNode(Node):
         self.pub_rov_control()
 
     def on_release(self, key: Key | KeyCode | None) -> None:
+        """
+        Unset key status matching pressed key and publish control message.
+
+        Parameters
+        ----------
+        key : Key | KeyCode | None
+            The key released
+        """
         if isinstance(key, KeyCode):
             if key.char is None:
                 return
@@ -112,6 +128,7 @@ class KeyboardListenerNode(Node):
         self.pub_rov_control()
 
     def pub_rov_control(self) -> None:
+        """Publish a PixhawkInstruction based on the current keys pressed."""
         instruction = PixhawkInstruction(
             pitch=float(self.status[PITCH_UP] - self.status[PITCH_DOWN]),
             roll=float(self.status[ROLL_LEFT] - self.status[ROLL_RIGHT]),
@@ -125,6 +142,7 @@ class KeyboardListenerNode(Node):
         self.rc_pub.publish(instruction)
 
     def spin(self) -> None:
+        """Spin this ROS node."""
         with Listener(on_press=self.on_press, on_release=self.on_release) as listener:
             while rclpy.utilities.ok() and listener.running:
                 rclpy.spin_once(self, timeout_sec=0.1)

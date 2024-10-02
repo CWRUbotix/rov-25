@@ -18,6 +18,7 @@ class FloodDetector(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self) -> None:
+        """Read from leak sensors and publish status."""
         # If any of the sensors detect water, send true to /tether/flooding
         flood_reading = lgpio.gpio_read(self.gpio_chip, DETECT_PIN)
 

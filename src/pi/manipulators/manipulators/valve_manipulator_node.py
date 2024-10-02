@@ -19,8 +19,18 @@ class ValveManipulator(Node):
         self.gpio_handle = lgpio.gpiochip_open(0)
         self.curr_active = False
 
-    def servo(self, width: int, freq: int = 50) -> None:
-        lgpio.tx_servo(self.gpio_handle, SERVO_PIN, width, freq)
+    def servo(self, pulse_width: int, freq: int = 50) -> None:
+        """
+        Set servo to provided PW & frequency.
+
+        Parameters
+        ----------
+        pulse_width : int
+            Pulse width to send to the servo
+        freq : int, optional
+            Frequency to send to the servo, by default 50
+        """
+        lgpio.tx_servo(self.gpio_handle, SERVO_PIN, pulse_width, freq)
 
     def manip_callback(self, message: ValveManip) -> None:
         if message.active:
