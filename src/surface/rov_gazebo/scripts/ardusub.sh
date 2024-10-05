@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Add /opt/ros to .profile because of venc-ardupilot
+ROS_LINE="source /opt/ros/jazzy/setup.bash"
+if ! grep -qF "$ROS_LINE" ~/.profile ;
+    then echo "$ROS_LINE" >> ~/.profile ;
+. ~/.profile
+
+
 git clone --recurse-submodules --depth 1  https://github.com/ArduPilot/ardupilot.git ~/ardupilot
 cd ~/ardupilot
 ./Tools/environment_install/install-prereqs-ubuntu.sh -y
