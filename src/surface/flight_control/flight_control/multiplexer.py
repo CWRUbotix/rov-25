@@ -34,6 +34,19 @@ ROLL_CHANNEL = 1  # Roll
 
 
 def joystick_map(raw: float) -> float:
+    """
+    Feed raw joystick input through polynomial to create deadzone.
+
+    Parameters
+    ----------
+    raw : float
+        The raw joystick state from the controller
+
+    Returns
+    -------
+    float
+        Result of raising `raw` to `JOYSTICK_EXPONENT` while preserving sign.
+    """
     mapped = abs(raw) ** JOYSTICK_EXPONENT
     if raw < 0:
         mapped *= -1
@@ -63,7 +76,17 @@ class MultiplexerNode(Node):
 
     @staticmethod
     def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
-        """Apply a function to each dimension of this PixhawkInstruction."""
+        """
+        Apply the provided function to each dimension of the provided PixhawkInstruction.
+
+        Parameters
+        ----------
+        msg : PixhawkInstruction
+            The PixhawkInstruction to modify with `function_to_apply`
+        function_to_apply : Callable[[float], float]
+            The function to modify each dimension of `msg`. Takes a float field from
+                msg and returns its new value.
+        """
         msg.forward = function_to_apply(msg.forward)
         msg.vertical = function_to_apply(msg.vertical)
         msg.lateral = function_to_apply(msg.lateral)
@@ -73,7 +96,20 @@ class MultiplexerNode(Node):
 
     @staticmethod
     def to_override_rc_in(msg: PixhawkInstruction) -> OverrideRCIn:
-        """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
+        """
+        Convert the provided PixhawkInstruction to an OverrideRCIn.
+
+        Parameters
+        ----------
+        msg : PixhawkInstruction
+            The PixhawkInstruction to convert
+
+        Returns
+        -------
+        OverrideRCIn
+            The resulting OverrideRCIn with a channels array based on the
+                PixhawkInstruction's named fields
+        """
         rc_msg = OverrideRCIn()
 
         # Maps to PWM
@@ -89,13 +125,39 @@ class MultiplexerNode(Node):
         return rc_msg
 
     def state_control(
-        self, req: AutonomousFlight.Request, res: AutonomousFlight.Response
+        self, request: AutonomousFlight.Request, response: AutonomousFlight.Response
     ) -> AutonomousFlight.Response:
-        self.state = req.state
-        res.current_state = req.state
-        return res
+        """
+        Update this MultiplexerNode's autonomous flight state and confirm the new state.
+            Autonomous flight state determines what authors (manual, auto, keyboard)
+            this MultiplexerNode will accept PixhawkInstructions from.
+
+        Parameters
+        ----------
+        request : AutonomousFlight.Request
+            AutonomousFlight service request with new state to use
+        response : AutonomousFlight.Response
+            Empty AutonomousFlight service response to be filled with new multiplexer state
+
+        Returns
+        -------
+        AutonomousFlight.Response
+            The service response with the updated state of this MultiplexerNode
+        """
+        self.state = request.state
+        response.current_state = request.state
+        return response
 
     def control_callback(self, msg: PixhawkInstruction) -> None:
+        """
+        Receive a PixhawkInstruction, convert it to an OverrideRCIn,
+            and publish the OverrideRCIn with author based on `self.state`.
+
+        Parameters
+        ----------
+        msg : PixhawkInstruction
+            The PixhawkInstruction to convert & publish as OverrideRCIn
+        """
         if (
             msg.author == PixhawkInstruction.MANUAL_CONTROL
             and self.state == AutonomousFlight.Request.STOP

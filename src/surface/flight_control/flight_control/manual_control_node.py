@@ -102,12 +102,28 @@ class ManualControlNode(Node):
         self.valve_manip_state = False
 
     def controller_callback(self, msg: Joy) -> None:
+        """
+        Forward input from controller to pixhawk/manip handlers.
+
+        Parameters
+        ----------
+        msg : Joy
+            ROS Joy message describing controller
+        """
         self.joystick_to_pixhawk(msg)
         self.valve_manip_callback(msg)
         self.manip_callback(msg)
         self.misc_controls_callback(msg)
 
     def joystick_to_pixhawk(self, msg: Joy) -> None:
+        """
+        Publish PixhawkInstruction based on controller joystick movement.
+
+        Parameters
+        ----------
+        msg : Joy
+            ROS Joy message describing controller inputs
+        """
         axes: MutableSequence[float] = msg.axes
         buttons: MutableSequence[int] = msg.buttons
 
@@ -124,6 +140,14 @@ class ManualControlNode(Node):
         self.rc_pub.publish(instruction)
 
     def manip_callback(self, msg: Joy) -> None:
+        """
+        Publish manip control messages based on controller button presses.
+
+        Parameters
+        ----------
+        msg : Joy
+            ROS Joy message describing controller inputs
+        """
         buttons: MutableSequence[int] = msg.buttons
 
         for button_id, manip_button in self.manip_buttons.items():
@@ -138,6 +162,14 @@ class ManualControlNode(Node):
             manip_button.last_button_state = just_pressed
 
     def valve_manip_callback(self, msg: Joy) -> None:
+        """
+        Publish ValveManip control messages based on controller button presses.
+
+        Parameters
+        ----------
+        msg : Joy
+            ROS Joy message describing controller inputs
+        """
         tri_pressed = msg.buttons[TRI_BUTTON] == PRESSED
         square_pressed = msg.buttons[SQUARE_BUTTON] == PRESSED
         if tri_pressed and not self.valve_manip_state:
@@ -151,7 +183,14 @@ class ManualControlNode(Node):
             self.valve_manip_state = False
 
     def toggle_cameras(self, msg: Joy) -> None:
-        """Cycles through connected cameras on pilot GUI using menu and pairing buttons."""
+        """
+        Cycle through connected cameras on pilot GUI using menu and pairing buttons.
+
+        Parameters
+        ----------
+        msg : Joy
+            ROS Joy message describing controller inputs
+        """
         buttons: MutableSequence[int] = msg.buttons
 
         if buttons[MENU] == PRESSED:
@@ -166,7 +205,14 @@ class ManualControlNode(Node):
             self.camera_toggle_publisher.publish(CameraControllerSwitch(toggle_right=False))
 
     def set_arming(self, msg: Joy) -> None:
-        """Set the arming state using the menu and pairing buttons."""
+        """
+        Set arming state using the menu and pairing buttons.
+
+        Parameters
+        ----------
+        msg : Joy
+            ROS Joy message describing controller inputs
+        """
         buttons: MutableSequence[int] = msg.buttons
 
         if buttons[MENU] == PRESSED:
