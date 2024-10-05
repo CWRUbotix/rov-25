@@ -15,6 +15,8 @@ class Arm(QWidget):
     BUTTON_WIDTH = 120
     BUTTON_HEIGHT = 60
     BUTTON_STYLESHEET = 'QPushButton { font-size: 20px; }'
+    ARM_STYLESHEET = 'QPushButton { font-size: 20px; background-color: green; }'
+    DISARM_STYLESHEET = 'QPushButton { font-size: 20px; background-color: red; }'
 
     command_response_signal = pyqtSignal(CommandBool.Response)
     vehicle_state_signal = pyqtSignal(VehicleState)
@@ -81,9 +83,15 @@ class Arm(QWidget):
             if msg.armed:
                 self.arm_button.set_on()
                 self.disarm_button.remove_state()
+                self.arm_button.setStyleSheet(self.ARM_STYLESHEET)
+                self.disarm_button.setStyleSheet(self.BUTTON_STYLESHEET)
             else:
                 self.arm_button.remove_state()
                 self.disarm_button.set_off()
+                self.arm_button.setStyleSheet(self.BUTTON_STYLESHEET)
+                self.disarm_button.setStyleSheet(self.DISARM_STYLESHEET)
         else:
             self.arm_button.set_inactive()
             self.disarm_button.set_inactive()
+            self.arm_button.setStyleSheet(self.BUTTON_STYLESHEET)
+            self.disarm_button.setStyleSheet(self.BUTTON_STYLESHEET)
