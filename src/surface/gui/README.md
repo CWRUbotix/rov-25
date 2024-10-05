@@ -70,16 +70,6 @@ Reads ROS logging information and displays it on the gui.
 
     The standard /rosout for communication information to the user.
 
-### Seagrass
-
-Has a surface seagrass grid and pool seagrass grid. In between is the video feed from the bottom of the rov.
-
-#### Subscribed Topics
-
-* **`/bottom_cam/image_raw`** ([sensor_msgs/msg/Image])
-
-    The video feed from the bottom of the robot.
-
 ### Timer
 
 A simple start and stop timer that counts down from 15 minutes.
