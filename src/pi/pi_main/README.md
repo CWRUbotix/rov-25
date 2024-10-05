@@ -8,7 +8,15 @@ This package launches the rest of the Pi packages. It should be run on Pi boot u
 
 ### Flashing
 
-If something ever happens to the Pi follow [this](https://www.jeffgeerling.com/blog/2020/how-flash-raspberry-pi-os-compute-module-4-emmc-usbboot) tutorial on reflashing it.
+If something ever happens to the Pi follow [this](https://www.jeffgeerling.com/blog/2020/how-flash-raspberry-pi-os-compute-module-4-emmc-usbboot) tutorial on reflashing it. In Raspberry Pi imager, set the following configuration options:
+- username: `rov`
+- password: `rov12345`
+- enable ssh (use password authentication)
+
+Connect a monitor and keyboard to the pi (use the compute module IO board if needed). Connect to a router over ethernet (not to a CWRU network switch). Log in as `rov` with password `rov12345`. Run `ip a` and find the IPv4 address under the default ethernet adapter. Connect your laptop to the router via WiFi or Ethernet and run (on your laptop) `ssh rov@<pi's IP address>`.
+
+### Install Blue OS
+
 
 ### Setup ad-hoc network between two Ubuntu devices
 
