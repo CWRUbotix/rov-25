@@ -4,6 +4,7 @@
 ROS_LINE="source /opt/ros/jazzy/setup.bash"
 if ! grep -qF "$ROS_LINE" ~/.profile ;
     then echo "$ROS_LINE" >> ~/.profile ;
+fi
 . ~/.profile
 
 
