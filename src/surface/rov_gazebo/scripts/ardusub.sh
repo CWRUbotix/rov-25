@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Add /opt/ros to .profile because of venc-ardupilot
+# Add /opt/ros to .profile because of venv-ardupilot
 ROS_LINE="source /opt/ros/jazzy/setup.bash"
 if ! grep -qF "$ROS_LINE" ~/.profile ;
     then echo "$ROS_LINE" >> ~/.profile ;
