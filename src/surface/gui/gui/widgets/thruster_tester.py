@@ -1,7 +1,8 @@
 import time
 from threading import Thread
 
-from mavros_msgs.srv import CommandLong
+from mavros_msgs.msg import ParamValue
+from mavros_msgs.srv import CommandLong, ParamSet
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
@@ -15,14 +16,19 @@ class ThrusterTester(QWidget):
     TEST_LENGTH: float = 2.0  # time between adjacent tests of individual thrusters
     TEST_THROTTLE: float = 0.50  # 50%
     MOTOR_COUNT = 8
+    PIN_OFFSET = 33
 
     command_response_signal: pyqtSignal = pyqtSignal(CommandLong.Response)
+    param_response_signal: pyqtSignal = pyqtSignal(ParamSet.Response)
 
     def __init__(self) -> None:
         super().__init__()
 
         self.cmd_client = GUINode().create_client_multithreaded(CommandLong, 'mavros/cmd/command')
         self.command_response_signal.connect(self.command_response_handler)
+
+        self.param_client = GUINode().create_client_multithreaded(ParamSet, 'mavros/param/set')
+        self.param_response_signal.connect(self.param_response_handler)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -56,6 +62,7 @@ class ThrusterTester(QWidget):
 
         pin_assignment_button = QPushButton()
         pin_assignment_button.setText('Send Pin Assignments')
+        pin_assignment_button.clicked.connect(self.send_pin_assignments)
 
         test_button = QPushButton()
         test_button.setText('Test Thrusters')
@@ -115,8 +122,26 @@ class ThrusterTester(QWidget):
         # TODO: Send the pin assignments inputted by the user to the pixhawk as parameters
         # https://wiki.ros.org/mavros/Plugins#param
         # https://ardupilot.org/copter/docs/parameters.html#servo10-parameters
-        pass
+
+        GUINode().get_logger().info('Sending pin assignments')
+
+        for i, pin_entry in enumerate(self.pin_input_widgets):
+            # label= motor number. editbox= pin number
+            GUINode().send_request_multithreaded(
+                self.param_client,
+                ParamSet.Request(
+                    param_id=f'SERVO{pin_entry.text()}_FUNCTION',
+                    value=ParamValue(integer=i)
+                ),
+                self.param_response_signal
+            )
+        # cry when it doesn't work
+
 
     @pyqtSlot(CommandLong.Response)
     def command_response_handler(self, res: CommandLong.Response) -> None:
         GUINode().get_logger().debug(f'Test response: {res.success}, {res.result}')
+
+    @pyqtSlot(ParamSet.Response)
+    def param_response_handler(self, res: ParamSet.Response) -> None:
+        GUINode().get_logger().debug(f'Pin set result: {res.success}, {res.value}')
