@@ -14,9 +14,11 @@
   <test_depend>python3-pytest</test_depend>
 
   <depend>ros_gz</depend>
-  <depend>xacro</depend>
 
   <export>
     <build_type>ament_python</build_type>
+    <gazebo_ros gazebo_model_path="${prefix}/models"/>
+    <gazebo_ros gazebo_model_path="${prefix}/models/props"/>
+    <gazebo_ros gazebo_model_path="${prefix}/worlds"/>
   </export>
 </package>
