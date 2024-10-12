@@ -5,37 +5,35 @@
 
     <!-- BlueROV2 thruster reference: http://www.ardusub.com/introduction/features.html -->
 
-
-
     <link name="base_link">
       <inertial>
-        <pose>0.0 0.0 0.011 0 0 0</pose>
-        <mass>13.0</mass>
+        <pose>0.01997 0.0 0.12108 0 0 0</pose>
+        <mass>18.0</mass>
         <inertia>
-          <ixx>0.26</ixx>
+          <ixx>0.4622</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>0.23</iyy>
+          <iyy>0.3655</iyy>
           <iyz>0</iyz>
-          <izz>0.37</izz>
+          <izz>0.7024</izz>
         </inertia>
       </inertial>
 
       <visual name="base_link_visual">
+        <pose>0.0 0.0 0.0 0.0 0.0 -1.571</pose>
         <geometry>
           <mesh>
             <uri>model://rov24/meshes/rov24.dae</uri>
-            <scale>0.025 0.025 0.025</scale>
           </mesh>
         </geometry>
       </visual>
 
       <!-- Collision volume * fluid_density == displaced mass, used by BuoyancyPlugin -->
       <collision name="base_link_collision">
-        <pose>0.0 0.0 0.06 0 0 0</pose>
+        <pose>0.01997 0.0 0.16 0 0 0</pose>
         <geometry>
           <box>
-            <size>0.457 0.575 0.05</size>
+            <size>0.35 0.35 0.147</size>
           </box>
         </geometry>
       </collision>
@@ -52,7 +50,7 @@
     </link>
 
     <link name="front_flir_cam_link">
-      <pose>0.5 0 0 0 0 0</pose>
+      <pose>0.0838 0 0.0186 0 0 0</pose>
 
       <sensor type="camera" name="front_flir_cam">
         <camera>
@@ -88,11 +86,10 @@
     <joint name="front_flir_cam_joint" type="fixed">
       <parent>base_link</parent>
       <child>front_flir_cam_link</child>
-      <pose>0 0 0 0 0 0</pose>
     </joint>
 
     <link name="bottom_flir_cam_link">
-      <pose>0.6 0.2 0 0 1.57 0</pose>
+      <pose>0.2466 0.0 0.1639 0 1.396 0</pose>
 
       <sensor type="camera" name="front_flir_cam">
         <camera>
@@ -128,14 +125,13 @@
     <joint name="bottom_flir_cam_joint" type="fixed">
       <parent>base_link</parent>
       <child>bottom_flir_cam_link</child>
-      <pose>0 0 0 0 0 0</pose>
     </joint>
 
 
     <!-- Hydrodynamics plugin -->
     <plugin
-        filename="ignition-gazebo-hydrodynamics-system"
-        name="ignition::gazebo::systems::Hydrodynamics">
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
       <link_name>base_link</link_name>
       <water_density>1000.0</water_density>
       <!-- Added mass: -->
@@ -162,7 +158,7 @@
     </plugin>
 
     <link name="thruster1">
-      <pose>0.14 -0.092 0.0 -1.571 1.571 -0.785</pose>
+      <pose>0.1848 -0.2104 0.1651 -1.571 1.571 -0.8727</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 0</pose>
         <geometry>
@@ -185,12 +181,12 @@
     </link>
 
     <link name="thruster2">
-      <pose>0.14 0.092 0.0 -1.571 1.571 -2.356</pose>
+      <pose>0.1848 0.2104 0.1651 1.571 1.571 -2.269</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://rov24/meshes/t200_ccw_prop.dae</uri>
+            <uri>model://rov24/meshes/t200_cw_prop.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -208,7 +204,7 @@
     </link>
 
     <link name="thruster3">
-      <pose>-0.15 -0.092 0.0 -1.571 1.571 0.785</pose>
+      <pose>-0.1848 -0.2104 0.1651 -1.571 1.571 0.8727</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 0</pose>
         <geometry>
@@ -231,12 +227,12 @@
     </link>
 
     <link name="thruster4">
-      <pose>-0.15 0.092 0.0 -1.571 1.571 2.356</pose>
+      <pose>-0.1848 0.2104 0.1651 1.571 1.571 2.269</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://rov24/meshes/t200_cw_prop.dae</uri>
+            <uri>model://rov24/meshes/t200_ccw_prop.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -254,7 +250,7 @@
     </link>
 
     <link name="thruster5">
-      <pose>0.118 -0.215 0.064 0 0 0</pose>
+      <pose>0.0985 -0.2408 0.0577 0 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 1.571</pose>
         <geometry>
@@ -277,7 +273,7 @@
     </link>
 
     <link name="thruster6">
-      <pose>0.118 0.215 0.064 0 0 0</pose>
+      <pose>0.0985 0.2408 0.0577 0 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 1.571</pose>
         <geometry>
@@ -300,7 +296,7 @@
     </link>
 
     <link name="thruster7">
-      <pose>-0.118 -0.215 0.064 0 0 0</pose>
+      <pose>-0.0985 -0.2408 0.0577 0 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 1.571 0 1.571</pose>
         <geometry>
@@ -323,7 +319,7 @@
     </link>
 
     <link name="thruster8">
-      <pose>-0.118 0.215 0.064 0 0 0</pose>
+      <pose>-0.0985 0.2408 0.0577 0 0 0</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -1.571 0 1.571</pose>
         <geometry>
@@ -410,11 +406,13 @@
     </joint>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster1_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
+      <max_thrust_cmd>36.4</max_thrust_cmd>
+      <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -422,11 +420,14 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster2_joint</joint_name>
-      <thrust_coefficient>0.02</thrust_coefficient>
+      <!-- Reverse spin to balance torque -->
+      <thrust_coefficient>-0.02</thrust_coefficient>
+      <max_thrust_cmd>36.4</max_thrust_cmd>
+      <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -434,12 +435,14 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster3_joint</joint_name>
       <!-- Reverse spin to balance torque -->
       <thrust_coefficient>-0.02</thrust_coefficient>
+      <max_thrust_cmd>36.4</max_thrust_cmd>
+      <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -447,12 +450,13 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster4_joint</joint_name>
-      <!-- Reverse spin to balance torque -->
-      <thrust_coefficient>-0.02</thrust_coefficient>
+      <thrust_coefficient>0.02</thrust_coefficient>
+      <max_thrust_cmd>36.4</max_thrust_cmd>
+      <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -460,11 +464,13 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster5_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
+      <max_thrust_cmd>36.4</max_thrust_cmd>
+      <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -472,12 +478,14 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster6_joint</joint_name>
       <!-- Reverse spin to balance torque -->
       <thrust_coefficient>-0.02</thrust_coefficient>
+      <max_thrust_cmd>36.4</max_thrust_cmd>
+      <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -485,12 +493,14 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster7_joint</joint_name>
       <!-- Reverse spin to balance torque -->
       <thrust_coefficient>-0.02</thrust_coefficient>
+      <max_thrust_cmd>36.4</max_thrust_cmd>
+      <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -498,11 +508,13 @@
     </plugin>
 
     <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
       <namespace>rov24</namespace>
       <joint_name>thruster8_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
+      <max_thrust_cmd>36.4</max_thrust_cmd>
+      <min_thrust_cmd>-28.6</min_thrust_cmd>
       <fluid_density>1000.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -535,7 +547,7 @@
         <type>COMMAND</type>
         <cmd_topic>/model/rov24/joint/thruster1_joint/cmd_thrust</cmd_topic>
         <offset>-0.5</offset>
-        <multiplier>100</multiplier>
+        <multiplier>10</multiplier>
       </control>
       <control channel="1">
         <jointName>thruster2_joint</jointName>
@@ -544,7 +556,7 @@
         <type>COMMAND</type>
         <cmd_topic>/model/rov24/joint/thruster2_joint/cmd_thrust</cmd_topic>
         <offset>-0.5</offset>
-        <multiplier>100</multiplier>
+        <multiplier>10</multiplier>
       </control>
       <control channel="2">
         <jointName>thruster3_joint</jointName>
@@ -553,7 +565,7 @@
         <type>COMMAND</type>
         <cmd_topic>/model/rov24/joint/thruster3_joint/cmd_thrust</cmd_topic>
         <offset>-0.5</offset>
-        <multiplier>100</multiplier>
+        <multiplier>10</multiplier>
       </control>
       <control channel="3">
         <jointName>thruster4_joint</jointName>
@@ -562,7 +574,7 @@
         <type>COMMAND</type>
         <cmd_topic>/model/rov24/joint/thruster4_joint/cmd_thrust</cmd_topic>
         <offset>-0.5</offset>
-        <multiplier>100</multiplier>
+        <multiplier>10</multiplier>
       </control>
       <control channel="4">
         <jointName>thruster5_joint</jointName>
@@ -571,7 +583,7 @@
         <type>COMMAND</type>
         <cmd_topic>/model/rov24/joint/thruster5_joint/cmd_thrust</cmd_topic>
         <offset>-0.5</offset>
-        <multiplier>100</multiplier>
+        <multiplier>10</multiplier>
       </control>
       <control channel="5">
         <jointName>thruster6_joint</jointName>
@@ -580,7 +592,7 @@
         <type>COMMAND</type>
         <cmd_topic>/model/rov24/joint/thruster6_joint/cmd_thrust</cmd_topic>
         <offset>-0.5</offset>
-        <multiplier>100</multiplier>
+        <multiplier>10</multiplier>
       </control>
       <control channel="6">
         <jointName>thruster7_joint</jointName>
@@ -589,7 +601,7 @@
         <type>COMMAND</type>
         <cmd_topic>/model/rov24/joint/thruster7_joint/cmd_thrust</cmd_topic>
         <offset>-0.5</offset>
-        <multiplier>100</multiplier>
+        <multiplier>10</multiplier>
       </control>
       <control channel="7">
         <jointName>thruster8_joint</jointName>
@@ -598,7 +610,7 @@
         <type>COMMAND</type>
         <cmd_topic>/model/rov24/joint/thruster8_joint/cmd_thrust</cmd_topic>
         <offset>-0.5</offset>
-        <multiplier>100</multiplier>
+        <multiplier>10</multiplier>
       </control>
 
     </plugin>

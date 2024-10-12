@@ -13,7 +13,7 @@ Run the `[SETUP] Simulation` Task.
 Run the simulation and GUI with
 
 ```bash
-ros2 launch rov_gazebo sim_launch.py
+QT_QPA_PLATFORM=xcb ros2 launch rov_gazebo sim_launch.py
 ```
 
 ## Config files
