@@ -116,7 +116,7 @@ ros2 run pi_main install
 ```
 
 ```bash
-sudo systemctl daemon-reload && sudo systemctl start cwrubotix_pi
+sudo systemctl daemon-reload && sudo systemctl start pi_main
 ```
 
 These commands should be run in the `src` folder after a colcon build in the workspace folder.

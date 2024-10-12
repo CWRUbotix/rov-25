@@ -14,17 +14,17 @@ sudo apt-get install curl -y
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
-# Install dev tools like rosdep among others. This is ros-distro agnostic.
-# More info can be found here
-# https://discourse.ros.org/t/ros-developer-tools-now-in-binary-form/29802
-sudo apt-get install ros-dev-tools -y
-
 # Install pip
 sudo apt-get install python3-pip -y
 
 # Update any installed packages
 sudo apt-get update
 sudo apt-get upgrade -y
+
+# Install dev tools like rosdep among others. This is ros-distro agnostic.
+# More info can be found here
+# https://discourse.ros.org/t/ros-developer-tools-now-in-binary-form/29802
+sudo apt-get install ros-dev-tools -y
 
 # Install ROS2
 sudo apt-get install ros-jazzy-desktop -y
