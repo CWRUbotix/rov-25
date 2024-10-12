@@ -21,6 +21,14 @@ class Circle(QLabel):
             self.set_color(color)
 
     def set_color(self, color: QColor | Qt.GlobalColor) -> None:
+        """
+        Set the background color of this circle.
+
+        Parameters
+        ----------
+        color : QColor | Qt.GlobalColor
+            The new color to set
+        """
         if isinstance(color, Qt.GlobalColor):
             color = QColor(color)
         style = f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});'

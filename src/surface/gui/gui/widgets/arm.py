@@ -61,22 +61,40 @@ class Arm(QWidget):
         self.vehicle_state_signal.connect(self.vehicle_state_callback)
 
     def arm_clicked(self) -> None:
+        """Send arming request to Pi."""
         GUINode().send_request_multithreaded(
             self.arm_client, self.ARM_REQUEST, self.command_response_signal
         )
 
     def disarm_clicked(self) -> None:
+        """Send disarm request to Pi."""
         GUINode().send_request_multithreaded(
             self.arm_client, self.DISARM_REQUEST, self.command_response_signal
         )
 
     @pyqtSlot(CommandBool.Response)
     def arm_status(self, res: CommandBool.Response) -> None:
+        """
+        Receive confirmation response from Pi after arming/disarming.
+
+        Parameters
+        ----------
+        res : CommandBool.Response
+            Service response possibly confirming arm/disarm
+        """
         if not res:
             GUINode().get_logger().warning('Failed to arm or disarm.')
 
     @pyqtSlot(VehicleState)
     def vehicle_state_callback(self, msg: VehicleState) -> None:
+        """
+        Update arm/disarm button style based on vehicle state message from Pi.
+
+        Parameters
+        ----------
+        msg : VehicleState
+            Vehicle state message describing arm/disarm state
+        """
         if msg.pixhawk_connected:
             if msg.armed:
                 self.arm_button.set_on()

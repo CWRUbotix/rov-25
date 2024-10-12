@@ -85,6 +85,14 @@ class FloatComm(QWidget):
         self.counter = 0
 
     def make_button_layout(self) -> QHBoxLayout:
+        """
+        QHBoxLayout for with float control buttons.
+
+        Returns
+        -------
+        QHBoxLayout
+            A QHBoxLayout containing connected buttons to control the float
+        """
         button_layout = QHBoxLayout()
 
         command_pub = GUINode().create_publisher(FloatCommand, 'float_command', qos_profile_default)
@@ -122,12 +130,12 @@ class FloatComm(QWidget):
     @pyqtSlot(FloatData)
     def handle_data(self, msg: FloatData) -> None:
         """
-        Set the widget label text to the message in the FloatCommand.
+        Set metadata label text and plot the provided float data.
 
         Parameters
         ----------
         msg : FloatData
-            the data from the float
+            Mega packet of depth data from float
         """
         self.team_number.setText(f'Team #: {msg.team_number}')
         self.profile_number.setText(f'Profile #: {msg.profile_number}')
@@ -163,18 +171,26 @@ class FloatComm(QWidget):
     @pyqtSlot(FloatSerial)
     def handle_serial(self, msg: FloatSerial) -> None:
         """
-        Set the widget label text to the message in the FloatCommand.
+        Add serial message to console log widget.
 
         Parameters
         ----------
         msg : FloatSerial
-            the serial from the float
+            The serial data from the float to log
         """
         self.console.moveCursor(QTextCursor.MoveOperation.End)
         self.console.insertPlainText(f'{msg.serial}\n')
 
     @pyqtSlot(FloatSingle)
     def handle_single(self, msg: FloatSingle) -> None:
+        """
+        Set metadata label text based on single pressure reading packet.
+
+        Parameters
+        ----------
+        msg : FloatSingle
+            Packet containing a single pressure reading
+        """
         self.counter += 1
 
         self.team_number.setText(f'Team #: {msg.team_number}')
