@@ -17,8 +17,6 @@
 
   <export>
     <build_type>ament_python</build_type>
-    <gazebo_ros gazebo_model_path="${prefix}/models"/>
-    <gazebo_ros gazebo_model_path="${prefix}/models/props"/>
-    <gazebo_ros gazebo_model_path="${prefix}/worlds"/>
+    <!-- Todo use gazebo_ros tag one day -->
   </export>
 </package>
