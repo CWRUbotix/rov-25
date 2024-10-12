@@ -9,7 +9,7 @@ then
     exit 1
 fi
 
-ROS_LINE="export GZ_SIM_RESOURCE_ROV_PATH=$ROV_PATH/src/surface/rov_gazebo/models:$ROV_PATH/src/surface/rov_gazebo/models/props:$ROV_PATH/src/surface/rov_gazebo/worlds:$GZ_SIM_RESOURCE_PATH"
+ROS_LINE="export GZ_SIM_RESOURCE_PATH=$ROV_PATH/src/surface/rov_gazebo/models:$ROV_PATH/src/surface/rov_gazebo/models/props:$ROV_PATH/src/surface/rov_gazebo/worlds:$GZ_SIM_RESOURCE_PATH"
 if ! grep -qF "$ROS_LINE" ~/.bashrc ;
     then echo "$ROS_LINE" >> ~/.bashrc ;
 fi
