@@ -5,9 +5,11 @@
 // REQUIRED LIBRARIES:
 // RadioHead v1.122.1 by Mike McCauley
 // Blue Robotics MS5837 Library v1.1.1 by BlueRobotics
+// PicoEncoder v1.0.9 by Paulo Marques
 
 #include <RH_RF95.h>
 #include <SPI.h>
+//#include "PicoEncoder.h"
 
 #include "MS5837.h"
 #include "rov_common.hpp"
@@ -20,6 +22,10 @@ const uint8_t SUCK_PIN = 10;  // Set high for suck (CCW when facing down)
 // Limit switch pins
 const uint8_t LIMIT_FULL = 12;   // Low when syringe is full
 const uint8_t LIMIT_EMPTY = 11;  // Low when syringe is empty
+
+// Encoder initialization
+//PicoEncoder encoder;
+const uint8_t ENCODER_PIN = 4;
 
 const uint8_t TEAM_NUM = 25;
 const uint32_t PACKET_SEND_INTERVAL = 1000;
@@ -48,7 +54,7 @@ const size_t SCHEDULE_LENGTH = 12;
 
 enum class StageType { WaitDeploying, WaitTransmitting, WaitProfiling, Suck, Pump };
 enum class OverrideState { NoOverride, Stop, Suck, Pump };
-enum class MotorState { Stop, Suck, Pump };
+enum class MotorState { Stop, Suck, Pump, Error };
 
 struct Stage {
   StageType type;
@@ -136,6 +142,7 @@ void setup() {
 
   initRadio();
   initPressureSensor();
+  encoder.begin(ENCODER_PIN);
 }
 
 void loop() {
@@ -189,7 +196,7 @@ void loop() {
       previousPressureReadTime, intComponent, fracComponent);
     Serial.println(judgePacketBuffer);
 
-    rf95.send(judgePacketBuffer, strlen(judgePacketBuffer));
+    rf95.send((uint8_t *)judgePacketBuffer, strlen(judgePacketBuffer));
     rf95.waitPacketSent();
   }
 
@@ -395,6 +402,7 @@ MotorState getMotorState() {
     case StageType::WaitProfiling: return MotorState::Stop;
     case StageType::Suck: return MotorState::Suck;
     case StageType::Pump: return MotorState::Pump;
+    default: return MotorState::Error;
   }
 }
 
