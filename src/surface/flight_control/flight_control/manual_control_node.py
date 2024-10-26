@@ -93,8 +93,10 @@ class ManualControlNode(Node):
             self.arm_client = self.create_client(CommandBool, 'mavros/cmd/arming')
 
         self.manip_buttons: dict[int, ManipButton] = {
-            X_BUTTON: ManipButton('left'),
-            O_BUTTON: ManipButton('right'),
+            # X_BUTTON: ManipButton('left'),
+            # O_BUTTON: ManipButton('right'),
+            X_BUTTON: ManipButton('right'),
+            O_BUTTON: ManipButton('left'),
         }
 
         self.seen_left_cam = False
