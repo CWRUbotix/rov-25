@@ -9,7 +9,7 @@
 
 #include <RH_RF95.h>
 #include <SPI.h>
-//#include "PicoEncoder.h"
+#include "PicoEncoder.h"
 
 #include "MS5837.h"
 #include "rov_common.hpp"
@@ -24,7 +24,7 @@ const uint8_t LIMIT_FULL = 12;   // Low when syringe is full
 const uint8_t LIMIT_EMPTY = 11;  // Low when syringe is empty
 
 // Encoder initialization
-//PicoEncoder encoder;
+PicoEncoder encoder;
 const uint8_t ENCODER_PIN = 4;
 
 const uint8_t TEAM_NUM = 25;
@@ -109,7 +109,7 @@ bool isStartingStage = true;
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  // while (!Serial){}
+  while (!Serial){}
 
   Serial.println("Float Transceiver");
   Serial.println();
