@@ -15,7 +15,7 @@ class Circle(QLabel):
         super().__init__(parent)
         self.setFixedSize(QSize(2 * radius, 2 * radius))
         stylesheet = self.styleSheet()
-        self.setStyleSheet(f'{stylesheet}border-radius: {radius}px;')
+        self.setStyleSheet(f'{stylesheet} QLabel {{border-radius: {radius}px;}}')
 
         if color:
             self.set_color(color)
@@ -23,11 +23,12 @@ class Circle(QLabel):
     def set_color(self, color: QColor | Qt.GlobalColor) -> None:
         if isinstance(color, Qt.GlobalColor):
             color = QColor(color)
-        style = f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});'
+        style = f'QLabel {{background-color: rgb({color.red()}, {color.green()}, {color.blue()});}}'
         self.setStyleSheet(f'{self.styleSheet()}{style}')
 
 
 class CircleIndicator(Circle, IndicatorMixin):
     def __init__(self, parent: QWidget | None = None, radius: int = 50) -> None:
         super().__init__(parent, radius)
+        self.setInitialStyleSheet()
         self.set_inactive()

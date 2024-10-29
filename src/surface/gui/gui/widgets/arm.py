@@ -14,9 +14,7 @@ class Arm(QWidget):
     DISARM_REQUEST = CommandBool.Request(value=False)
     BUTTON_WIDTH = 120
     BUTTON_HEIGHT = 60
-    BUTTON_STYLESHEET = 'QPushButton { font-size: 20px; }'
-    ARM_STYLESHEET = 'QPushButton { font-size: 20px; background-color: green; }'
-    DISARM_STYLESHEET = 'QPushButton { font-size: 20px; background-color: red; }'
+    BUTTON_STYLESHEET = 'QPushButton { font-size: 20px;}'
 
     command_response_signal = pyqtSignal(CommandBool.Response)
     vehicle_state_signal = pyqtSignal(VehicleState)
@@ -39,10 +37,10 @@ class Arm(QWidget):
         self.arm_button.setMinimumHeight(self.BUTTON_HEIGHT)
         self.disarm_button.setMinimumHeight(self.BUTTON_HEIGHT)
 
-        self.arm_button.setStyleSheet(self.BUTTON_STYLESHEET)
-        self.disarm_button.setStyleSheet(self.BUTTON_STYLESHEET)
         self.arm_button.set_inactive()
         self.disarm_button.set_inactive()
+        self.arm_button.setStyleSheet(f'{self.arm_button.styleSheet()}{self.BUTTON_STYLESHEET}')
+        self.disarm_button.setStyleSheet(f'{self.disarm_button.styleSheet()}{self.BUTTON_STYLESHEET}')
 
         self.arm_button.clicked.connect(self.arm_clicked)
         self.disarm_button.clicked.connect(self.disarm_clicked)
@@ -83,15 +81,15 @@ class Arm(QWidget):
             if msg.armed:
                 self.arm_button.set_on()
                 self.disarm_button.remove_state()
-                self.arm_button.setStyleSheet(self.ARM_STYLESHEET)
-                self.disarm_button.setStyleSheet(self.BUTTON_STYLESHEET)
+                self.arm_button.setStyleSheet(f'{self.arm_button.styleSheet()}{self.BUTTON_STYLESHEET}')
+                self.disarm_button.setStyleSheet(f'{self.disarm_button.styleSheet()}{self.BUTTON_STYLESHEET}')
             else:
                 self.arm_button.remove_state()
                 self.disarm_button.set_off()
-                self.arm_button.setStyleSheet(self.BUTTON_STYLESHEET)
-                self.disarm_button.setStyleSheet(self.DISARM_STYLESHEET)
+                self.arm_button.setStyleSheet(f'{self.arm_button.styleSheet()}{self.BUTTON_STYLESHEET}')
+                self.disarm_button.setStyleSheet(f'{self.disarm_button.styleSheet()}{self.BUTTON_STYLESHEET}')
         else:
             self.arm_button.set_inactive()
             self.disarm_button.set_inactive()
-            self.arm_button.setStyleSheet(self.BUTTON_STYLESHEET)
-            self.disarm_button.setStyleSheet(self.BUTTON_STYLESHEET)
+            self.arm_button.setStyleSheet(f'{self.arm_button.styleSheet()}{self.BUTTON_STYLESHEET}')
+            self.disarm_button.setStyleSheet(f'{self.disarm_button.styleSheet()}{self.BUTTON_STYLESHEET}')
