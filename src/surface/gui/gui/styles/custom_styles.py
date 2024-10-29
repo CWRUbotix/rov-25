@@ -5,15 +5,16 @@ class IndicatorMixin(QWidget):
     # Stylesheet for when a component is running, enabled, or armed
     _ON_STYLESHEET = 'QWidget { background-color: limegreen; }'
     
-    # Stylesheet for when a component is disabled, not running, or disarmed, but could be enabled through this widget
+    # Stylesheet for when a component is disabled, not running, or disarmed, but could be enabled 
+    # through this widget
     _OFF_STYLESHEET = 'QWidget { background-color: red; }'
 
-    # Stylesheet for when a component is disabled, not expected to have any effect or perform its function because of
-    # some external factor, either another widget or something external to the gui
-    # For example, a the arm button when the pi is not connected
+    # Stylesheet for when a component is disabled, not expected to have any effect or perform its 
+    # function because of some external factor, either another widget or something external 
+    # to the gui. For example, a the arm button when the pi is not connected
     _INACTIVE_STYLESHEET = 'QWidget { background-color: silver; }'
 
-    def setInitialStyleSheet(self) -> None:
+    def set_initial_styleSheet(self) -> None:
         self._ORIGINAL_STYLESHEET = self.styleSheet()
 
     def set_on(self) -> None:
@@ -31,6 +32,6 @@ class IndicatorMixin(QWidget):
 
 
 class ButtonIndicator(QPushButton, IndicatorMixin):
-    def __init__(self, *args) -> None:
-        super().__init__(*args)
-        self.setInitialStyleSheet()
+    def __init__(self, text: str = "") -> None:
+        super().__init__(text)
+        self.set_initial_styleSheet()
