@@ -30,7 +30,6 @@ class IndicatorMixin(QWidget):
         self.setStyleSheet(self._ORIGINAL_STYLESHEET)
 
 
-
 class ButtonIndicator(QPushButton, IndicatorMixin):
     def __init__(self, text: str = "") -> None:
         super().__init__(text)
