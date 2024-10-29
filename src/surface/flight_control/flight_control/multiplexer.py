@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 import rclpy
-from mavros_msgs.msg import OverrideRCIn
+from mavros_msgs.msg import OverrideRCIn, ManualControl
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
@@ -39,7 +39,6 @@ def joystick_map(raw: float) -> float:
         mapped *= -1
     return mapped
 
-
 class MultiplexerNode(Node):
     def __init__(self) -> None:
         super().__init__('multiplexer', parameter_overrides=[])
@@ -58,7 +57,7 @@ class MultiplexerNode(Node):
         )
 
         self.rc_pub = self.create_publisher(
-            OverrideRCIn, 'mavros/rc/override', QoSPresetProfiles.DEFAULT.value
+            ManualControl, 'mavros/rc/override', QoSPresetProfiles.DEFAULT.value
         )
 
     @staticmethod
@@ -87,6 +86,24 @@ class MultiplexerNode(Node):
         rc_msg.channels[ROLL_CHANNEL] = msg.roll
 
         return rc_msg
+    
+    @staticmethod
+    def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
+        """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
+        rc_msg = ManualControl()
+
+        # Maps to PWM
+        MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
+
+        rc_msg.x = msg.forward
+        rc_msg.z = msg.vertical
+        rc_msg.y = msg.lateral
+        rc_msg.r = msg.yaw
+        rc_msg.enable_extensions = 0b11000000
+        rc_msg.s = msg.pitch
+        rc_msg.t = msg.roll
+
+        return rc_msg
 
     def state_control(
         self, req: AutonomousFlight.Request, res: AutonomousFlight.Response
@@ -113,8 +130,7 @@ class MultiplexerNode(Node):
         else:
             return
 
-        self.rc_pub.publish(msg=self.to_override_rc_in(msg))
-
+        self.rc_pub.publish(msg=self.to_manual_control(msg))
 
 def main() -> None:
     rclpy.init()
