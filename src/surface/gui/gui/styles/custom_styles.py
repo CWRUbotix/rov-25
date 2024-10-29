@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QPushButton, QWidget
 class IndicatorMixin(QWidget):
     # Stylesheet for when a component is running, enabled, or armed
     _ON_STYLESHEET = 'QWidget { background-color: limegreen; }'
-    
+
     # Stylesheet for when a component is disabled, not running, or disarmed, but could be enabled through this widget
     _OFF_STYLESHEET = 'QWidget { background-color: red; }'
 
@@ -27,7 +27,6 @@ class IndicatorMixin(QWidget):
 
     def remove_state(self) -> None:
         self.setStyleSheet(self._ORIGINAL_STYLESHEET)
-
 
 
 class ButtonIndicator(QPushButton, IndicatorMixin):
