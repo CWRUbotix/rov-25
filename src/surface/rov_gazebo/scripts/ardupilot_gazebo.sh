@@ -9,7 +9,7 @@ sudo apt-get install gz-harmonic -y
 sudo apt install libopencv-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl -y
 wget -q -O - https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh | sudo bash
 
-git clone --depth 1 https://github.com/ArduPilot/ardupilot_gazebo  ~/ardupilot_gazebo
+git clone --depth 1 https://github.com/ArduPilot/ardupilot_gazebo ~/ardupilot_gazebo
 cd ~/ardupilot_gazebo
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
