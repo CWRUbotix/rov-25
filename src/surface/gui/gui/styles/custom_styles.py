@@ -14,7 +14,7 @@ class IndicatorMixin(QWidget):
     # to the gui. For example, a the arm button when the pi is not connected
     _INACTIVE_STYLESHEET = 'QWidget { background-color: silver; }'
 
-    def set_initial_styleSheet(self) -> None:
+    def set_initial_stylesheet(self) -> None:
         self._ORIGINAL_STYLESHEET = self.styleSheet()
 
     def set_on(self) -> None:
@@ -33,4 +33,4 @@ class IndicatorMixin(QWidget):
 class ButtonIndicator(QPushButton, IndicatorMixin):
     def __init__(self, text: str = "") -> None:
         super().__init__(text)
-        self.set_initial_styleSheet()
+        self.set_initial_stylesheet()
