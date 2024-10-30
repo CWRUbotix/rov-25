@@ -112,9 +112,9 @@ class VideoWidget(QWidget):
 
     def convert_cv_qt(self, cv_img: MatLike, width: int = 0, height: int = 0) -> QImage:
         """Convert from an opencv image to QPixmap."""
-        if self.camera_description.type == CameraType.ETHERNET:
-            # Switches ethernet's color profile from BayerBGR to BGR
-            cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BAYER_BGGR2BGR)
+        # if self.camera_description.type == CameraType.ETHERNET:
+        #     # Switches ethernet's color profile from BayerBGR to BGR
+        #     cv_img = cv2.cvtColor(cv_img, cv2.COLOR_RGB2BGR)
 
         # Color image
         if len(cv_img.shape) == COLOR:
