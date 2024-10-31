@@ -47,46 +47,8 @@ const uint32_t RELEASE_MAX = 8 * ONE_MINUTE;
 const uint32_t SUCK_MAX = PROFILE_SEGMENT;
 const uint32_t DESCEND_TIME = PROFILE_SEGMENT;
 const uint32_t PUMP_MAX = PROFILE_SEGMENT;
-const uint32_t ASCEND_TIME = 0;  // Disable ascend times now that we're properly ballasted
+const uint32_t ASCEND_TIME = 0;
 const uint32_t TX_MAX_TIME = 2 * ONE_MINUTE;
-
-const size_t SCHEDULE_LENGTH = 12;
-
-enum class StageType { WaitDeploying, WaitTransmitting, WaitProfiling, Suck, Pump };
-enum class OverrideState { NoOverride, Stop, Suck, Pump };
-enum class MotorState { Stop, Suck, Pump, Error };
-
-struct Stage {
-  StageType type;
-  uint32_t timeoutMillis;
-};
-
-OverrideState overrideState = OverrideState::NoOverride;
-uint8_t currentStage = 0;
-
-const Stage SCHEDULE[] = {
-  // Pump immediately in case we just rebooted at the bottom of the pool
-  {StageType::Pump,             PUMP_MAX    },
-
-  // Wait for max <time> or until surface signal
-  {StageType::WaitDeploying,    RELEASE_MAX },
-
-  // Profile 1
-  {StageType::Suck,             SUCK_MAX    },
-  {StageType::WaitProfiling,    DESCEND_TIME},
-  {StageType::Pump,             PUMP_MAX    },
-  {StageType::WaitProfiling,    ASCEND_TIME },
-
-  {StageType::WaitTransmitting, TX_MAX_TIME },
-
-  // Profile 2
-  {StageType::Suck,             SUCK_MAX    },
-  {StageType::WaitProfiling,    DESCEND_TIME},
-  {StageType::Pump,             PUMP_MAX    },
-  {StageType::WaitProfiling,    ASCEND_TIME },
-
-  {StageType::WaitTransmitting, TX_MAX_TIME },
-};
 
 uint32_t stageStartTime;
 uint32_t previousPressureReadTime;
@@ -101,10 +63,17 @@ MS5837 pressureSensor;
 byte packets[2][PKT_LEN];
 int packetIndex = PKT_HEADER_LEN;
 
+enum class StageType { Deploy, WaitDeploying, WaitTransmitting, 
+  Suck, Pump, Descending, Ascending, HoldDepth};
+enum class OverrideState { NoOverride, Stop, Suck, Pump };
+enum class MotorState { Stop, Suck, Pump, Error };
+
+StageType stage = StageType::Deploy;
+OverrideState overrideState = OverrideState::NoOverride;
+MotorState motorState = MotorState::Error;
+
 uint8_t profileNum = 0;
 uint8_t profileHalf = 0;
-
-bool isStartingStage = true;
 
 void setup() {
   Serial.begin(115200);
@@ -145,15 +114,78 @@ void setup() {
   encoder.begin(ENCODER_PIN);
 }
 
-void loop() {
-  bool submergeReceived = false;
-
-  // Disable command Rx when the motor is moving
-  // Otherwise the motor can overrun the limit switch
-  if (!isMotorMoving()) {
-    submergeReceived = receiveCommand();
+void loop(){
+  while(overrideState != OverrideState::NoOverride){
+    loopOverride();
   }
 
+  /* Each stage is structured as follows:
+  *
+  * case [stage name] (entry point)
+  *   [code for stage]
+  * while (![override or exit condition])
+  *   [check for overrides or exit conditions]
+  * if ([override])
+  *   break; (and go to override)
+  * stage = [next stage]
+  */
+  switch (stage) {
+  case StageType::Deploy:
+    // Deploy code
+    // Await override or exit condition
+    while(overrideState == OverrideState::NoOverride){}
+    if(overrideState != OverrideState::NoOverride) break;
+    stage = StageType::WaitDeploying;
+  case StageType::WaitDeploying:
+    // WaitDeploying code
+    // Await override or exit condition
+    while(overrideState == OverrideState::NoOverride){}
+    if(overrideState != OverrideState::NoOverride) break;
+    stage = StageType::Suck;
+  case StageType::Suck:
+    // Suck code
+    // Await override or exit condition
+    while(overrideState == OverrideState::NoOverride){}
+    if(overrideState != OverrideState::NoOverride) break;
+    stage = StageType::Descending;
+  case StageType::Descending:
+    // Descending code
+    // Await override or exit condition
+    while(overrideState == OverrideState::NoOverride){}
+    if(overrideState != OverrideState::NoOverride) break;
+    stage = StageType::HoldDepth;
+  case StageType::HoldDepth:
+    // HoldDepth code
+    // Await override or exit condition
+    while(overrideState == OverrideState::NoOverride){}
+    if(overrideState != OverrideState::NoOverride) break;
+    stage = StageType::Pump;
+  case StageType::Pump:
+    // Pump code
+    // Await override or exit condition
+    while(overrideState == OverrideState::NoOverride){}
+    if(overrideState != OverrideState::NoOverride) break;
+    stage = StageType::Ascending;
+  case StageType::Ascending:
+    // Ascending code
+    // Await override or exit condition
+    while(overrideState == OverrideState::NoOverride){}
+    if(overrideState != OverrideState::NoOverride) break;
+    stage = StageType::WaitTransmitting;
+  case StageType::WaitTransmitting:
+    // WaitTransmitting code
+    // Await override or exit condition
+    while(overrideState == OverrideState::NoOverride){}
+    if(overrideState != OverrideState::NoOverride) break;
+    stage = StageType::Descending;
+  break;
+  default:
+    Serial.println("Error: Undefined float stage");
+    break;
+  }
+}
+
+void loopOverride(){
   if (overrideState == OverrideState::Suck) {
     if (digitalRead(LIMIT_FULL) == HIGH) {
       suck();
@@ -162,7 +194,6 @@ void loop() {
       stop();
       overrideState = OverrideState::Stop;
     }
-    return;
   }
   else if (overrideState == OverrideState::Pump) {
     if (digitalRead(LIMIT_EMPTY) == HIGH) {
@@ -172,113 +203,36 @@ void loop() {
       stop();
       overrideState = OverrideState::Stop;
     }
-    return;
   }
   else if (overrideState == OverrideState::Stop) {
     stop();
-    return;
   }
+}
 
-  // Send tiny packet for judges while deploying
-  if (
-    stageIs(StageType::WaitDeploying) &&
-    millis() >= previousPressureReadTime + PRESSURE_READ_INTERVAL) {
-    previousPressureReadTime = millis();
-    pressureSensor.read();
-    float pressure = pressureSensor.pressure();
-    serialPrintf("Reading pressure at surface: %f\n", pressure);
+/******* Control Methods *******/
 
-    int intComponent = pressure;
-    int fracComponent = trunc((pressure - intComponent) * 10000);
-    char judgePacketBuffer[JUDGE_PKT_SIZE];
-    snprintf(
-      judgePacketBuffer, JUDGE_PKT_SIZE, "ROS:SINGLE:%d:%lu,%d.%04d\0", TEAM_NUM,
-      previousPressureReadTime, intComponent, fracComponent);
-    Serial.println(judgePacketBuffer);
+void pump() {
+  Serial.println("PUMPING");
+  digitalWrite(MOTOR_PWM, HIGH);
+  digitalWrite(PUMP_PIN, HIGH);
+  digitalWrite(SUCK_PIN, LOW);
+  motorState = MotorState::Pump;
+}
 
-    rf95.send((uint8_t *)judgePacketBuffer, strlen(judgePacketBuffer));
-    rf95.waitPacketSent();
-  }
+void suck() {
+  Serial.println("SUCKING");
+  digitalWrite(MOTOR_PWM, HIGH);
+  digitalWrite(PUMP_PIN, LOW);
+  digitalWrite(SUCK_PIN, HIGH);
+  motorState = MotorState::Suck;
+}
 
-  // Read the pressure if we're profiling
-  if (
-    !isSurfaced() && millis() >= previousPressureReadTime + PRESSURE_READ_INTERVAL &&
-    packetIndex < PKT_LEN  // Stop recording if we overflow buffer
-  ) {
-    previousPressureReadTime = millis();
-    memcpy(packets[profileHalf] + packetIndex, &previousPressureReadTime, sizeof(uint32_t));
-    packetIndex += sizeof(uint32_t);
-
-    pressureSensor.read();
-    float pressure = pressureSensor.pressure();
-    serialPrintf("Reading pressure: %f\n", pressure);
-    memcpy(packets[profileHalf] + packetIndex, &pressure, sizeof(float));
-    packetIndex += sizeof(float);
-
-    if (profileHalf == 0 && packetIndex >= PKT_LEN) {
-      profileHalf = 1;
-      packetIndex = PKT_HEADER_LEN;
-    }
-  }
-
-#ifdef DO_DEBUGGING
-  // Transmit the pressure buffer whenever we're surfaced
-  bool isSurfacedToTransmit = isSurfaced();
-#else
-  // Transmit the pressure buffer if we're surfaced after completing a profile
-  bool isSurfacedToTransmit = stageIs(StageType::WaitTransmitting);
-#endif  // DO_DEBUGGING
-
-  if (isSurfacedToTransmit && millis() >= previousPacketSendTime + PACKET_SEND_INTERVAL) {
-    transmitPressurePacket();
-    previousPacketSendTime = millis();
-  }
-
-  // Go to next stage if we've timed out or reached another stage end condition
-  bool stageTimedOut = millis() >= stageStartTime + SCHEDULE[currentStage].timeoutMillis;
-  bool suckingHitLimitSwitch = stageIs(StageType::Suck) && !digitalRead(LIMIT_FULL);
-  bool pumpingHitLimitSwitch = stageIs(StageType::Pump) && !digitalRead(LIMIT_EMPTY);
-  bool shouldSubmerge = isSurfaced() && submergeReceived;
-
-  if (
-    shouldSubmerge || stageTimedOut || suckingHitLimitSwitch || pumpingHitLimitSwitch ||
-    isStartingStage) {
-    serialPrintf(
-      "Ending stage #%d, type: %d, start time: %l, max wait time: %l, current time: %l\n",
-      currentStage, SCHEDULE[currentStage].type, stageStartTime,
-      SCHEDULE[currentStage].timeoutMillis, millis());
-
-    // If we just finished transmitting on the surface, go to the next profile
-    if (stageIs(StageType::WaitTransmitting)) {
-      packetIndex = PKT_HEADER_LEN;
-      profileNum++;
-      profileHalf = 0;
-      clearPacketPayloads();
-    }
-
-    // === MOVE TO NEXT STAGE ===
-    if (!isStartingStage) {
-      stageStartTime = millis();
-      currentStage++;
-      stop();
-    }
-    // ==========================
-
-    // If we signal a third profile, restart the schedule
-    if (currentStage >= SCHEDULE_LENGTH) {
-      currentStage = 2;
-    }
-
-    // Switch to sucking/pumping depending on the stage we're entering
-    if (stageIs(StageType::Suck)) {
-      suck();
-    }
-    else if (stageIs(StageType::Pump)) {
-      pump();
-    }
-
-    isStartingStage = false;
-  }
+void stop() {
+  Serial.println("STOPPING");
+  digitalWrite(MOTOR_PWM, LOW);
+  digitalWrite(PUMP_PIN, LOW);
+  digitalWrite(SUCK_PIN, LOW);
+  motorState = MotorState::Stop;
 }
 
 bool receiveCommand() {
@@ -314,7 +268,7 @@ bool receiveCommand() {
     shouldSubmerge = true;
   }
   else if (strcmp(charBuf, "pump") == 0) {
-    if (getMotorState() != MotorState::Suck) {
+    if (motorState != MotorState::Suck) {
       response = "ACK PUMPING";
       overrideState = OverrideState::Pump;
     }
@@ -323,7 +277,7 @@ bool receiveCommand() {
     }
   }
   else if (strcmp(charBuf, "suck") == 0) {
-    if (getMotorState() != MotorState::Pump) {
+    if (motorState != MotorState::Pump) {
       response = "ACK SUCKING";
       overrideState = OverrideState::Suck;
     }
@@ -366,57 +320,6 @@ void transmitPressurePacket() {
   }
 }
 
-void pump() {
-  Serial.println("PUMPING");
-  digitalWrite(MOTOR_PWM, HIGH);
-  digitalWrite(PUMP_PIN, HIGH);
-  digitalWrite(SUCK_PIN, LOW);
-}
-
-void suck() {
-  Serial.println("SUCKING");
-  digitalWrite(MOTOR_PWM, HIGH);
-  digitalWrite(PUMP_PIN, LOW);
-  digitalWrite(SUCK_PIN, HIGH);
-}
-
-void stop() {
-  Serial.println("STOPPING");
-  digitalWrite(MOTOR_PWM, LOW);
-  digitalWrite(PUMP_PIN, LOW);
-  digitalWrite(SUCK_PIN, LOW);
-}
-
-MotorState getMotorState() {
-  if (overrideState != OverrideState::NoOverride) {
-    switch (overrideState) {
-      case OverrideState::Stop: return MotorState::Stop;
-      case OverrideState::Suck: return MotorState::Suck;
-      case OverrideState::Pump: return MotorState::Pump;
-    }
-  }
-
-  switch (SCHEDULE[currentStage].type) {
-    case StageType::WaitDeploying:
-    case StageType::WaitTransmitting:
-    case StageType::WaitProfiling: return MotorState::Stop;
-    case StageType::Suck: return MotorState::Suck;
-    case StageType::Pump: return MotorState::Pump;
-    default: return MotorState::Error;
-  }
-}
-
-bool isMotorMoving() {
-  const MotorState motorState = getMotorState();
-  return motorState == MotorState::Pump || motorState == MotorState::Suck;
-}
-
-bool stageIs(StageType type) { return SCHEDULE[currentStage].type == type; }
-
-bool isSurfaced() {
-  return stageIs(StageType::WaitDeploying) || stageIs(StageType::WaitTransmitting);
-}
-
 void clearPacketPayloads() {
   for (int half = 0; half < 2; half++) {
     for (int i = PKT_HEADER_LEN; i < PKT_LEN; i++) {
@@ -425,7 +328,7 @@ void clearPacketPayloads() {
   }
 }
 
-/******* Setup Methods (down here cause they're large) *******/
+/******* Setup Methods *******/
 
 void initRadio() {
   pinMode(RFM95_RST, OUTPUT);
