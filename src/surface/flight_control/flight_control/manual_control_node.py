@@ -119,7 +119,7 @@ class ManualControlNode(Node):
             roll=float(0),
             pitch=float(0),
             yaw=float(0),
-            author=PixhawkInstruction.MANUAL_CONTROL
+            author=PixhawkInstruction.MANUAL_CONTROL,
         )
 
     def controller_callback(self, msg: Joy) -> None:
@@ -143,13 +143,21 @@ class ManualControlNode(Node):
         )
 
         smoothed_instruction = PixhawkInstruction(
-            forward=ManualControlNode.smooth(self.previous_pixhawk_instruction.forward, instruction.forward),
-            lateral=ManualControlNode.smooth(self.previous_pixhawk_instruction.lateral, instruction.lateral),
-            vertical=ManualControlNode.smooth(self.previous_pixhawk_instruction.vertical, instruction.vertical),
+            forward=ManualControlNode.smooth(
+                self.previous_pixhawk_instruction.forward, instruction.forward
+            ),
+            lateral=ManualControlNode.smooth(
+                self.previous_pixhawk_instruction.lateral, instruction.lateral
+            ),
+            vertical=ManualControlNode.smooth(
+                self.previous_pixhawk_instruction.vertical, instruction.vertical
+            ),
             roll=ManualControlNode.smooth(self.previous_pixhawk_instruction.roll, instruction.roll),
-            pitch=ManualControlNode.smooth(self.previous_pixhawk_instruction.pitch, instruction.pitch),
+            pitch=ManualControlNode.smooth(
+                self.previous_pixhawk_instruction.pitch, instruction.pitch
+            ),
             yaw=ManualControlNode.smooth(self.previous_pixhawk_instruction.yaw, instruction.yaw),
-            author=PixhawkInstruction.MANUAL_CONTROL
+            author=PixhawkInstruction.MANUAL_CONTROL,
         )
 
         self.previous_pixhawk_instruction = smoothed_instruction
