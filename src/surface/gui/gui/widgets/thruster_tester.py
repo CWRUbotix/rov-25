@@ -1,12 +1,12 @@
 import time
 from threading import Thread
 
-from gui.gui_nodes.event_nodes.client import GUIEventClient
 from mavros_msgs.srv import CommandLong
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QIntValidator
-from PyQt6.QtWidgets import (QGridLayout, QLabel, QLineEdit, QPushButton,
-                             QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+
+from gui.gui_node import GUINode
 
 
 class ThrusterTester(QWidget):
@@ -21,17 +21,13 @@ class ThrusterTester(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        self.cmd_client: GUIEventClient = GUIEventClient(
-            CommandLong,
-            "mavros/cmd/command",
-            self.command_response_signal
-        )
+        self.cmd_client = GUINode().create_client_multithreaded(CommandLong, 'mavros/cmd/command')
         self.command_response_signal.connect(self.command_response_handler)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        heading = QLabel("Thruster Pin Configuration")
+        heading = QLabel('Thruster Pin Configuration')
 
         pin_numbers_grid = QGridLayout()
         self.pin_input_widgets = []
@@ -59,10 +55,10 @@ class ThrusterTester(QWidget):
         pin_numbers_grid.setColumnStretch(6, 1)
 
         pin_assignment_button = QPushButton()
-        pin_assignment_button.setText("Send Pin Assignments")
+        pin_assignment_button.setText('Send Pin Assignments')
 
         test_button = QPushButton()
-        test_button.setText("Test Thrusters")
+        test_button.setText('Test Thrusters')
         test_button.clicked.connect(self.async_send_message)
 
         layout.addWidget(heading)
@@ -91,7 +87,8 @@ class ThrusterTester(QWidget):
 
         start_time = time.time()
         while time.time() - start_time < duration:
-            self.cmd_client.send_request_async(
+            GUINode().send_request_multithreaded(
+                self.cmd_client,
                 CommandLong.Request(
                     command=209,  # MAV_CMD_DO_MOTOR_TEST
                     param1=float(motor_index),  # Motor number
@@ -99,18 +96,18 @@ class ThrusterTester(QWidget):
                     param3=float(throttle_percent),
                     param4=0.0,  # Time between tests
                     param5=0.0,  # Number of motors to test
-                    param6=2.0  # MOTOR_TEST_ORDER_BOARD
-                )
+                    param6=2.0,  # MOTOR_TEST_ORDER_BOARD
+                ),
+                self.command_response_signal,
             )
-
             time.sleep(0.05)
 
     def async_send_message(self) -> None:
-        Thread(target=self.send_test_message, daemon=True, name="thruster_test_thread").start()
+        Thread(target=self.send_test_message, daemon=True, name='thruster_test_thread').start()
 
     def send_test_message(self) -> None:
-        for motor_index in range(0, self.MOTOR_COUNT):
-            self.cmd_client.get_logger().info(f"Testing thruster {motor_index}")
+        for motor_index in range(self.MOTOR_COUNT):
+            GUINode().get_logger().info(f'Testing thruster {motor_index}')
             self.test_motor_for_time(motor_index, self.TEST_THROTTLE, self.TEST_LENGTH)
             self.test_motor_for_time(motor_index, 0.0, 0.5)
 
@@ -122,4 +119,4 @@ class ThrusterTester(QWidget):
 
     @pyqtSlot(CommandLong.Response)
     def command_response_handler(self, res: CommandLong.Response) -> None:
-        self.cmd_client.get_logger().debug(f"Test response: {res.success}, {res.result}")
+        GUINode().get_logger().debug(f'Test response: {res.success}, {res.result}')

@@ -1,6 +1,6 @@
 """setup.py for manipulators module."""
-import os
-from glob import glob
+
+from pathlib import Path
 
 from setuptools import setup
 
@@ -11,12 +11,13 @@ setup(
     version='1.2.0',
     packages=[PACKAGE_NAME],
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + PACKAGE_NAME]),
+        ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
         ('share/' + PACKAGE_NAME, ['package.xml']),
         # Include all launch files.
-        (os.path.join('share', PACKAGE_NAME, 'launch'),
-         glob('launch/*launch.[pxy][yma]*'))
+        (
+            str(Path('share') / PACKAGE_NAME / 'launch'),
+            [str(path) for path in Path('launch').glob('*launch.[pxy][yma]*')],
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -31,8 +32,6 @@ setup(
             'dry_run_manipulators = manipulators.manipulator_dry_run:main',
             'valve_manipulator = manipulators.valve_manipulator_node:main',
             'dry_run_valve_manipulator = manipulators.valve_manipulator_dry_run:main',
-            'lgpio_manipulator = manipulators.lgpio_manipulator:main',
-            'dry_run_lgpio_manipulator = manipulators.lgpio_manipulator_dry_run:main'
         ],
     },
 )

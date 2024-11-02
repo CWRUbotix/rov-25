@@ -7,10 +7,8 @@
   <maintainer email="rmc170@case.edu">Michael Carlstrom</maintainer>
   <license>Apache License 2.0</license>
 
-  <exec_depend>ros2launch</exec_depend>
-
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
+  <test_depend>ament_mypy</test_depend>
+  <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <depend>mavros</depend>
@@ -23,9 +21,12 @@
   <depend>python3-matplotlib</depend>
   <depend>python3-lxml</depend>
   <depend>python3-pygame</depend>
+  <depend>python3-numpy</depend>
 
   <!-- Dependencies for pymavlink -->
   <depend>python3-future</depend>
+  <depend>python-pymavlink</depend>
+  <depend>python3-mavproxy-pip</depend>
 
   <export>
     <build_type>ament_python</build_type>

@@ -112,11 +112,11 @@ sudo bash -c 'echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-dis
 You need to run these commands to get the launch file running on Pi boot:
 
 ```bash
-ros2 run pi_main install 
+ros2 run pi_main install
 ```
 
 ```bash
-sudo systemctl daemon-reload && sudo systemctl start cwrubotix_pi
+sudo systemctl daemon-reload && sudo systemctl start pi_main
 ```
 
 These commands should be run in the `src` folder after a colcon build in the workspace folder.
@@ -157,7 +157,7 @@ sudo journalctl -f -u pi_main.service
 
 ### Slow Boot Times?
 
-This occurs because the below service waits for internet before allowing boot. 
+This occurs because the below service waits for internet before allowing boot.
 
 Note `systemctl disable systemd-networkd-wait-online` does not work. The disable option is really more of a suggestion than an actual disable.
 

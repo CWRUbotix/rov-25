@@ -1,15 +1,18 @@
-from collections.abc import MutableSequence
 from enum import IntEnum
+from typing import TYPE_CHECKING
 
 import rclpy
+from mavros_msgs.srv import CommandBool
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
 from sensor_msgs.msg import Joy
-from mavros_msgs.srv import CommandBool
 
-from rov_msgs.msg import (CameraControllerSwitch, Manip, PixhawkInstruction,
-                          ValveManip)
+from rov_msgs.msg import CameraControllerSwitch, Manip, PixhawkInstruction, ValveManip
+
+if TYPE_CHECKING:
+    from collections.abc import MutableSequence
+
 
 UNPRESSED = 0
 PRESSED = 1
@@ -44,7 +47,7 @@ ARMING_SERVICE_TIMEOUT = 3.0
 ARM_MESSAGE = CommandBool.Request(value=True)
 DISARM_MESSAGE = CommandBool.Request(value=False)
 
-CONTROLLER_MODE_PARAM = "controller_mode"
+CONTROLLER_MODE_PARAM = 'controller_mode'
 
 NEXT_INSTR_FRAC = 0.05
 PREV_INSTR_FRAC = 1 - NEXT_INSTR_FRAC
@@ -62,30 +65,21 @@ class ManualControlNode(Node):
         mode_param = self.declare_parameter(CONTROLLER_MODE_PARAM, value=ControllerMode.ARM)
 
         self.rc_pub = self.create_publisher(
-            PixhawkInstruction,
-            'uninverted_pixhawk_control',
-            qos_profile_system_default
+            PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_system_default
         )
 
         self.subscription = self.create_subscription(
-            Joy,
-            'joy',
-            self.controller_callback,
-            qos_profile_sensor_data
+            Joy, 'joy', self.controller_callback, qos_profile_sensor_data
         )
 
         # Manipulators
         self.manip_publisher = self.create_publisher(
-            Manip,
-            'manipulator_control',
-            qos_profile_system_default
+            Manip, 'manipulator_control', qos_profile_system_default
         )
 
         # Valve Manip
         self.valve_manip = self.create_publisher(
-            ValveManip,
-            "valve_manipulator",
-            qos_profile_system_default
+            ValveManip, 'valve_manipulator', qos_profile_system_default
         )
 
         controller_mode = ControllerMode(mode_param.value)
@@ -94,18 +88,16 @@ class ManualControlNode(Node):
             # Control camera switching
             self.misc_controls_callback = self.toggle_cameras
             self.camera_toggle_publisher = self.create_publisher(
-                CameraControllerSwitch,
-                "camera_switch",
-                qos_profile_system_default
+                CameraControllerSwitch, 'camera_switch', qos_profile_system_default
             )
         else:
             self.misc_controls_callback = self.set_arming
             # Control arming
-            self.arm_client = self.create_client(CommandBool, "mavros/cmd/arming")
+            self.arm_client = self.create_client(CommandBool, 'mavros/cmd/arming')
 
         self.manip_buttons: dict[int, ManipButton] = {
-            X_BUTTON: ManipButton("left"),
-            O_BUTTON: ManipButton("right")
+            X_BUTTON: ManipButton('left'),
+            O_BUTTON: ManipButton('right'),
         }
 
         self.seen_left_cam = False
@@ -139,7 +131,7 @@ class ManualControlNode(Node):
             roll=float(buttons[L1] - buttons[R1]),  # L1/R1 buttons
             pitch=float(axes[RJOYY]),  # Right Joystick Y
             yaw=-float(axes[RJOYX]),  # Right Joystick X
-            author=PixhawkInstruction.MANUAL_CONTROL
+            author=PixhawkInstruction.MANUAL_CONTROL,
         )
 
         smoothed_instruction = PixhawkInstruction(
@@ -178,8 +170,7 @@ class ManualControlNode(Node):
                 new_manip_state = not manip_button.is_active
                 manip_button.is_active = new_manip_state
 
-                manip_msg = Manip(manip_id=manip_button.claw,
-                                  activated=manip_button.is_active)
+                manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
                 self.manip_publisher.publish(manip_msg)
             manip_button.last_button_state = just_pressed
 

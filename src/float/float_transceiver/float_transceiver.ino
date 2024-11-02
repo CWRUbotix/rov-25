@@ -58,14 +58,14 @@ struct Stage {
 OverrideState overrideState = OverrideState::NoOverride;
 uint8_t currentStage = 0;
 
-const Stage SCHEDULE[SCHEDULE_LENGTH] = {
+const Stage SCHEDULE[] = {
   // Pump immediately in case we just rebooted at the bottom of the pool
   {StageType::Pump,             PUMP_MAX    },
 
- // Wait for max <time> or until surface signal
+  // Wait for max <time> or until surface signal
   {StageType::WaitDeploying,    RELEASE_MAX },
 
- // Profile 1
+  // Profile 1
   {StageType::Suck,             SUCK_MAX    },
   {StageType::WaitProfiling,    DESCEND_TIME},
   {StageType::Pump,             PUMP_MAX    },
@@ -73,7 +73,7 @@ const Stage SCHEDULE[SCHEDULE_LENGTH] = {
 
   {StageType::WaitTransmitting, TX_MAX_TIME },
 
- // Profile 2
+  // Profile 2
   {StageType::Suck,             SUCK_MAX    },
   {StageType::WaitProfiling,    DESCEND_TIME},
   {StageType::Pump,             PUMP_MAX    },
@@ -103,7 +103,7 @@ bool isStartingStage = true;
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  // while (!Serial) {}
+  // while (!Serial){}
 
   Serial.println("Float Transceiver");
   Serial.println();

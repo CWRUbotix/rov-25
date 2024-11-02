@@ -1,5 +1,4 @@
-import os
-from glob import glob
+from pathlib import Path
 
 from setuptools import setup
 
@@ -10,14 +9,17 @@ setup(
     version='1.2.0',
     packages=[PACKAGE_NAME],
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + PACKAGE_NAME]),
+        ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
         ('share/' + PACKAGE_NAME, ['package.xml']),
         # Include all launch files.
-        (os.path.join('share', PACKAGE_NAME, 'launch'),
-         glob('launch/*launch.[pxy][yma]*')),
-        (os.path.join('share', PACKAGE_NAME, 'config'),
-         glob('config/*'))
+        (
+            str(Path('share') / PACKAGE_NAME / 'launch'),
+            [str(path) for path in Path('launch').glob('*launch.[pxy][yma]*')],
+        ),
+        (
+            str(Path('share') / PACKAGE_NAME / 'config'),
+            [str(path) for path in Path('config').glob('*')],
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

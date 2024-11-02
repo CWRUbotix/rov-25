@@ -1,54 +1,38 @@
 [project]
-name = "rov-24"
-# I know Ben hates this but this required lol
+name = "rov-25"
+# I know Ben hates this but this is required lol
 version = "1.2.0"
-
-dependencies = [
-    'setuptools',
-    'flake8==7.1.0',
-    'mypy >= 1.7',
-    'pynput',
-    'pyqt6',
-    'pyqtgraph',
-    'pyqtdarktheme',
-    'opencv-python>=4.8.1',
-    'numpy < 2.0.0',
-    'pytest-qt',
-    'pytest-xvfb',
-    'TCA9555@git+https://github.com/InvincibleRMC/TCA9555',
-    'bluerobotics-tsys01@git+https://github.com/bluerobotics/tsys01-python',
-    'pymavlink',
-    'mavproxy'
-]
-
-[tool]
-line-length = 100
-
-[tool.pydocstyle]
-convention = "numpy"
-add-ignore=[
-    "D100",
-    "D101",
-    "D102",
-    "D103",
-    "D104",
-    "D105",
-    "D106",
-    "D107"
-]
+requires-python = ">=3.12"
 
 [tool.mypy]
 strict = true
-# Done becuase tons of python packages are missing stubs or py.typed markers
+# Done because tons of Python packages are missing stubs or py.typed markers
 ignore_missing_imports = true
-# Done because some calls insides rclpy are not typed
+# Done because some calls inside rclpy are not typed
 disallow_untyped_calls = false
 # Done because rclpy Node has type Any
 disallow_subclassing_any = false
 
-[tool.pytest.ini_options]   
-qt_api = "pyqt6"
+# For pre-commit CI
+[tool.ruff]
+format.quote-style = 'single'
+exclude = ["src/surface/ros2_video_streamer"]
 
-[tool.pylintrc]
-disable = ["duplicate-code", "fixme"]
-extension-pkg-whitelist = ["PyQt6", "cv2"]
+# Done to sort imports
+line-length = 100
+[tool.ruff.lint]
+flake8-quotes.inline-quotes='single'
+extend-select = ["ALL"]
+fixable = ["ALL"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "T201", "FIX002", "TD003", "TD002", "TRY003", "EM101", "EM102", "RET504", "D211", "COM812", "ISC001", "ERA001", "S602", "S603", "D205"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.pylint]
+max-args = 10
+
+[tool.ruff.lint.per-file-ignores]
+"test*" = ["S101", "INP001", "PLR2004"]
+"setup.py" = ["INP001"]
+"*/launch/*" = ["INP001"]

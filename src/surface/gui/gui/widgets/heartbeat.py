@@ -1,27 +1,26 @@
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
-from gui.widgets.circle import CircleIndicator
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
+from gui.gui_node import GUINode
+from gui.widgets.circle import CircleIndicator
 from rov_msgs.msg import VehicleState
 
 
 class HeartbeatWidget(QWidget):
-
     signal = pyqtSignal(VehicleState)
 
     def __init__(self) -> None:
         super().__init__()
 
         self.signal.connect(self.refresh)
-        self.subscription = GUIEventSubscriber(VehicleState, 'vehicle_state_event', self.signal)
+        GUINode().create_signal_subscription(VehicleState, 'vehicle_state_event', self.signal)
         # Create a latch variable
         self.warning_msg_latch: bool = False
 
         heartbeat_layout = QVBoxLayout()
 
-        font = QFont("Arial", 14)
+        font = QFont('Arial', 14)
 
         pi_status_layout = QHBoxLayout()
         self.pi_indicator = QLabel('No Pi Status')

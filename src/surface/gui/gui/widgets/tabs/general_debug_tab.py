@@ -1,10 +1,11 @@
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
+
 from gui.widgets.arm import Arm
 from gui.widgets.heartbeat import HeartbeatWidget
 from gui.widgets.ip_widget import IPWidget
 from gui.widgets.logger import Logger
 from gui.widgets.thruster_tester import ThrusterTester
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
 
 class GeneralDebugTab(QWidget):
@@ -12,11 +13,13 @@ class GeneralDebugTab(QWidget):
         super().__init__()
 
         top_bar = QHBoxLayout()
-        top_bar.addWidget(IPWidget(), alignment=Qt.AlignmentFlag.AlignTop |
-                          Qt.AlignmentFlag.AlignLeft)
+        top_bar.addWidget(
+            IPWidget(), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
 
-        top_bar.addWidget(HeartbeatWidget(), alignment=Qt.AlignmentFlag.AlignTop |
-                          Qt.AlignmentFlag.AlignLeft)
+        top_bar.addWidget(
+            HeartbeatWidget(), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
 
         right_bar = QVBoxLayout()
         right_bar.addWidget(ThrusterTester())

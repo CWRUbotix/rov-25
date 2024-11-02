@@ -2,6 +2,7 @@ import lgpio
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
+
 from rov_msgs.msg import ValveManip
 
 # Configuration
@@ -12,10 +13,7 @@ class ValveManipulator(Node):
     def __init__(self) -> None:
         super().__init__('valve_manipulator')
         self.create_subscription(
-            ValveManip,
-            'valve_manipulator',
-            self.manip_callback,
-            qos_profile_system_default
+            ValveManip, 'valve_manipulator', self.manip_callback, qos_profile_system_default
         )
 
         self.gpio_handle = lgpio.gpiochip_open(0)
@@ -29,10 +27,9 @@ class ValveManipulator(Node):
             if not self.curr_active:
                 self.curr_active = True
                 self.servo(message.pwm)
-        else:
-            if self.curr_active:
-                self.curr_active = False
-                self.servo(ValveManip.NEUTRAL_PWM)
+        elif self.curr_active:
+            self.curr_active = False
+            self.servo(ValveManip.NEUTRAL_PWM)
 
 
 def main() -> None:

@@ -1,12 +1,12 @@
 import atexit
 import signal
-import os
+from threading import Thread
 
-import qdarktheme
 import rclpy.utilities
 from PyQt6.QtWidgets import QApplication, QWidget
-from rclpy.node import Node
-from ament_index_python.packages import get_package_share_directory
+from rclpy.executors import MultiThreadedExecutor
+
+from gui.gui_node import GUINode
 
 
 class App(QWidget):
@@ -18,39 +18,41 @@ class App(QWidget):
         if not rclpy.utilities.ok():
             rclpy.init()
         super().__init__()
-        self.node = Node(node_name, parameter_overrides=[])
+        self.node = GUINode(node_name)
 
         self.theme_param = self.node.declare_parameter('theme', '')
         self.resize(1850, 720)
 
-        atexit.register(clean_shutdown)
+        atexit.register(self._clean_shutdown)
 
     def run_gui(self) -> None:
         # Kills with Control + C
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+        # TODO: New method of dark mode
         # Apply theme
-        theme_param = self.theme_param.get_parameter_value().string_value
-        theme_path = os.path.join(get_package_share_directory("gui"),
-                                  "styles", theme_param + ".qss")
+        # theme_param = self.theme_param.get_parameter_value().string_value
+        # theme_path = Path(get_package_share_directory('gui')) / 'styles' / (theme_param + '.qss')
 
-        base_theme = "dark" if theme_param == "dark" else "light"
-        custom_styles = "\n"
-        if os.path.exists(theme_path):
-            with open(theme_path, encoding='utf-8') as theme_file:
-                custom_styles += theme_file.read()
+        # base_theme = 'dark' if theme_param == 'dark' else 'light'
+        # custom_styles = '\n'
+        # if theme_path.exists():
+        #     with theme_path.open(encoding='utf-8') as theme_file:
+        #         custom_styles += theme_file.read()
 
-        qdarktheme.setup_theme(base_theme, additional_qss=custom_styles)
+        # qdarktheme.setup_theme(base_theme, additional_qss=custom_styles)
 
-        # Delete node now that we've used it to get params
-        self.node.destroy_node()
+        executor = MultiThreadedExecutor()
+        executor.add_node(self.node)
+        Thread(target=executor.spin, daemon=True).start()
 
         self.show()
 
         # TODO: when the app closes it causes an error. Make not cause error?
         self.app.exec()
 
-
-def clean_shutdown() -> None:
-    if rclpy.utilities.ok():
-        rclpy.shutdown()
+    def _clean_shutdown(self) -> None:
+        if rclpy.utilities.ok():
+            self.node.get_logger().info('Exiting.')
+            self.node.destroy_node()
+            rclpy.shutdown()

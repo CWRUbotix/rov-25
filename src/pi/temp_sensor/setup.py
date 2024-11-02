@@ -1,20 +1,21 @@
-from setuptools import setup
-from glob import glob
-import os
+from pathlib import Path
 
-package_name = 'temp_sensor'
+from setuptools import setup
+
+PACKAGE_NAME = 'temp_sensor'
 
 setup(
-    name=package_name,
+    name=PACKAGE_NAME,
     version='1.2.0',
-    packages=[package_name],
+    packages=[PACKAGE_NAME],
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml']),
+        ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
+        ('share/' + PACKAGE_NAME, ['package.xml']),
         # Include all launch files.
-        (os.path.join('share', package_name, 'launch'),
-         glob('launch/*launch.[pxy][yma]*'))
+        (
+            str(Path('share') / PACKAGE_NAME / 'launch'),
+            [str(path) for path in Path('launch').glob('*launch.[pxy][yma]*')],
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,7 +27,7 @@ setup(
     entry_points={
         'console_scripts': [
             'temp_sensor = temp_sensor.temp_sensor:main',
-            'dry_run = temp_sensor.temp_sensor_dry_run:main'
+            'dry_run = temp_sensor.temp_sensor_dry_run:main',
         ],
     },
 )

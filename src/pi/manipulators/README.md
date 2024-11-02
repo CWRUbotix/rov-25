@@ -2,15 +2,9 @@
 
 ## Overview
 
-This package is used to toggle manipulators plugged into the I2C bus on the motherboard.
+This package is used to toggle manipulators plugged into the I2C bus on the motherboard. The chip we communicate with is the TCA9555 more documentation can be found [here](https://www.ti.com/lit/gpn/tca9555).
 
 ## Installation
-
-These should be done for you but, in case something has gone wrong use these command and it should fix your installation.
-
-```bash
-sudo apt install python3-lgpio
-```
 
 ## Usage
 

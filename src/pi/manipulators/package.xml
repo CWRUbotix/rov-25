@@ -8,8 +8,11 @@
   <maintainer email="rmc170@case.edu">Michael Carlstrom</maintainer>
   <license>Apache License, Version 2.0</license>
 
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
+  <exec_depend>python3-smbus2</exec_depend>
+  <exec_depend>python3-lgpio</exec_depend>
+
+  <test_depend>ament_mypy</test_depend>
+  <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <export>

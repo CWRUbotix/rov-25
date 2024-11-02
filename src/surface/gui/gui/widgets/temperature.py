@@ -1,10 +1,10 @@
 from collections import deque
 
-from gui.gui_nodes.event_nodes.subscriber import GUIEventSubscriber
-from rov_msgs.msg import Temperature
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
-from PyQt6.QtWidgets import (QLabel, QLineEdit, QPushButton,
-                             QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+
+from gui.gui_node import GUINode
+from rov_msgs.msg import Temperature
 
 MIN_TEMP_C = 0
 MAX_TEMP_C = 200
@@ -18,10 +18,8 @@ class TemperatureSensor(QWidget):
         super().__init__()
 
         self.temperature_reading_signal.connect(self.temperature_received)
-        self.temp_subscriber: GUIEventSubscriber = GUIEventSubscriber(
-            Temperature,
-            "temperature",
-            self.temperature_reading_signal
+        GUINode().create_signal_subscription(
+            Temperature, 'temperature', self.temperature_reading_signal
         )
 
         self.temps: deque[float] = deque(maxlen=QUEUE_LEN)

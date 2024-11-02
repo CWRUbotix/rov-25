@@ -1,14 +1,14 @@
 {
     "name" : "ROV Windows",
-    "image": "ghcr.io/cwrurobotics/rov-24:iron",
-    "containerEnv": {  
+    "image": "ghcr.io/cwrubotix/rov-25:jazzy",
+    "containerEnv": {
         "DISPLAY": "${localEnv:DISPLAY}"
     },
-    "workspaceFolder": "/home/rov/rov-24",
+    "workspaceFolder": "/home/root/rov-25",
     "customizations": {
         "vscode" : {
-            "extensions": ["ms-python.flake8", "ms-azuretools.vscode-docker",
-                           "streetsidesoftware.code-spell-checker", "ms-python.isort",
+            "extensions": ["ms-azuretools.vscode-docker",
+                           "streetsidesoftware.code-spell-checker", "charliermarsh.ruff",
                            "ms-python.mypy-type-checker"]
         }
     },
