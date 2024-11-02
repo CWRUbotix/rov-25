@@ -17,6 +17,7 @@ class ValveManipulator(Node):
         )
 
         self.gpio_handle = lgpio.gpiochip_open(0)
+        lgpio.gpio_claim_output(self.gpio_handle, SERVO_PIN)
         self.curr_active = False
 
     def servo(self, width: int, freq: int = 50) -> None:
