@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from gui.gui_node import GUINode
 from gui.widgets.circle import CircleIndicator
+from gui.styles.custom_styles import WidgetState
 from rov_msgs.msg import VehicleState
 
 
@@ -44,14 +45,14 @@ class HeartbeatWidget(QWidget):
     def refresh(self, msg: VehicleState) -> None:
         if msg.pi_connected:
             self.pi_indicator.setText('Pi Connected')
-            self.pi_indicator_circle.set_on()
+            self.pi_indicator_circle.set_state(WidgetState.ON)
         else:
             self.pi_indicator.setText('Pi Disconnected')
-            self.pi_indicator_circle.set_off()
+            self.pi_indicator_circle.set_state(WidgetState.OFF)
 
         if msg.pixhawk_connected:
             self.pixhawk_indicator.setText('Pixhawk Connected')
-            self.pixhawk_indicator_circle.set_on()
+            self.pixhawk_indicator_circle.set_state(WidgetState.ON)
         else:
             self.pixhawk_indicator.setText('Pixhawk Disconnected')
-            self.pixhawk_indicator_circle.set_off()
+            self.pixhawk_indicator_circle.set_state(WidgetState.OFF)
