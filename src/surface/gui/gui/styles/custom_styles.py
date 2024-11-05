@@ -25,7 +25,7 @@ class IndicatorMixin(QWidget):
 
     def set_initial_stylesheet(self, extra_styles: str = '') -> None:
         """
-        Stores the original stylesheet of the widget so changing state does not remove styles
+        Store the original stylesheet of the widget so changing state does not remove styles.
 
         Parameters
         ----------
@@ -37,7 +37,7 @@ class IndicatorMixin(QWidget):
 
     def set_state(self, new_state: WidgetState) -> None:
         """
-        Sets a new state for the widget
+        Set a new state for the widget.
 
         Parameters
         ----------
@@ -49,7 +49,7 @@ class IndicatorMixin(QWidget):
 
     def get_state_stylesheet(self) -> str:
         """
-        Returns the stylesheet according to the current state of the widget
+        Return the stylesheet according to the current state of the widget.
 
         Returns
         -------
