@@ -1,11 +1,14 @@
-from PyQt6.QtWidgets import QPushButton, QWidget
 from enum import Enum
+
+from PyQt6.QtWidgets import QPushButton, QWidget
+
 
 class WidgetState(Enum):
     ON = 1
     OFF = 2
     INACTIVE = 3
     NONE = 4
+
 
 class IndicatorMixin(QWidget):
     # Stylesheet for when a component is running, enabled, or armed
@@ -43,7 +46,7 @@ class IndicatorMixin(QWidget):
         """
         self.current_state = new_state
         self.setStyleSheet(self._original_stylesheet + self.get_state_stylesheet())
-        
+
     def get_state_stylesheet(self) -> str:
         """
         Returns the stylesheet according to the current state of the widget
@@ -55,12 +58,11 @@ class IndicatorMixin(QWidget):
         """
         if self.current_state == WidgetState.ON:
             return self._ON_STYLESHEET
-        elif self.current_state == WidgetState.OFF:
+        if self.current_state == WidgetState.OFF:
             return self._OFF_STYLESHEET
-        elif self.current_state == WidgetState.INACTIVE:
+        if self.current_state == WidgetState.INACTIVE:
             return self._INACTIVE_STYLESHEET
-        else:
-            return ""
+        return ''
 
 
 class ButtonIndicator(QPushButton, IndicatorMixin):

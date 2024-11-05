@@ -1,8 +1,8 @@
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QColor
+from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QLabel, QWidget
 
 from gui.styles.custom_styles import IndicatorMixin, WidgetState
+
 
 class CircleIndicator(QLabel, IndicatorMixin):
     def __init__(self, parent: QWidget | None = None, radius: int = 50) -> None:

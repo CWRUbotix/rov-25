@@ -7,8 +7,8 @@ from PyQt6.QtMultimedia import QSoundEffect
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from gui.gui_node import GUINode
-from gui.widgets.circle import CircleIndicator
 from gui.styles.custom_styles import WidgetState
+from gui.widgets.circle import CircleIndicator
 from rov_msgs.msg import Flooding
 
 # The 'Loop' enum has int values, not 'Loop', unbeknownst to mypy
