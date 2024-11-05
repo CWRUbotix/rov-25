@@ -14,9 +14,9 @@
   <test_depend>python3-pytest</test_depend>
 
   <depend>ros_gz</depend>
-  <depend>xacro</depend>
 
   <export>
     <build_type>ament_python</build_type>
+    <!-- Todo use gazebo_ros tag one day -->
   </export>
 </package>
