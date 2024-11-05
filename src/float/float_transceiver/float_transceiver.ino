@@ -9,6 +9,7 @@
 
 #include <RH_RF95.h>
 #include <SPI.h>
+#include <RHSoftwareSPI.h>
 #include "PicoEncoder.h"
 
 #include "MS5837.h"
@@ -54,8 +55,10 @@ uint32_t stageStartTime;
 uint32_t previousPressureReadTime;
 uint32_t previousPacketSendTime;
 
+RHSoftwareSPI softwareSPI;
+
 // Singleton instance of the radio driver
-RH_RF95 rf95(RFM95_CS, RFM95_INT);
+RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
 
 // Singleton instance of the pressure sensor driver
 MS5837 pressureSensor;
@@ -331,6 +334,8 @@ void clearPacketPayloads() {
 /******* Setup Methods *******/
 
 void initRadio() {
+  softwareSPI.setPins(8, 15, 14);
+  
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
