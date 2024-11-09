@@ -26,12 +26,12 @@ def generate_launch_description() -> LaunchDescription:
             # receive a signal from a GCS.
             {'system_id': 255},
             # plugin_allowlist allows which mavros nodes get launched. The default is all of them.
-            {'plugin_allowlist': ['sys_status', 'rc_io', 'command']},
+            {'plugin_allowlist': ['sys_status', 'rc_io', 'command', 'manual_control']},
             {'fcu_url': '/dev/ttyPixhawk'},
         ],
         remappings=[
             ('/pi/mavros/state', '/tether/mavros/state'),
-            ('/pi/mavros/rc/override', '/tether/mavros/rc/override'),
+            ('/pi/mavros/manual_control', '/tether/mavros/manual_control'),
             ('/pi/mavros/cmd/arming', '/tether/mavros/cmd/arming'),
             ('/pi/mavros/cmd/command', '/tether/mavros/cmd/command'),
         ],

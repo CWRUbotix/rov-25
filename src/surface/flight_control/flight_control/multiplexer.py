@@ -57,7 +57,7 @@ class MultiplexerNode(Node):
         )
 
         self.rc_pub = self.create_publisher(
-            ManualControl, 'mavros/rc/override', QoSPresetProfiles.DEFAULT.value
+            ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
         )
 
     @staticmethod
@@ -95,13 +95,13 @@ class MultiplexerNode(Node):
         # Maps to PWM
         MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
 
-        rc_msg.x = msg.forward
-        rc_msg.z = msg.vertical
-        rc_msg.y = msg.lateral
-        rc_msg.r = msg.yaw
-        rc_msg.enable_extensions = 0b11000000
-        rc_msg.s = msg.pitch
-        rc_msg.t = msg.roll
+        rc_msg.x = float(msg.forward)
+        rc_msg.z = float(msg.vertical)
+        rc_msg.y = float(msg.lateral)
+        rc_msg.r = float(msg.yaw)
+        rc_msg.enabled_extensions = 0b00000011
+        rc_msg.s = float(msg.pitch)
+        rc_msg.t = float(msg.roll)
 
         return rc_msg
 
