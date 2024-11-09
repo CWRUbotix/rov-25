@@ -93,8 +93,6 @@ class ManualControlNode(Node):
             self.arm_client = self.create_client(CommandBool, 'mavros/cmd/arming')
 
         self.manip_buttons: dict[int, ManipButton] = {
-            # X_BUTTON: ManipButton('left'),
-            # O_BUTTON: ManipButton('right'),
             X_BUTTON: ManipButton('right'),
             O_BUTTON: ManipButton('left'),
         }
@@ -127,16 +125,14 @@ class ManualControlNode(Node):
 
     def manip_callback(self, msg: Joy) -> None:
         buttons: MutableSequence[int] = msg.buttons
-
         for button_id, manip_button in self.manip_buttons.items():
             just_pressed = buttons[button_id] == PRESSED
-
             if manip_button.last_button_state is False and just_pressed:
                 new_manip_state = not manip_button.is_active
                 manip_button.is_active = new_manip_state
-
                 manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
                 self.manip_publisher.publish(manip_msg)
+
             manip_button.last_button_state = just_pressed
 
     def valve_manip_callback(self, msg: Joy) -> None:
