@@ -5,6 +5,9 @@ from mavros_msgs.msg import OverrideRCIn
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
+from typing import Final
+
+from pixhawk_instruction_utils import pixhawk_instruction_to_tuple, tuple_to_pixhawk_instruction
 
 from rov_msgs.msg import PixhawkInstruction
 from rov_msgs.srv import AutonomousFlight
@@ -32,12 +35,18 @@ PITCH_CHANNEL = 0  # Pitch
 YAW_CHANNEL = 3  # Yaw
 ROLL_CHANNEL = 1  # Roll
 
+NEXT_INSTR_FRAC: Final[int] = 0.05
+PREV_INSTR_FRAC: Final[int] = 1 - NEXT_INSTR_FRAC
+
 
 def joystick_map(raw: float) -> float:
     mapped = abs(raw) ** JOYSTICK_EXPONENT
     if raw < 0:
         mapped *= -1
     return mapped
+
+def rc_in_map(value: float) -> int:
+    return int(RANGE_SPEED * value) + ZERO_SPEED
 
 
 class MultiplexerNode(Node):
@@ -61,15 +70,24 @@ class MultiplexerNode(Node):
             OverrideRCIn, 'mavros/rc/override', QoSPresetProfiles.DEFAULT.value
         )
 
+        self.previous_instruction_tuple = PixhawkInstruction(
+            author=PixhawkInstruction.MANUAL_CONTROL
+        )
+
     @staticmethod
-    def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
-        """Apply a function to each dimension of this PixhawkInstruction."""
-        msg.forward = function_to_apply(msg.forward)
-        msg.vertical = function_to_apply(msg.vertical)
-        msg.lateral = function_to_apply(msg.lateral)
-        msg.pitch = function_to_apply(msg.pitch)
-        msg.yaw = function_to_apply(msg.yaw)
-        msg.roll = function_to_apply(msg.roll)
+    def smooth_value(prev_value: float, next_value: float) -> float:
+        return PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
+
+    def smooth_pixhawk_instruction(self, msg: PixhawkInstruction) -> PixhawkInstruction:
+        instruction_tuple = pixhawk_instruction_to_tuple(msg)
+        instruction_tuple = tuple(
+            MultiplexerNode.smooth_value(previous_value, value) for (previous_value, value)
+            in zip(self.previous_instruction_tuple, instruction_tuple, strict=True))
+        smoothed_instruction = tuple_to_pixhawk_instruction(instruction_tuple, msg.author)
+
+        self.previous_pixhawk_instruction = smoothed_instruction
+
+        return smoothed_instruction
 
     @staticmethod
     def to_override_rc_in(msg: PixhawkInstruction) -> OverrideRCIn:
@@ -77,7 +95,9 @@ class MultiplexerNode(Node):
         rc_msg = OverrideRCIn()
 
         # Maps to PWM
-        MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
+        instruction_tuple = pixhawk_instruction_to_tuple(rc_msg)
+        instruction_tuple = tuple(rc_in_map(value) for value in instruction_tuple)
+        msg = tuple_to_pixhawk_instruction(instruction_tuple)
 
         rc_msg.channels[FORWARD_CHANNEL] = msg.forward
         rc_msg.channels[THROTTLE_CHANNEL] = msg.vertical
@@ -102,7 +122,9 @@ class MultiplexerNode(Node):
         ):
             # Smooth out adjustments
             # TODO: look into maybe doing inheritance on a PixhawkInstruction
-            MultiplexerNode.apply(msg, joystick_map)
+            instruction_tuple = pixhawk_instruction_to_tuple(msg)
+            instruction_tuple = tuple(joystick_map(value) for value in instruction_tuple)
+            msg = tuple_to_pixhawk_instruction(instruction_tuple)
         elif (
             msg.author == PixhawkInstruction.KEYBOARD_CONTROL
             and self.state == AutonomousFlight.Request.STOP
@@ -113,7 +135,8 @@ class MultiplexerNode(Node):
         else:
             return
 
-        self.rc_pub.publish(msg=self.to_override_rc_in(msg))
+        smoothed_instruction = self.smooth_pixhawk_instruction(msg)
+        self.rc_pub.publish(msg=self.to_override_rc_in(smoothed_instruction))
 
 
 def main() -> None:
