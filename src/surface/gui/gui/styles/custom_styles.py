@@ -9,16 +9,16 @@ class WidgetState(Enum):
     INACTIVE = 3
     NONE = 4
 
-class StylesheetDictionary(TypedDict):
-    WidgetState.ON: str
-    WidgetState.OFF: str
-    WidgetState.INACTIVE: str
-    WidgetState.NONE: str
+# class StylesheetDictionary(TypedDict):
+#     WidgetState.ON: str
+#     WidgetState.OFF: str
+#     WidgetState.INACTIVE: str
+#     WidgetState.NONE: str
 
 
 class IndicatorMixin(QWidget):
     # The stylesheets that correspond to each widget state
-    _STYLESHEETS: StylesheetDictionary = {
+    _STYLESHEETS: Final[dict] = {
         # Stylesheet for when a component is running, enabled, or armed
         WidgetState.ON: 'QWidget { background-color: limegreen; }',
         # Stylesheet for when a component is disabled, not running, or disarmed, but could be 
