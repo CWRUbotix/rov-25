@@ -11,23 +11,19 @@ class WidgetState(Enum):
 
 
 class IndicatorMixin(QWidget):
-
     # The stylesheets that correspond to each widget state
     _STYLESHEETS = {
         # Stylesheet for when a component is running, enabled, or armed
         WidgetState.ON: 'QWidget { background-color: limegreen; }',
-
         # Stylesheet for when a component is disabled, not running, or disarmed, but could be enabled
         # through this widget
         WidgetState.OFF: 'QWidget { background-color: red; }',
-
         # Stylesheet for when a component is disabled, not expected to have any effect or perform its
         # function because of some external factor, either another widget or something external
         # to the gui. For example, a the arm button when the pi is not connected
         WidgetState.INACTIVE: 'QWidget { background-color: silver; }',
-        WidgetState.NONE: ''
+        WidgetState.NONE: '',
     }
-
 
     def set_initial_stylesheet(self, extra_styles: str = '') -> None:
         """
