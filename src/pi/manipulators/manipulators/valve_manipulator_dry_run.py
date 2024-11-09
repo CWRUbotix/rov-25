@@ -7,6 +7,7 @@ SERVO_PIN = 12  # pin used to drive PWM fan
 FREQ = 50
 
 gpio_handle = lgpio.gpiochip_open(0)
+lgpio.gpio_claim_output(gpio_handle, SERVO_PIN)
 
 
 def test_gpio(width: int, freq: int = 50) -> None:
