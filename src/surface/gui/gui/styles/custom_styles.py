@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import TypedDict, Final
+from typing import Final
+
 from PyQt6.QtWidgets import QPushButton, QWidget
 
 
