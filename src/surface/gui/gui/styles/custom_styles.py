@@ -11,17 +11,23 @@ class WidgetState(Enum):
 
 
 class IndicatorMixin(QWidget):
-    # Stylesheet for when a component is running, enabled, or armed
-    _ON_STYLESHEET = 'QWidget { background-color: limegreen; }'
 
-    # Stylesheet for when a component is disabled, not running, or disarmed, but could be enabled
-    # through this widget
-    _OFF_STYLESHEET = 'QWidget { background-color: red; }'
+    # The stylesheets that correspond to each widget state
+    _STYLESHEETS = {
+        # Stylesheet for when a component is running, enabled, or armed
+        WidgetState.ON: 'QWidget { background-color: limegreen; }',
 
-    # Stylesheet for when a component is disabled, not expected to have any effect or perform its
-    # function because of some external factor, either another widget or something external
-    # to the gui. For example, a the arm button when the pi is not connected
-    _INACTIVE_STYLESHEET = 'QWidget { background-color: silver; }'
+        # Stylesheet for when a component is disabled, not running, or disarmed, but could be enabled
+        # through this widget
+        WidgetState.OFF: 'QWidget { background-color: red; }',
+
+        # Stylesheet for when a component is disabled, not expected to have any effect or perform its
+        # function because of some external factor, either another widget or something external
+        # to the gui. For example, a the arm button when the pi is not connected
+        WidgetState.INACTIVE: 'QWidget { background-color: silver; }',
+        WidgetState.NONE: ''
+    }
+
 
     def set_initial_stylesheet(self, extra_styles: str = '') -> None:
         """
@@ -45,24 +51,7 @@ class IndicatorMixin(QWidget):
             The new state for the widget
         """
         self.current_state = new_state
-        self.setStyleSheet(self._original_stylesheet + self.get_state_stylesheet())
-
-    def get_state_stylesheet(self) -> str:
-        """
-        Return the stylesheet according to the current state of the widget.
-
-        Returns
-        -------
-        str
-            the stylesheet that corresponds to the current state of the widget
-        """
-        if self.current_state == WidgetState.ON:
-            return self._ON_STYLESHEET
-        if self.current_state == WidgetState.OFF:
-            return self._OFF_STYLESHEET
-        if self.current_state == WidgetState.INACTIVE:
-            return self._INACTIVE_STYLESHEET
-        return ''
+        self.setStyleSheet(self._original_stylesheet + self._STYLESHEETS[self.current_state])
 
 
 class ButtonIndicator(QPushButton, IndicatorMixin):
