@@ -8,7 +8,7 @@ from rclpy.qos import qos_profile_system_default
 from rov_msgs.msg import ValveManip
 
 # Configuration
-SERVO_PIN: Final[int] = 12  # pin used to drive Valve Manip
+SERVO_PIN: Final = 12  # pin used to drive Valve Manip
 
 
 class ValveManipulator(Node):
