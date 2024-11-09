@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 import rclpy
 from mavros_msgs.srv import CommandBool
@@ -49,8 +49,8 @@ DISARM_MESSAGE = CommandBool.Request(value=False)
 
 CONTROLLER_MODE_PARAM = 'controller_mode'
 
-NEXT_INSTR_FRAC = 0.05
-PREV_INSTR_FRAC = 1 - NEXT_INSTR_FRAC
+NEXT_INSTR_FRAC: Final[int] = 0.05
+PREV_INSTR_FRAC: Final[int] = 1 - NEXT_INSTR_FRAC
 
 
 class ControllerMode(IntEnum):
