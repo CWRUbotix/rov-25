@@ -105,13 +105,7 @@ class ManualControlNode(Node):
         self.valve_manip_state = False
 
         self.previous_pixhawk_instruction = PixhawkInstruction(
-            forward=float(0),
-            lateral=float(0),
-            vertical=float(0),
-            roll=float(0),
-            pitch=float(0),
-            yaw=float(0),
-            author=PixhawkInstruction.MANUAL_CONTROL,
+            author=PixhawkInstruction.MANUAL_CONTROL
         )
 
     def controller_callback(self, msg: Joy) -> None:
