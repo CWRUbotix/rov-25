@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import TypedDict, Final
-
 from PyQt6.QtWidgets import QPushButton, QWidget
 
 
@@ -9,6 +8,7 @@ class WidgetState(Enum):
     OFF = 2
     INACTIVE = 3
     NONE = 4
+
 
 # class StylesheetDictionary(TypedDict):
 #     WidgetState.ON: str
