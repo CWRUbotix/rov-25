@@ -1,3 +1,5 @@
+from typing import Final
+
 import lgpio
 import rclpy
 from rclpy.node import Node
@@ -6,7 +8,7 @@ from rclpy.qos import qos_profile_system_default
 from rov_msgs.msg import ValveManip
 
 # Configuration
-SERVO_PIN = 12  # pin used to drive Valve Manip
+SERVO_PIN: Final[int] = 12  # pin used to drive Valve Manip
 
 
 class ValveManipulator(Node):
