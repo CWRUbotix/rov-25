@@ -1,13 +1,11 @@
-from collections.abc import Callable
+from typing import Final
 
 import rclpy
 from mavros_msgs.msg import OverrideRCIn
+from pixhawk_instruction_utils import pixhawk_instruction_to_tuple, tuple_to_pixhawk_instruction
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
-from typing import Final
-
-from pixhawk_instruction_utils import pixhawk_instruction_to_tuple, tuple_to_pixhawk_instruction
 
 from rov_msgs.msg import PixhawkInstruction
 from rov_msgs.srv import AutonomousFlight
@@ -45,6 +43,7 @@ def joystick_map(raw: float) -> float:
         mapped *= -1
     return mapped
 
+
 def rc_in_map(value: float) -> int:
     return int(RANGE_SPEED * value) + ZERO_SPEED
 
@@ -81,8 +80,11 @@ class MultiplexerNode(Node):
     def smooth_pixhawk_instruction(self, msg: PixhawkInstruction) -> PixhawkInstruction:
         instruction_tuple = pixhawk_instruction_to_tuple(msg)
         instruction_tuple = tuple(
-            MultiplexerNode.smooth_value(previous_value, value) for (previous_value, value)
-            in zip(self.previous_instruction_tuple, instruction_tuple, strict=True))
+            MultiplexerNode.smooth_value(previous_value, value)
+            for (previous_value, value) in zip(
+                self.previous_instruction_tuple, instruction_tuple, strict=True
+            )
+        )
         smoothed_instruction = tuple_to_pixhawk_instruction(instruction_tuple, msg.author)
 
         self.previous_pixhawk_instruction = smoothed_instruction

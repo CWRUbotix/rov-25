@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 import rclpy
 from mavros_msgs.srv import CommandBool
@@ -7,8 +7,6 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
 from sensor_msgs.msg import Joy
-
-from pixhawk_instruction_utils import pixhawk_instruction_to_tuple, tuple_to_pixhawk_instruction
 
 from rov_msgs.msg import CameraControllerSwitch, Manip, PixhawkInstruction, ValveManip
 
