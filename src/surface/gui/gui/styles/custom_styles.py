@@ -10,6 +10,7 @@ class WidgetState(Enum):
     INACTIVE = 3
     NONE = 4
 
+
 class IndicatorMixin(QWidget):
     # The stylesheets that correspond to each widget state
     _STYLESHEETS: Final[dict[WidgetState, str]] = {
