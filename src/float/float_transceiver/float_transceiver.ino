@@ -7,12 +7,12 @@
 // Blue Robotics MS5837 Library v1.1.1 by BlueRobotics
 // PicoEncoder v1.0.9 by Paulo Marques
 
+#include <RHSoftwareSPI.h>
 #include <RH_RF95.h>
 #include <SPI.h>
-#include <RHSoftwareSPI.h>
-#include "PicoEncoder.h"
 
 #include "MS5837.h"
+#include "PicoEncoder.h"
 #include "rov_common.hpp"
 
 // H-bridge direction control pins
@@ -68,8 +68,16 @@ MS5837 pressureSensor;
 byte packets[2][PKT_LEN];
 int packetIndex = PKT_HEADER_LEN;
 
-enum class StageType { Deploy, WaitDeploying, WaitTransmitting, 
-  Suck, Pump, Descending, Ascending, HoldDepth};
+enum class StageType {
+  Deploy,
+  WaitDeploying,
+  WaitTransmitting,
+  Suck,
+  Pump,
+  Descending,
+  Ascending,
+  HoldDepth
+};
 enum class OverrideState { NoOverride, Stop, Suck, Pump };
 enum class MotorState { Stop, Suck, Pump, Error };
 
@@ -83,7 +91,7 @@ uint8_t profileHalf = 0;
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial){}
+  while (!Serial) {}
 
   Serial.println("Float Transceiver");
   Serial.println();
@@ -119,8 +127,8 @@ void setup() {
   encoder.begin(ENCODER_PIN);
 }
 
-void loop(){
-  while(overrideState != OverrideState::NoOverride){
+void loop() {
+  while (overrideState != OverrideState::NoOverride) {
     loopOverride();
   }
 
@@ -135,127 +143,125 @@ void loop(){
   * stage = [next stage]
   */
   switch (stage) {
-  case StageType::Deploy:
-    // Deploy code
-    stageTimeLimit = millis() + PUMP_MAX;
-    pump();
-    // Await override or exit condition
-    while(overrideState == OverrideState::NoOverride && millis() < stageTimeLimit
-      && digitalRead(LIMIT_EMPTY)){
+    case StageType::Deploy:
+      // Deploy code
+      stageTimeLimit = millis() + PUMP_MAX;
+      pump();
+      // Await override or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
+             digitalRead(LIMIT_EMPTY)) {
         receiveCommand();
       }
-    if(overrideState != OverrideState::NoOverride) break;
-    stage = StageType::WaitDeploying;
-  case StageType::WaitDeploying:
-    // WaitDeploying code
-    stageTimeLimit = millis() + RELEASE_MAX;
-    stop();
-    // Await override, submerge command, or exit condition
-    while(overrideState == OverrideState::NoOverride && millis() < stageTimeLimit
-      && !receiveCommand()){
-      // Send tiny packet for judges while deploying
-      if (millis() >= pressureReadTime) {
-        pressureReadTime = millis();
-        pressureSensor.read();
-        float pressure = pressureSensor.pressure();
-        serialPrintf("Reading pressure at surface: %f\n", pressure);
+      if (overrideState != OverrideState::NoOverride) break;
+      stage = StageType::WaitDeploying;
+    case StageType::WaitDeploying:
+      // WaitDeploying code
+      stageTimeLimit = millis() + RELEASE_MAX;
+      stop();
+      // Await override, submerge command, or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
+             !receiveCommand()) {
+        // Send tiny packet for judges while deploying
+        if (millis() >= pressureReadTime) {
+          pressureReadTime = millis();
+          pressureSensor.read();
+          float pressure = pressureSensor.pressure();
+          serialPrintf("Reading pressure at surface: %f\n", pressure);
 
-        int intComponent = pressure;
-        int fracComponent = trunc((pressure - intComponent) * 10000);
-        char judgePacketBuffer[JUDGE_PKT_SIZE];
-        snprintf(
-          judgePacketBuffer, JUDGE_PKT_SIZE, "ROS:SINGLE:%d:%lu,%d.%04d\0", TEAM_NUM,
-          pressureReadTime, intComponent, fracComponent);
-        Serial.println(judgePacketBuffer);
+          int intComponent = pressure;
+          int fracComponent = trunc((pressure - intComponent) * 10000);
+          char judgePacketBuffer[JUDGE_PKT_SIZE];
+          snprintf(
+            judgePacketBuffer, JUDGE_PKT_SIZE, "ROS:SINGLE:%d:%lu,%d.%04d\0", TEAM_NUM,
+            pressureReadTime, intComponent, fracComponent);
+          Serial.println(judgePacketBuffer);
 
-        rf95.send((uint8_t *)judgePacketBuffer, strlen(judgePacketBuffer));
-        rf95.waitPacketSent();
+          rf95.send((uint8_t*)judgePacketBuffer, strlen(judgePacketBuffer));
+          rf95.waitPacketSent();
 
-        pressureReadTime += PRESSURE_READ_INTERVAL;
+          pressureReadTime += PRESSURE_READ_INTERVAL;
+        }
       }
-    }
-    if(overrideState != OverrideState::NoOverride) break;
-    stage = StageType::Suck;
-  case StageType::Suck:
-    // Suck code
-    stageTimeLimit = millis() + SUCK_MAX;
-    suck();
-    // Await override or exit condition
-    while(overrideState == OverrideState::NoOverride && millis() < stageTimeLimit
-    && digitalRead(LIMIT_FULL)){
-      receiveCommand();
-    }
-    if(overrideState != OverrideState::NoOverride) break;
-    stage = StageType::Descending;
-  case StageType::Descending:
-    // Descending code
-    stageTimeLimit = millis() + DESCEND_TIME;
-    stop();
-    // Await override or exit condition
-    while(overrideState == OverrideState::NoOverride && millis() < stageTimeLimit){
-      if(millis() >= pressureReadTime && packetIndex < PKT_LEN){
-        profilePressure();
-      }
-      receiveCommand();
-    }
-    if(overrideState != OverrideState::NoOverride) break;
-    stage = StageType::HoldDepth;
-  case StageType::HoldDepth:
-    // HoldDepth code
-    stageTimeLimit = millis() + HOLD_TIME;
-    // TODO: Magical encoder stuff to stay hovering
-    // Await override or exit condition
-    while(overrideState == OverrideState::NoOverride && millis() < stageTimeLimit){
-      if(millis() >= pressureReadTime && packetIndex < PKT_LEN){
-        profilePressure();
-      }
-      receiveCommand();
-    }
-    if(overrideState != OverrideState::NoOverride) break;
-    stage = StageType::Pump;
-  case StageType::Pump:
-    // Pump code
-    stageTimeLimit = millis() + PUMP_MAX;
-    // Await override or exit condition
-    while(overrideState == OverrideState::NoOverride && millis() < stageTimeLimit
-      && digitalRead(LIMIT_EMPTY)){
+      if (overrideState != OverrideState::NoOverride) break;
+      stage = StageType::Suck;
+    case StageType::Suck:
+      // Suck code
+      stageTimeLimit = millis() + SUCK_MAX;
+      suck();
+      // Await override or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
+             digitalRead(LIMIT_FULL)) {
         receiveCommand();
       }
-    if(overrideState != OverrideState::NoOverride) break;
-    stage = StageType::Ascending;
-  case StageType::Ascending:
-    // Ascending code
-    stageTimeLimit = millis() + ASCEND_TIME;
-    stop();
-    // Await override or exit condition
-    while(overrideState == OverrideState::NoOverride && millis() < stageTimeLimit){
-      if(millis() >= pressureReadTime && packetIndex < PKT_LEN){
-        profilePressure();
+      if (overrideState != OverrideState::NoOverride) break;
+      stage = StageType::Descending;
+    case StageType::Descending:
+      // Descending code
+      stageTimeLimit = millis() + DESCEND_TIME;
+      stop();
+      // Await override or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit) {
+        if (millis() >= pressureReadTime && packetIndex < PKT_LEN) {
+          profilePressure();
+        }
+        receiveCommand();
       }
-      receiveCommand();
-    }
-    if(overrideState != OverrideState::NoOverride) break;
-    stage = StageType::WaitTransmitting;
-  case StageType::WaitTransmitting:
-    // WaitTransmitting code
-    // Await override or exit condition
-    while(overrideState == OverrideState::NoOverride && millis() < stageTimeLimit){
-      if(millis() >= packetSendTime){
-        transmitPressurePacket();
-        packetSendTime = millis() + PACKET_SEND_INTERVAL;
+      if (overrideState != OverrideState::NoOverride) break;
+      stage = StageType::HoldDepth;
+    case StageType::HoldDepth:
+      // HoldDepth code
+      stageTimeLimit = millis() + HOLD_TIME;
+      // TODO: Magical encoder stuff to stay hovering
+      // Await override or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit) {
+        if (millis() >= pressureReadTime && packetIndex < PKT_LEN) {
+          profilePressure();
+        }
+        receiveCommand();
       }
-      receiveCommand();
-    }
-    if(overrideState != OverrideState::NoOverride) break;
-    stage = StageType::Descending;
-  break;
-  default:
-    Serial.println("Error: Undefined float stage");
-    break;
+      if (overrideState != OverrideState::NoOverride) break;
+      stage = StageType::Pump;
+    case StageType::Pump:
+      // Pump code
+      stageTimeLimit = millis() + PUMP_MAX;
+      // Await override or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
+             digitalRead(LIMIT_EMPTY)) {
+        receiveCommand();
+      }
+      if (overrideState != OverrideState::NoOverride) break;
+      stage = StageType::Ascending;
+    case StageType::Ascending:
+      // Ascending code
+      stageTimeLimit = millis() + ASCEND_TIME;
+      stop();
+      // Await override or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit) {
+        if (millis() >= pressureReadTime && packetIndex < PKT_LEN) {
+          profilePressure();
+        }
+        receiveCommand();
+      }
+      if (overrideState != OverrideState::NoOverride) break;
+      stage = StageType::WaitTransmitting;
+    case StageType::WaitTransmitting:
+      // WaitTransmitting code
+      // Await override or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit) {
+        if (millis() >= packetSendTime) {
+          transmitPressurePacket();
+          packetSendTime = millis() + PACKET_SEND_INTERVAL;
+        }
+        receiveCommand();
+      }
+      if (overrideState != OverrideState::NoOverride) break;
+      stage = StageType::Descending;
+      break;
+    default: Serial.println("Error: Undefined float stage"); break;
   }
 }
 
-void loopOverride(){
+void loopOverride() {
   if (overrideState == OverrideState::Suck) {
     if (digitalRead(LIMIT_FULL) == HIGH) {
       suck();
@@ -377,7 +383,7 @@ bool receiveCommand() {
   return shouldSubmerge;
 }
 
-void profilePressure(){
+void profilePressure() {
   pressureReadTime = millis();
   memcpy(packets[profileHalf] + packetIndex, &pressureReadTime, sizeof(uint32_t));
   packetIndex += sizeof(uint32_t);
@@ -423,7 +429,7 @@ void clearPacketPayloads() {
 
 void initRadio() {
   softwareSPI.setPins(8, 15, 14);
-  
+
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
