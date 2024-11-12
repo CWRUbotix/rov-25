@@ -20,7 +20,7 @@ class WidgetState(Enum):
 
 class IndicatorMixin(QWidget):
     # The stylesheets that correspond to each widget state
-    _STYLESHEETS: Final[dict] = {
+    _STYLESHEETS: Final[dict[WidgetState, str]] = {
         # Stylesheet for when a component is running, enabled, or armed
         WidgetState.ON: 'QWidget { background-color: limegreen; }',
         # Stylesheet for when a component is disabled, not running, or disarmed, but could be
