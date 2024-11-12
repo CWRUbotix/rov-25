@@ -1,10 +1,10 @@
-from enum import Enum
+from enum import IntEnum
 from typing import Final
 
 from PyQt6.QtWidgets import QPushButton, QWidget
 
 
-class WidgetState(Enum):
+class WidgetState(IntEnum):
     ON = 1
     OFF = 2
     INACTIVE = 3
