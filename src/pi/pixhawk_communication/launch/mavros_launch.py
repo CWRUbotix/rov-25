@@ -31,7 +31,7 @@ def generate_launch_description() -> LaunchDescription:
         ],
         remappings=[
             ('/pi/mavros/state', '/tether/mavros/state'),
-            ('/pi/mavros/manual_control', '/tether/mavros/manual_control'),
+            ('/pi/mavros/manual_control/send', '/tether/mavros/manual_control/send'),
             ('/pi/mavros/cmd/arming', '/tether/mavros/cmd/arming'),
             ('/pi/mavros/cmd/command', '/tether/mavros/cmd/command'),
         ],

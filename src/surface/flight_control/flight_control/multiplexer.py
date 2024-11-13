@@ -17,8 +17,8 @@ JOYSTICK_EXPONENT = 3
 
 # Range of values Pixhawk takes
 # In microseconds
-ZERO_SPEED = 1500
-MAX_RANGE_SPEED = 400
+ZERO_SPEED = 0
+MAX_RANGE_SPEED = 2000
 RANGE_SPEED = MAX_RANGE_SPEED * SPEED_THROTTLE
 
 # Channels for RC command
@@ -64,7 +64,9 @@ class MultiplexerNode(Node):
     def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
         """Apply a function to each dimension of this PixhawkInstruction."""
         msg.forward = function_to_apply(msg.forward)
-        msg.vertical = function_to_apply(msg.vertical)
+        # msg.vertical = float(msg.vertical*500) 
+        # from rclpy.logging import get_logger
+        # get_logger('pi').info(str(msg.vertical))
         msg.lateral = function_to_apply(msg.lateral)
         msg.pitch = function_to_apply(msg.pitch)
         msg.yaw = function_to_apply(msg.yaw)
@@ -96,7 +98,7 @@ class MultiplexerNode(Node):
         MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
 
         rc_msg.x = float(msg.forward)
-        rc_msg.z = float(msg.vertical)
+        rc_msg.z = float(msg.vertical)*1000 + 500
         rc_msg.y = float(msg.lateral)
         rc_msg.r = float(msg.yaw)
         rc_msg.enabled_extensions = 0b00000011
