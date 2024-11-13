@@ -2,7 +2,7 @@ from typing import TypeAlias
 
 from rov_msgs.msg import PixhawkInstruction
 
-InstructionTuple: TypeAlias = tuple[float, float, float, float, float, float]
+InstructionTuple: TypeAlias = tuple[float]
 
 
 def pixhawk_instruction_to_tuple(msg: PixhawkInstruction) -> InstructionTuple:

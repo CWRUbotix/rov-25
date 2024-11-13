@@ -97,7 +97,7 @@ class MultiplexerNode(Node):
         rc_msg = OverrideRCIn()
 
         # Maps to PWM
-        instruction_tuple = pixhawk_instruction_to_tuple(rc_msg)
+        instruction_tuple = pixhawk_instruction_to_tuple(msg)
         instruction_tuple = tuple(rc_in_map(value) for value in instruction_tuple)
         msg = tuple_to_pixhawk_instruction(instruction_tuple)
 
