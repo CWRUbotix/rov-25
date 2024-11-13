@@ -2,11 +2,14 @@ from typing import Final
 
 import rclpy
 from mavros_msgs.msg import OverrideRCIn
-from flight_control.pixhawk_instruction_utils import pixhawk_instruction_to_tuple, tuple_to_pixhawk_instruction
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 
+from flight_control.pixhawk_instruction_utils import (
+    pixhawk_instruction_to_tuple,
+    tuple_to_pixhawk_instruction,
+)
 from rov_msgs.msg import PixhawkInstruction
 from rov_msgs.srv import AutonomousFlight
 
