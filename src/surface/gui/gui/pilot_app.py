@@ -64,7 +64,7 @@ class PilotApp(App):
         if gui_type == GuiType.PILOT:
             self.setWindowTitle('HI')
 
-            icon = QIcon('control.png')
+            icon = QIcon('control48.png')
             
             self.setWindowIcon(icon)
 
