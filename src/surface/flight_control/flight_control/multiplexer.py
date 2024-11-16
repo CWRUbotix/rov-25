@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 import rclpy
-from mavros_msgs.msg import OverrideRCIn, ManualControl
+from mavros_msgs.msg import ManualControl
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
@@ -39,6 +39,7 @@ def joystick_map(raw: float) -> float:
         mapped *= -1
     return mapped
 
+
 class MultiplexerNode(Node):
     def __init__(self) -> None:
         super().__init__('multiplexer', parameter_overrides=[])
@@ -69,7 +70,7 @@ class MultiplexerNode(Node):
         msg.pitch = function_to_apply(msg.pitch)
         msg.yaw = function_to_apply(msg.yaw)
         msg.roll = function_to_apply(msg.roll)
-    
+
     @staticmethod
     def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
         """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
@@ -79,7 +80,9 @@ class MultiplexerNode(Node):
         MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
 
         rc_msg.x = float(msg.forward)
-        rc_msg.z = float(msg.vertical)*(1000*SPEED_THROTTLE) + 500 # To account for different z limits
+        rc_msg.z = (
+            float(msg.vertical) * (1000 * SPEED_THROTTLE) + 500
+        )  # To account for different z limits
         rc_msg.y = float(msg.lateral)
         rc_msg.r = float(msg.yaw)
         rc_msg.enabled_extensions = 0b00000011
@@ -114,6 +117,7 @@ class MultiplexerNode(Node):
             return
 
         self.rc_pub.publish(msg=self.to_manual_control(msg))
+
 
 def main() -> None:
     rclpy.init()
