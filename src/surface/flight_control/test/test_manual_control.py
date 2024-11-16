@@ -9,6 +9,7 @@ from flight_control.multiplexer import (
     THROTTLE_CHANNEL,
     YAW_CHANNEL,
     ZERO_SPEED,
+    SPEED_THROTTLE,
     MultiplexerNode,
 )
 
@@ -38,7 +39,7 @@ def test_joystick_profiles() -> None:
     msg = MultiplexerNode.to_manual_control(instruction)
 
     assert msg.x == ZERO_SPEED
-    assert msg.z == (ZERO_SPEED + RANGE_SPEED)
+    assert msg.z == (500 + 1000*SPEED_THROTTLE)
     assert msg.y == (ZERO_SPEED - RANGE_SPEED)
 
     # 1539 1378

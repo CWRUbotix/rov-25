@@ -64,30 +64,11 @@ class MultiplexerNode(Node):
     def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
         """Apply a function to each dimension of this PixhawkInstruction."""
         msg.forward = function_to_apply(msg.forward)
-        # msg.vertical = float(msg.vertical*500) 
-        # from rclpy.logging import get_logger
-        # get_logger('pi').info(str(msg.vertical))
+        msg.vertical = msg.vertical
         msg.lateral = function_to_apply(msg.lateral)
         msg.pitch = function_to_apply(msg.pitch)
         msg.yaw = function_to_apply(msg.yaw)
         msg.roll = function_to_apply(msg.roll)
-
-    @staticmethod
-    def to_override_rc_in(msg: PixhawkInstruction) -> OverrideRCIn:
-        """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
-        rc_msg = OverrideRCIn()
-
-        # Maps to PWM
-        MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
-
-        rc_msg.channels[FORWARD_CHANNEL] = msg.forward
-        rc_msg.channels[THROTTLE_CHANNEL] = msg.vertical
-        rc_msg.channels[LATERAL_CHANNEL] = msg.lateral
-        rc_msg.channels[PITCH_CHANNEL] = msg.pitch
-        rc_msg.channels[YAW_CHANNEL] = msg.yaw
-        rc_msg.channels[ROLL_CHANNEL] = msg.roll
-
-        return rc_msg
     
     @staticmethod
     def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
@@ -98,7 +79,7 @@ class MultiplexerNode(Node):
         MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
 
         rc_msg.x = float(msg.forward)
-        rc_msg.z = float(msg.vertical)*1000 + 500
+        rc_msg.z = float(msg.vertical)*(1000*SPEED_THROTTLE) + 500 # To account for different z limits
         rc_msg.y = float(msg.lateral)
         rc_msg.r = float(msg.yaw)
         rc_msg.enabled_extensions = 0b00000011
