@@ -11,12 +11,19 @@ from gui.widgets.task_selector import TaskSelector
 from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.timer import InteractiveTimer
 
+from PyQt6.QtGui import QIcon
+
 
 class OperatorApp(App):
     def __init__(self) -> None:
         super().__init__('operator_gui_node')
 
         self.setWindowTitle('Operator GUI - CWRUbotix ROV 2024')
+        icon = QIcon('control.png')
+            
+        self.setWindowIcon(icon)
+        
+       
 
         # Main tab
         main_tab = QWidget()
@@ -42,6 +49,7 @@ class OperatorApp(App):
         right_pane.addWidget(IPWidget())
         right_pane.addStretch()
         right_pane.addWidget(TaskSelector())
+       
 
         # Add tabs to root
         root_layout = QVBoxLayout()

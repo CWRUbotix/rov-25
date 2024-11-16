@@ -11,6 +11,8 @@ from gui.widgets.livestream_header import LivestreamHeader
 from gui.widgets.timer import TimerDisplay
 from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
 
+from PyQt6.QtGui import QIcon
+
 FRONT_CAM_TOPIC = 'front_cam/image_raw'
 BOTTOM_CAM_TOPIC = 'bottom_cam/image_raw'
 
@@ -42,8 +44,10 @@ class PilotApp(App):
     def __init__(self) -> None:
         super().__init__('pilot_gui_node')
 
+
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
+        
 
         simulation_param = self.node.declare_parameter('simulation', value=False)
         gui_param = self.node.declare_parameter('gui', 'pilot')
@@ -58,7 +62,14 @@ class PilotApp(App):
         gui_type = GuiType(gui_param.value)
 
         if gui_type == GuiType.PILOT:
-            self.setWindowTitle('Pilot GUI - CWRUbotix ROV 2024')
+            self.setWindowTitle('HI')
+
+            icon = QIcon('control.png')
+            
+            self.setWindowIcon(icon)
+
+            
+           
 
             front_cam_description = CameraDescription(
                 front_cam_type, FRONT_CAM_TOPIC, 'Front Camera', 1280, 720
