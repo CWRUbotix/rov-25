@@ -1,41 +1,13 @@
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QColor
+from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QLabel, QWidget
 
-from gui.styles.custom_styles import IndicatorMixin
+from gui.styles.custom_styles import IndicatorMixin, WidgetState
 
 
-class Circle(QLabel):
-    def __init__(
-        self,
-        parent: QWidget | None = None,
-        radius: int = 50,
-        color: QColor | Qt.GlobalColor | None = None,
-    ) -> None:
+class CircleIndicator(QLabel, IndicatorMixin):
+    def __init__(self, parent: QWidget | None = None, radius: int = 50) -> None:
         super().__init__(parent)
         self.setFixedSize(QSize(2 * radius, 2 * radius))
-        stylesheet = self.styleSheet()
-        self.setStyleSheet(f'{stylesheet}border-radius: {radius}px;')
-
-        if color:
-            self.set_color(color)
-
-    def set_color(self, color: QColor | Qt.GlobalColor) -> None:
-        """
-        Set the background color of this circle.
-
-        Parameters
-        ----------
-        color : QColor | Qt.GlobalColor
-            The new color to set
-        """
-        if isinstance(color, Qt.GlobalColor):
-            color = QColor(color)
-        style = f'background-color: rgb({color.red()}, {color.green()}, {color.blue()});'
-        self.setStyleSheet(f'{self.styleSheet()}{style}')
-
-
-class CircleIndicator(Circle, IndicatorMixin):
-    def __init__(self, parent: QWidget | None = None, radius: int = 50) -> None:
-        super().__init__(parent, radius)
-        self.set_inactive()
+        stylesheet = f'QLabel {{border-radius: {radius}px;}}'
+        self.set_initial_stylesheet(stylesheet)
+        self.set_state(WidgetState.INACTIVE)

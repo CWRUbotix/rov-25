@@ -4,31 +4,31 @@
 
     <!-- Base Gazebo plugins -->
     <plugin
-        filename="ignition-gazebo-physics-system"
-        name="ignition::gazebo::systems::Physics">
+        filename="gz-sim-physics-system"
+        name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-        filename="ignition-gazebo-user-commands-system"
-        name="ignition::gazebo::systems::UserCommands">
+        filename="gz-sim-user-commands-system"
+        name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-        filename="ignition-gazebo-scene-broadcaster-system"
-        name="ignition::gazebo::systems::SceneBroadcaster">
+        filename="gz-sim-scene-broadcaster-system"
+        name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <!-- IMU plugin manages all IMU sensors -->
     <plugin filename="libgz-sim-imu-system.so"
-            name="ignition::gazebo::systems::Imu">
+            name="gz::sim::systems::Imu">
     </plugin>
 
-    <plugin filename="ignition-gazebo-sensors-system"
-            name="ignition::gazebo::systems::Sensors">
+    <plugin filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
     </plugin>
 
     <!-- Buoyancy plugin manages buoyancy for all models -->
     <plugin
-        filename="ignition-gazebo-buoyancy-system"
-        name="ignition::gazebo::systems::Buoyancy">
+        filename="gz-sim-buoyancy-system"
+        name="gz::sim::systems::Buoyancy">
       <!-- Fluid density is 1 (air) above 0 and 1000 (water) below 0 -->
       <graded_buoyancy>
         <default_density>1000</default_density>
