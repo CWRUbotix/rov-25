@@ -2,9 +2,9 @@ import rclpy
 from flight_control.manual_control_node import ManualControlNode
 from flight_control.multiplexer import (
     RANGE_SPEED,
-    ZERO_SPEED,
-    Z_ZERO_SPEED,
     Z_RANGE_SPEED,
+    Z_ZERO_SPEED,
+    ZERO_SPEED,
     MultiplexerNode,
 )
 

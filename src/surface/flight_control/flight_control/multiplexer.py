@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from typing import Final
 
 import rclpy
 from mavros_msgs.msg import ManualControl
@@ -8,8 +9,6 @@ from rclpy.qos import QoSPresetProfiles
 
 from rov_msgs.msg import PixhawkInstruction
 from rov_msgs.srv import AutonomousFlight
-
-from typing import Final
 
 # Brown out protection
 SPEED_THROTTLE = 0.85
@@ -88,8 +87,8 @@ class MultiplexerNode(Node):
 
         mc_msg.x = msg.forward
         mc_msg.z = (
-            (Z_RANGE_SPEED * msg.vertical) + Z_ZERO_SPEED
-        )  # To account for different z limits
+            Z_RANGE_SPEED * msg.vertical
+        ) + Z_ZERO_SPEED  # To account for different z limits
         mc_msg.y = msg.lateral
         mc_msg.r = msg.yaw
         mc_msg.enabled_extensions = EXTENSIONS_CODE
