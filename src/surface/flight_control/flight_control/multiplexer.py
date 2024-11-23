@@ -9,6 +9,8 @@ from rclpy.qos import QoSPresetProfiles
 from rov_msgs.msg import PixhawkInstruction
 from rov_msgs.srv import AutonomousFlight
 
+from typing import Final
+
 # Brown out protection
 SPEED_THROTTLE = 0.85
 
@@ -17,9 +19,14 @@ JOYSTICK_EXPONENT = 3
 
 # Range of values Pixhawk takes
 # In microseconds
-ZERO_SPEED = 0
-MAX_RANGE_SPEED = 2000
-RANGE_SPEED = MAX_RANGE_SPEED * SPEED_THROTTLE
+ZERO_SPEED: Final = 0
+Z_ZERO_SPEED: Final = 500
+MAX_RANGE_SPEED: Final = 2000
+Z_MAX_RANGE_SPEED: Final = 1000
+RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
+Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
+
+EXTENSIONS_CODE: Final = 0b00000011
 
 # Channels for RC command
 MAX_CHANNEL = 8
@@ -57,7 +64,7 @@ class MultiplexerNode(Node):
             QoSPresetProfiles.DEFAULT.value,
         )
 
-        self.rc_pub = self.create_publisher(
+        self.mc_pub = self.create_publisher(
             ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
         )
 
@@ -74,22 +81,22 @@ class MultiplexerNode(Node):
     @staticmethod
     def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
         """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
-        rc_msg = ManualControl()
+        mc_msg = ManualControl()
 
         # Maps to PWM
-        MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
+        MultiplexerNode.apply(msg, lambda value: (RANGE_SPEED * value) + ZERO_SPEED)
 
-        rc_msg.x = float(msg.forward)
-        rc_msg.z = (
-            float(msg.vertical) * (1000 * SPEED_THROTTLE) + 500
+        mc_msg.x = msg.forward
+        mc_msg.z = (
+            (Z_RANGE_SPEED * msg.vertical) + Z_ZERO_SPEED
         )  # To account for different z limits
-        rc_msg.y = float(msg.lateral)
-        rc_msg.r = float(msg.yaw)
-        rc_msg.enabled_extensions = 0b00000011
-        rc_msg.s = float(msg.pitch)
-        rc_msg.t = float(msg.roll)
+        mc_msg.y = msg.lateral
+        mc_msg.r = msg.yaw
+        mc_msg.enabled_extensions = EXTENSIONS_CODE
+        mc_msg.s = msg.pitch
+        mc_msg.t = msg.roll
 
-        return rc_msg
+        return mc_msg
 
     def state_control(
         self, req: AutonomousFlight.Request, res: AutonomousFlight.Response
@@ -116,7 +123,7 @@ class MultiplexerNode(Node):
         else:
             return
 
-        self.rc_pub.publish(msg=self.to_manual_control(msg))
+        self.mc_pub.publish(msg=self.to_manual_control(msg))
 
 
 def main() -> None:
