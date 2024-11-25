@@ -136,10 +136,9 @@ class FloatComm(QWidget):
         time_data = list(msg.time_data)
         depth_data = list(msg.depth_data)
 
-        if (
-            msg.profile_number == 0
-            and self.completed_profile_one
-            or msg.profile_number not in (0, 1)
+        if (msg.profile_number == 0 and self.completed_profile_one) or msg.profile_number not in (
+            0,
+            1,
         ):
             return
 
