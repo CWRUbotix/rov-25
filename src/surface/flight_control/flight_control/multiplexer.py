@@ -106,7 +106,8 @@ class MultiplexerNode(Node):
         elif (
             msg.author == PixhawkInstruction.KEYBOARD_CONTROL
             and self.state == AutonomousFlight.Request.STOP
-            or msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL
+        ) or (
+            msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL
             and self.state == AutonomousFlight.Request.START
         ):
             pass
