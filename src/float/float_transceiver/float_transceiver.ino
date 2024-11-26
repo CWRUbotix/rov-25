@@ -58,6 +58,7 @@ RHSoftwareSPI softwareSPI;
 // Encoder initialization
 PicoEncoder encoder;
 const uint8_t ENCODER_PIN = 4;
+const int STEP_TOL = 10000;
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
@@ -411,6 +412,25 @@ bool profileAndWait(int limitPin) {
     receiveCommand();
   }
   return overrideState != OverrideState::NoOverride;
+}
+
+// Instruct the motor to travel to a position
+// TODO: convert 'position' to an actual meaningful value
+bool travelTo(int pos){
+  encoder.update();
+  if(pos < (int)encoder.step - STEP_TOL){
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    return false;
+  } else if(pos > (int)encoder.step + STEP_TOL){
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    return false;
+  } else {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    return true;
+  }
 }
 
 /******* Setup Methods *******/
