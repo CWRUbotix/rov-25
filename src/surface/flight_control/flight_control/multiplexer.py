@@ -122,7 +122,7 @@ class MultiplexerNode(Node):
         else:
             return
 
-        self.mc_pub.publish(msg=self.to_manual_control(msg))
+        self.mc_pub.publish(self.to_manual_control(msg))
 
 
 def main() -> None:
