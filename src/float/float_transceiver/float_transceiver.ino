@@ -122,9 +122,9 @@ void setup() {
 
   initRadio();
   initPressureSensor();
-  if(encoder.begin(ENCODER_PIN) != 0){
+  if (encoder.begin(ENCODER_PIN) != 0) {
     Serial.print("Encoder init failed!");
-    while(true);
+    while (true);
   }
 }
 
@@ -190,34 +190,34 @@ void loop() {
       stageTimeLimit = millis() + SUCK_MAX;
       suck();
       // Await override or exit condition
-      if(profileAndWait(LIMIT_FULL)) break;
+      if (profileAndWait(LIMIT_FULL)) break;
       stage = StageType::Descending;
     case StageType::Descending:
       // Descending code
       stageTimeLimit = millis() + DESCEND_TIME;
       stop();
       // Await override or exit condition
-      if(profileAndWait(-1)) break;
+      if (profileAndWait(-1)) break;
       stage = StageType::HoldDepth;
     case StageType::HoldDepth:
       // HoldDepth code
       stageTimeLimit = millis() + HOLD_TIME;
       // TODO: Magical encoder stuff to stay hovering
       // Await override or exit condition
-      if(profileAndWait(-1)) break;
+      if (profileAndWait(-1)) break;
       stage = StageType::Pump;
     case StageType::Pump:
       // Pump code
       stageTimeLimit = millis() + PUMP_MAX;
       // Await override or exit condition
-      if(profileAndWait(LIMIT_EMPTY)) break;
+      if (profileAndWait(LIMIT_EMPTY)) break;
       stage = StageType::Ascending;
     case StageType::Ascending:
       // Ascending code
       stageTimeLimit = millis() + ASCEND_TIME;
       stop();
       // Await override or exit condition
-      if(profileAndWait(-1)) break;
+      if (profileAndWait(-1)) break;
       stage = StageType::WaitTransmitting;
     case StageType::WaitTransmitting:
       // WaitTransmitting code
@@ -402,15 +402,15 @@ void clearPacketPayloads() {
 
 // Default state exit condition/basic limit pin condition
 // Pass in -1 for no limit pin
-bool profileAndWait(int limitPin){
+bool profileAndWait(int limitPin) {
   while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
-            (limitPin < 0 || digitalRead(limitPin))) {
-        if (millis() >= pressureReadTime && packetIndex < PKT_LEN) {
-          profilePressure();
-        }
-        receiveCommand();
-      }
-    return overrideState != OverrideState::NoOverride;
+         (limitPin < 0 || digitalRead(limitPin))) {
+    if (millis() >= pressureReadTime && packetIndex < PKT_LEN) {
+      profilePressure();
+    }
+    receiveCommand();
+  }
+  return overrideState != OverrideState::NoOverride;
 }
 
 /******* Setup Methods *******/
