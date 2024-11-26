@@ -1,16 +1,14 @@
-from typing import TypeAlias
+from collections.abc import Callable
 
 from rov_msgs.msg import PixhawkInstruction
 
-InstructionTuple: TypeAlias = tuple[float, float, float, float, float, float]
 
-
-def pixhawk_instruction_to_tuple(msg: PixhawkInstruction) -> InstructionTuple:
+def pixhawk_instruction_to_tuple(msg: PixhawkInstruction) -> tuple[float, ...]:
     return (msg.forward, msg.vertical, msg.lateral, msg.pitch, msg.yaw, msg.roll)
 
 
 def tuple_to_pixhawk_instruction(
-    instruction_tuple: InstructionTuple, author: int = PixhawkInstruction.MANUAL_CONTROL
+    instruction_tuple: tuple[float, ...], author: int = PixhawkInstruction.MANUAL_CONTROL
 ) -> PixhawkInstruction:
     return PixhawkInstruction(
         forward=instruction_tuple[0],
@@ -21,3 +19,9 @@ def tuple_to_pixhawk_instruction(
         yaw=instruction_tuple[5],
         author=author,
     )
+
+
+def apply_function(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> PixhawkInstruction:
+    instruction_tuple = pixhawk_instruction_to_tuple(msg)
+    instruction_tuple = tuple(function_to_apply(value) for value in instruction_tuple)
+    return tuple_to_pixhawk_instruction(instruction_tuple, msg.author)

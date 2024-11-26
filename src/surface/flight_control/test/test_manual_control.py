@@ -1,13 +1,9 @@
 import rclpy
 from flight_control.manual_control_node import ManualControlNode
 from flight_control.multiplexer import (
-    FORWARD_CHANNEL,
-    LATERAL_CHANNEL,
-    PITCH_CHANNEL,
     RANGE_SPEED,
-    ROLL_CHANNEL,
-    THROTTLE_CHANNEL,
-    YAW_CHANNEL,
+    Z_RANGE_SPEED,
+    Z_ZERO_SPEED,
     ZERO_SPEED,
     MultiplexerNode,
 )
@@ -35,14 +31,14 @@ def test_joystick_profiles() -> None:
         roll=0.92,
     )
 
-    msg = MultiplexerNode.to_override_rc_in(instruction)
+    msg = MultiplexerNode.to_manual_control(instruction)
 
-    assert msg.channels[FORWARD_CHANNEL] == ZERO_SPEED
-    assert msg.channels[THROTTLE_CHANNEL] == (ZERO_SPEED + RANGE_SPEED)
-    assert msg.channels[LATERAL_CHANNEL] == (ZERO_SPEED - RANGE_SPEED)
+    assert msg.x == ZERO_SPEED
+    assert msg.z == (Z_ZERO_SPEED + Z_RANGE_SPEED)
+    assert msg.y == (ZERO_SPEED - RANGE_SPEED)
 
     # 1539 1378
 
-    assert msg.channels[PITCH_CHANNEL] == ZERO_SPEED + int(RANGE_SPEED * 0.34)
-    assert msg.channels[YAW_CHANNEL] == ZERO_SPEED + int(RANGE_SPEED * -0.6)
-    assert msg.channels[ROLL_CHANNEL] == ZERO_SPEED + int(RANGE_SPEED * 0.92)
+    assert msg.s == ZERO_SPEED + int(RANGE_SPEED * 0.34)
+    assert msg.r == ZERO_SPEED + int(RANGE_SPEED * -0.6)
+    assert msg.t == ZERO_SPEED + int(RANGE_SPEED * 0.92)
