@@ -416,17 +416,19 @@ bool profileAndWait(int limitPin) {
 
 // Instruct the motor to travel to a position
 // TODO: convert 'position' to an actual meaningful value
-bool travelTo(int pos){
+bool travelTo(int pos) {
   encoder.update();
-  if(pos < (int)encoder.step - STEP_TOL){
+  if (pos < (int)encoder.step - STEP_TOL) {
     digitalWrite(IN1, HIGH);
     digitalWrite(IN2, LOW);
     return false;
-  } else if(pos > (int)encoder.step + STEP_TOL){
+  }
+  else if (pos > (int)encoder.step + STEP_TOL) {
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, HIGH);
     return false;
-  } else {
+  }
+  else {
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, LOW);
     return true;
