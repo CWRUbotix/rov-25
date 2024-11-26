@@ -78,9 +78,7 @@ class MultiplexerNode(Node):
             ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
         )
 
-        self.previous_instruction = PixhawkInstruction(
-            author=PixhawkInstruction.MANUAL_CONTROL
-        )
+        self.previous_instruction = PixhawkInstruction(author=PixhawkInstruction.MANUAL_CONTROL)
 
     @staticmethod
     def smooth_value(prev_value: float, next_value: float) -> float:

@@ -21,7 +21,9 @@ def tuple_to_pixhawk_instruction(
     )
 
 
-def apply_function(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> PixhawkInstruction:
+def apply_function(
+    msg: PixhawkInstruction, function_to_apply: Callable[[float], float]
+) -> PixhawkInstruction:
     instruction_tuple = pixhawk_instruction_to_tuple(msg)
     instruction_tuple = tuple(function_to_apply(value) for value in instruction_tuple)
     return tuple_to_pixhawk_instruction(instruction_tuple, msg.author)
