@@ -67,7 +67,9 @@ class MultiplexerNode(Node):
             ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
         )
 
-        self.previous_instruction_tuple: tuple[float, ...] = pixhawk_instruction_to_tuple(PixhawkInstruction())
+        self.previous_instruction_tuple: tuple[float, ...] = pixhawk_instruction_to_tuple(
+            PixhawkInstruction()
+        )
 
     @staticmethod
     def smooth_value(prev_value: float, next_value: float) -> float:
