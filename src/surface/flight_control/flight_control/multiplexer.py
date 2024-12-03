@@ -36,6 +36,20 @@ PREV_INSTR_FRAC: Final = 1 - NEXT_INSTR_FRAC
 
 
 def joystick_map(raw: float) -> float:
+    """
+    Convert the provided joystick position to a
+    float in [-1.0, 1.0] for use in a PixhawkInstruction.
+
+    Parameters
+    ----------
+    raw : float
+        The joystick position to convert
+
+    Returns
+    -------
+    float
+        A float in [-1.0, 1.0] to act as a PixhawkInstruction dimension
+    """
     mapped = abs(raw) ** JOYSTICK_EXPONENT
     if raw < 0:
         mapped *= -1
@@ -43,6 +57,19 @@ def joystick_map(raw: float) -> float:
 
 
 def manual_control_map(value: float) -> float:
+    """
+    Convert the provided float in [-1.0, 1.0] to a ManualControl dimension.
+
+    Parameters
+    ----------
+    value : float
+        The float in [-1.0, 1.0] to convert to a ManualControl dimension
+
+    Returns
+    -------
+    float
+        The resulting ManualControl dimension
+    """
     return RANGE_SPEED * value + ZERO_SPEED
 
 
