@@ -100,36 +100,19 @@ class MultiplexerNode(Node):
 
         return smoothed_instruction
 
-    # def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
-    #     """Apply a function to each dimension of this PixhawkInstruction."""
-    #     msg.forward = function_to_apply(msg.forward)
-    #     msg.vertical = msg.vertical
-    #     msg.lateral = function_to_apply(msg.lateral)
-    #     msg.pitch = function_to_apply(msg.pitch)
-    #     msg.yaw = function_to_apply(msg.yaw)
-    #     msg.roll = function_to_apply(msg.roll)
-
     @staticmethod
     def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
         """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
         mc_msg = ManualControl()
 
         # Maps to PWM
-        # instruction_tuple = pixhawk_instruction_to_tuple(msg)
-        # instruction_tuple = tuple(manual_control_map(value) for value in instruction_tuple)
-        # mapped_msg = tuple_to_pixhawk_instruction(instruction_tuple)
         mapped_msg = apply_function(msg, manual_control_map)
 
         # To account for different z limits
         mapped_msg.vertical = Z_RANGE_SPEED * msg.vertical + Z_ZERO_SPEED
 
-        # MultiplexerNode.apply(msg, lambda value: (RANGE_SPEED * value) + ZERO_SPEED)
-
         mc_msg.x = mapped_msg.forward
         mc_msg.z = mapped_msg.vertical
-        # (
-        #     Z_RANGE_SPEED * mapped_msg.vertical
-        # ) + Z_ZERO_SPEED  # To account for different z limits
         mc_msg.y = mapped_msg.lateral
         mc_msg.r = mapped_msg.yaw
         mc_msg.enabled_extensions = EXTENSIONS_CODE
@@ -152,9 +135,6 @@ class MultiplexerNode(Node):
         ):
             # Smooth out adjustments
             # TODO: look into maybe doing inheritance on a PixhawkInstruction
-            # instruction_tuple = pixhawk_instruction_to_tuple(msg)
-            # instruction_tuple = tuple(joystick_map(value) for value in instruction_tuple)
-            # msg = tuple_to_pixhawk_instruction(instruction_tuple)
             msg = apply_function(msg, joystick_map)
         elif (
             (msg.author == PixhawkInstruction.KEYBOARD_CONTROL
