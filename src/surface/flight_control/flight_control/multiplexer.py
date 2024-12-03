@@ -1,7 +1,8 @@
 from collections.abc import Callable
+from typing import Final
 
 import rclpy
-from mavros_msgs.msg import OverrideRCIn
+from mavros_msgs.msg import ManualControl
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
@@ -17,9 +18,14 @@ JOYSTICK_EXPONENT = 3
 
 # Range of values Pixhawk takes
 # In microseconds
-ZERO_SPEED = 1500
-MAX_RANGE_SPEED = 400
-RANGE_SPEED = MAX_RANGE_SPEED * SPEED_THROTTLE
+ZERO_SPEED: Final = 0
+Z_ZERO_SPEED: Final = 500
+MAX_RANGE_SPEED: Final = 2000
+Z_MAX_RANGE_SPEED: Final = 1000
+RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
+Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
+
+EXTENSIONS_CODE: Final = 0b00000011
 
 # Channels for RC command
 MAX_CHANNEL = 8
@@ -57,36 +63,39 @@ class MultiplexerNode(Node):
             QoSPresetProfiles.DEFAULT.value,
         )
 
-        self.rc_pub = self.create_publisher(
-            OverrideRCIn, 'mavros/rc/override', QoSPresetProfiles.DEFAULT.value
+        self.mc_pub = self.create_publisher(
+            ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
         )
 
     @staticmethod
     def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
         """Apply a function to each dimension of this PixhawkInstruction."""
         msg.forward = function_to_apply(msg.forward)
-        msg.vertical = function_to_apply(msg.vertical)
+        msg.vertical = msg.vertical
         msg.lateral = function_to_apply(msg.lateral)
         msg.pitch = function_to_apply(msg.pitch)
         msg.yaw = function_to_apply(msg.yaw)
         msg.roll = function_to_apply(msg.roll)
 
     @staticmethod
-    def to_override_rc_in(msg: PixhawkInstruction) -> OverrideRCIn:
+    def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
         """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
-        rc_msg = OverrideRCIn()
+        mc_msg = ManualControl()
 
         # Maps to PWM
-        MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
+        MultiplexerNode.apply(msg, lambda value: (RANGE_SPEED * value) + ZERO_SPEED)
 
-        rc_msg.channels[FORWARD_CHANNEL] = msg.forward
-        rc_msg.channels[THROTTLE_CHANNEL] = msg.vertical
-        rc_msg.channels[LATERAL_CHANNEL] = msg.lateral
-        rc_msg.channels[PITCH_CHANNEL] = msg.pitch
-        rc_msg.channels[YAW_CHANNEL] = msg.yaw
-        rc_msg.channels[ROLL_CHANNEL] = msg.roll
+        mc_msg.x = msg.forward
+        mc_msg.z = (
+            Z_RANGE_SPEED * msg.vertical
+        ) + Z_ZERO_SPEED  # To account for different z limits
+        mc_msg.y = msg.lateral
+        mc_msg.r = msg.yaw
+        mc_msg.enabled_extensions = EXTENSIONS_CODE
+        mc_msg.s = msg.pitch
+        mc_msg.t = msg.roll
 
-        return rc_msg
+        return mc_msg
 
     def state_control(
         self, req: AutonomousFlight.Request, res: AutonomousFlight.Response
@@ -114,7 +123,7 @@ class MultiplexerNode(Node):
         else:
             return
 
-        self.rc_pub.publish(msg=self.to_override_rc_in(msg))
+        self.mc_pub.publish(self.to_manual_control(msg))
 
 
 def main() -> None:
