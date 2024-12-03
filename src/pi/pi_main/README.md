@@ -24,6 +24,11 @@ Follow the [BlueOS manual install instructions](https://blueos.cloud/docs/1.0/us
 - Enable pirate mode by clicking on the skull and crossbones in the top right.
 - Go to the 'Mavlink Endpoints' tab and create a new UDP client endpoint with address 127.0.0.1 and port 14551.
 ![Screenshot of endpoint configuration](images/0-blueos-endpoint-config.png)
+- SSH into the pi (rov@192.168.2.2) and edit `/boot/firmware/config.txt`. Add these lines at the end to enable the i2c 4 bus:
+```
+[all]
+dtoverlay=i2c4,pins_6_7,baudrate=1000000
+```
 
 ### Setup ad-hoc network between two Ubuntu devices
 **This is no longer necessary with BlueOS**
