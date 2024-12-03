@@ -100,6 +100,21 @@ class MultiplexerNode(Node):
 
     @staticmethod
     def smooth_value(prev_value: float, next_value: float) -> float:
+        """
+        Get a value that interpolates prev_value & next_value.
+
+        Parameters
+        ----------
+        prev_value : float
+            The previous value, affects the result based on PREV_INSTR_FRAC
+        next_value : float
+            The next value, affects the result based on NEXT_INSTR_FRAC
+
+        Returns
+        -------
+        float
+            The resulting value between prev_value & next_value
+        """
         return PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
 
     def smooth_pixhawk_instruction(self, msg: PixhawkInstruction) -> PixhawkInstruction:
