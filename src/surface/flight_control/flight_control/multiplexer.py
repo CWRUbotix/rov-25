@@ -15,10 +15,10 @@ from rov_msgs.msg import PixhawkInstruction
 from rov_msgs.srv import AutonomousFlight
 
 # Brown out protection
-SPEED_THROTTLE = 0.65
+SPEED_THROTTLE: Final = 0.65
 
 # Joystick curve
-JOYSTICK_EXPONENT = 3
+JOYSTICK_EXPONENT: Final = 3
 
 # Range of values Pixhawk takes
 # In microseconds
@@ -30,17 +30,6 @@ RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
 Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
 
 EXTENSIONS_CODE: Final = 0b00000011
-
-# Channels for RC command
-MAX_CHANNEL = 8
-MIN_CHANNEL = 1
-
-FORWARD_CHANNEL = 4  # X
-THROTTLE_CHANNEL = 2  # Z (vertical)
-LATERAL_CHANNEL = 5  # Y (left & right)
-PITCH_CHANNEL = 0  # Pitch
-YAW_CHANNEL = 3  # Yaw
-ROLL_CHANNEL = 1  # Roll
 
 NEXT_INSTR_FRAC: Final = 0.05
 PREV_INSTR_FRAC: Final = 1 - NEXT_INSTR_FRAC
