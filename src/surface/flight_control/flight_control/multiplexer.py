@@ -42,8 +42,8 @@ PITCH_CHANNEL = 0  # Pitch
 YAW_CHANNEL = 3  # Yaw
 ROLL_CHANNEL = 1  # Roll
 
-NEXT_INSTR_FRAC: Final[float] = 0.05
-PREV_INSTR_FRAC: Final[float] = 1 - NEXT_INSTR_FRAC
+NEXT_INSTR_FRAC: Final = 0.05
+PREV_INSTR_FRAC: Final = 1 - NEXT_INSTR_FRAC
 
 
 def joystick_map(raw: float) -> float:
