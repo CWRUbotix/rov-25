@@ -72,6 +72,7 @@ def manual_control_map(value: float) -> float:
     """
     return RANGE_SPEED * value + ZERO_SPEED
 
+
 def smooth_value(prev_value: float, next_value: float) -> float:
     """
     Get a value that interpolates prev_value & next_value.
@@ -89,6 +90,7 @@ def smooth_value(prev_value: float, next_value: float) -> float:
         The resulting value between prev_value & next_value
     """
     return PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
+
 
 def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
     """
