@@ -44,9 +44,9 @@ def tuple_to_pixhawk_instruction(
         forward=instruction_tuple[0],
         vertical=instruction_tuple[1],
         lateral=instruction_tuple[2],
-        roll=instruction_tuple[3],
-        pitch=instruction_tuple[4],
-        yaw=instruction_tuple[5],
+        pitch=instruction_tuple[3],
+        yaw=instruction_tuple[4],
+        roll=instruction_tuple[5],
         author=author,
     )
 
