@@ -72,6 +72,56 @@ def manual_control_map(value: float) -> float:
     """
     return RANGE_SPEED * value + ZERO_SPEED
 
+def smooth_value(prev_value: float, next_value: float) -> float:
+    """
+    Get a value that interpolates prev_value & next_value.
+
+    Parameters
+    ----------
+    prev_value : float
+        The previous value, affects the result based on PREV_INSTR_FRAC
+    next_value : float
+        The next value, affects the result based on NEXT_INSTR_FRAC
+
+    Returns
+    -------
+    float
+        The resulting value between prev_value & next_value
+    """
+    return PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
+
+def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
+    """
+    Convert the provided PixhawkInstruction to a ManualControl message.
+
+    Parameters
+    ----------
+    msg : PixhawkInstruction
+        The PixhawkInstruction to convert
+
+    Returns
+    -------
+    ManualControl
+        The resulting ManualControl message
+    """
+    mc_msg = ManualControl()
+
+    # Maps to PWM
+    mapped_msg = apply_function(msg, manual_control_map)
+
+    # To account for different z limits
+    mapped_msg.vertical = Z_RANGE_SPEED * msg.vertical + Z_ZERO_SPEED
+
+    mc_msg.x = mapped_msg.forward
+    mc_msg.z = mapped_msg.vertical
+    mc_msg.y = mapped_msg.lateral
+    mc_msg.r = mapped_msg.yaw
+    mc_msg.enabled_extensions = EXTENSIONS_CODE
+    mc_msg.s = mapped_msg.pitch
+    mc_msg.t = mapped_msg.roll
+
+    return mc_msg
+
 
 class MultiplexerNode(Node):
     def __init__(self) -> None:
@@ -98,30 +148,11 @@ class MultiplexerNode(Node):
             PixhawkInstruction()
         )
 
-    @staticmethod
-    def smooth_value(prev_value: float, next_value: float) -> float:
-        """
-        Get a value that interpolates prev_value & next_value.
-
-        Parameters
-        ----------
-        prev_value : float
-            The previous value, affects the result based on PREV_INSTR_FRAC
-        next_value : float
-            The next value, affects the result based on NEXT_INSTR_FRAC
-
-        Returns
-        -------
-        float
-            The resulting value between prev_value & next_value
-        """
-        return PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
-
     def smooth_pixhawk_instruction(self, msg: PixhawkInstruction) -> PixhawkInstruction:
         instruction_tuple = pixhawk_instruction_to_tuple(msg)
 
         smoothed_tuple = tuple(
-            MultiplexerNode.smooth_value(previous_value, value)
+            smooth_value(previous_value, value)
             for (previous_value, value) in zip(
                 self.previous_instruction_tuple, instruction_tuple, strict=True
             )
@@ -131,27 +162,6 @@ class MultiplexerNode(Node):
         self.previous_instruction_tuple = smoothed_tuple
 
         return smoothed_instruction
-
-    @staticmethod
-    def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
-        """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
-        mc_msg = ManualControl()
-
-        # Maps to PWM
-        mapped_msg = apply_function(msg, manual_control_map)
-
-        # To account for different z limits
-        mapped_msg.vertical = Z_RANGE_SPEED * msg.vertical + Z_ZERO_SPEED
-
-        mc_msg.x = mapped_msg.forward
-        mc_msg.z = mapped_msg.vertical
-        mc_msg.y = mapped_msg.lateral
-        mc_msg.r = mapped_msg.yaw
-        mc_msg.enabled_extensions = EXTENSIONS_CODE
-        mc_msg.s = mapped_msg.pitch
-        mc_msg.t = mapped_msg.roll
-
-        return mc_msg
 
     def state_control(
         self, req: AutonomousFlight.Request, res: AutonomousFlight.Response
@@ -180,7 +190,7 @@ class MultiplexerNode(Node):
             return
 
         smoothed_instruction = self.smooth_pixhawk_instruction(msg)
-        self.mc_pub.publish(self.to_manual_control(smoothed_instruction))
+        self.mc_pub.publish(to_manual_control(smoothed_instruction))
 
 
 def main() -> None:

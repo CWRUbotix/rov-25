@@ -42,8 +42,8 @@ def tuple_to_pixhawk_instruction(
     """
     return PixhawkInstruction(
         forward=instruction_tuple[0],
-        lateral=instruction_tuple[1],
-        vertical=instruction_tuple[2],
+        vertical=instruction_tuple[1],
+        lateral=instruction_tuple[2],
         roll=instruction_tuple[3],
         pitch=instruction_tuple[4],
         yaw=instruction_tuple[5],
