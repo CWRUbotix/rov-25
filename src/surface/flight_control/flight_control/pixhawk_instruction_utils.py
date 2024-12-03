@@ -3,7 +3,9 @@ from collections.abc import Callable
 from rov_msgs.msg import PixhawkInstruction
 
 
-def pixhawk_instruction_to_tuple(msg: PixhawkInstruction) -> tuple[float, ...]:
+def pixhawk_instruction_to_tuple(
+    msg: PixhawkInstruction,
+) -> tuple[float, float, float, float, float, float]:
     return (msg.forward, msg.vertical, msg.lateral, msg.pitch, msg.yaw, msg.roll)
 
 
@@ -25,5 +27,5 @@ def apply_function(
     msg: PixhawkInstruction, function_to_apply: Callable[[float], float]
 ) -> PixhawkInstruction:
     instruction_tuple = pixhawk_instruction_to_tuple(msg)
-    instruction_tuple = tuple(function_to_apply(value) for value in instruction_tuple)
-    return tuple_to_pixhawk_instruction(instruction_tuple, msg.author)
+    modified_tuple = tuple(function_to_apply(value) for value in instruction_tuple)
+    return tuple_to_pixhawk_instruction(modified_tuple, msg.author)

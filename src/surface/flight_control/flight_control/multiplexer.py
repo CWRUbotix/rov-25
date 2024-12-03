@@ -88,13 +88,13 @@ class MultiplexerNode(Node):
         instruction_tuple = pixhawk_instruction_to_tuple(msg)
         previous_instruction_tuple = pixhawk_instruction_to_tuple(self.previous_instruction)
 
-        instruction_tuple = tuple(
+        smoothed_tuple = tuple(
             MultiplexerNode.smooth_value(previous_value, value)
             for (previous_value, value) in zip(
                 previous_instruction_tuple, instruction_tuple, strict=True
             )
         )
-        smoothed_instruction = tuple_to_pixhawk_instruction(instruction_tuple, msg.author)
+        smoothed_instruction = tuple_to_pixhawk_instruction(smoothed_tuple, msg.author)
 
         self.previous_instruction = smoothed_instruction
 
