@@ -2,7 +2,7 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QGridLayout, QPushButton, QWidget
 
 from gui.gui_node import GUINode
-from gui.styles.custom_styles import ButtonIndicator
+from gui.styles.custom_styles import ButtonIndicator, WidgetState
 from rov_msgs.srv import AutonomousFlight
 
 WIDTH = 200
@@ -57,6 +57,6 @@ class TaskSelector(QWidget):
     def handle_scheduler_response(self, res: AutonomousFlight.Response) -> None:
         """Handle scheduler response to request sent from gui_changed_task."""
         if res.current_state == AutonomousFlight.Request.START:
-            self.start_btn.set_on()
+            self.start_btn.set_state(WidgetState.ON)
         else:
-            self.start_btn.remove_state()
+            self.start_btn.set_state(WidgetState.NONE)

@@ -157,10 +157,11 @@ class MultiplexerNode(Node):
             # msg = tuple_to_pixhawk_instruction(instruction_tuple)
             msg = apply_function(msg, joystick_map)
         elif (
-            (msg.author == PixhawkInstruction.KEYBOARD_CONTROL
-            and self.state == AutonomousFlight.Request.STOP)
-            or (msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL
-            and self.state == AutonomousFlight.Request.START)
+            msg.author == PixhawkInstruction.KEYBOARD_CONTROL
+            and self.state == AutonomousFlight.Request.STOP
+        ) or (
+            msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL
+            and self.state == AutonomousFlight.Request.START
         ):
             pass
         else:

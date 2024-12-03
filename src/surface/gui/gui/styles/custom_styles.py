@@ -1,44 +1,57 @@
+from enum import IntEnum
+from typing import Final
+
 from PyQt6.QtWidgets import QPushButton, QWidget
 
 
+class WidgetState(IntEnum):
+    ON = 1
+    OFF = 2
+    INACTIVE = 3
+    NONE = 4
+
+
 class IndicatorMixin(QWidget):
-    _PROPERTY_NAME = 'widgetState'
+    # The stylesheets that correspond to each widget state
+    _STYLESHEETS: Final[dict[WidgetState, str]] = {
+        # Stylesheet for when a component is running, enabled, or armed
+        WidgetState.ON: 'QWidget { background-color: limegreen; }',
+        # Stylesheet for when a component is disabled, not running, or disarmed, but could be
+        # enabled through this widget
+        WidgetState.OFF: 'QWidget { background-color: red; }',
+        # Stylesheet for when a component is disabled, not expected to have any effect or perform
+        # its function because of some external factor, either another widget or something
+        # external to the gui. For example, a the arm button when the pi is not connected
+        WidgetState.INACTIVE: 'QWidget { background-color: silver; }',
+        WidgetState.NONE: '',
+    }
 
-    # A component is running, enabled, or armed
-    _ON = 'on'
+    def set_initial_stylesheet(self, extra_styles: str = '') -> None:
+        """
+        Store the original stylesheet of the widget so changing state does not remove styles.
 
-    # A component is disabled, not running, or disarmed, but could be enabled through this widget
-    _OFF = 'off'
+        Parameters
+        ----------
+        extra_styles : str, optional
+            an additional stylesheet that will be constant for the widget, by default ''
+        """
+        self._original_stylesheet = self.styleSheet() + extra_styles
+        self.current_state = WidgetState.NONE
 
-    # A component is disabled, not expected to have any effect or perform its function because of
-    # some external factor, either another widget or something external to the gui
-    # For example, a the arm button when the pi is not connected
-    _INACTIVE = 'inactive'
+    def set_state(self, new_state: WidgetState) -> None:
+        """
+        Set a new state for the widget.
 
-    # Removes any state
-    _NO_STATE = ''
-
-    def set_on(self) -> None:
-        self.setProperty(IndicatorMixin._PROPERTY_NAME, IndicatorMixin._ON)
-        self._update_style()
-
-    def set_off(self) -> None:
-        self.setProperty(IndicatorMixin._PROPERTY_NAME, IndicatorMixin._OFF)
-        self._update_style()
-
-    def set_inactive(self) -> None:
-        self.setProperty(IndicatorMixin._PROPERTY_NAME, IndicatorMixin._INACTIVE)
-        self._update_style()
-
-    def remove_state(self) -> None:
-        self.setProperty(IndicatorMixin._PROPERTY_NAME, IndicatorMixin._NO_STATE)
-        self._update_style()
-
-    def _update_style(self) -> None:
-        style = self.style()
-        if style is not None:
-            style.polish(self)
+        Parameters
+        ----------
+        new_state : WidgetState
+            The new state for the widget
+        """
+        self.current_state = new_state
+        self.setStyleSheet(self._original_stylesheet + self._STYLESHEETS[self.current_state])
 
 
 class ButtonIndicator(QPushButton, IndicatorMixin):
-    pass
+    def __init__(self, text: str = '', extra_styles: str = '') -> None:
+        super().__init__(text)
+        self.set_initial_stylesheet(extra_styles)

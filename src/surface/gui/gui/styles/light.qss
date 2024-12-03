@@ -1,3 +1,0 @@
-QWidget[widgetState="inactive"] { background-color: #cccccc; }
-QWidget[widgetState="on"] { background-color: #a3ffa3; }
-QWidget[widgetState="off"] { background-color: #ffa3a3; }
