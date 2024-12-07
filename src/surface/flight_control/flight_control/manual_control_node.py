@@ -76,7 +76,24 @@ class ControllerProfile:
 
 CONTROLLER_PROFILES = [
     ControllerProfile(),
-    ControllerProfile(manip_left=L1, manip_right=R1, roll_left=TRI_BUTTON, roll_right=SQUARE_BUTTON),
+    ControllerProfile(
+        manip_left=L1, 
+        manip_right=R1, 
+        roll_left=TRI_BUTTON, 
+        roll_right=SQUARE_BUTTON,
+        valve_clockwise=X_BUTTON,
+        valve_counterclockwise=O_BUTTON,
+        cam_toggle_left=MENU,
+        cam_toggle_right=PAIRING_BUTTON,
+        arm_button=PAIRING_BUTTON,
+        disarm_button=MENU,
+        lateral=RJOYX,
+        forward=RJOYY,
+        vertical_up=R2PRESS_PERCENT,
+        vertical_down=L2PRESS_PERCENT,
+        yaw=LJOYX,
+        pitch=LJOYY
+    ),
 ]
 
 class ManualControlNode(Node):
@@ -122,17 +139,6 @@ class ManualControlNode(Node):
             self.profile.manip_left: ManipButton('left'),
             self.profile.manip_right: ManipButton('right'),
         }
-        # if profile == ControllerProfile.PROFILE_0:
-        #     self.manip_buttons: dict[int, ManipButton] = {
-        #         X_BUTTON: ManipButton('left'),
-        #         O_BUTTON: ManipButton('right'),
-        #     }
-        # elif profile == ControllerProfile.PROFILE_1:
-        #     self.manip_buttons: dict[int, ManipButton] = {
-        #         L1: ManipButton('left'),
-        #         R1: ManipButton('right'),
-        #     }
-
 
         self.seen_left_cam = False
         self.seen_right_cam = False
@@ -158,27 +164,6 @@ class ManualControlNode(Node):
             author=PixhawkInstruction.MANUAL_CONTROL,
         )
 
-        # if self.profile == ControllerProfile.PROFILE_0:
-        #     instruction = PixhawkInstruction(
-        #         forward=float(axes[LJOYY]),  # Left Joystick Y
-        #         lateral=-float(axes[LJOYX]),  # Left Joystick X
-        #         vertical=float(axes[L2PRESS_PERCENT] - axes[R2PRESS_PERCENT]) / 2,  # L2/R2 triggers
-        #         roll=float(buttons[L1] - buttons[R1]),  # L1/R1 buttons
-        #         pitch=float(axes[RJOYY]),  # Right Joystick Y
-        #         yaw=-float(axes[RJOYX]),  # Right Joystick X
-        #         author=PixhawkInstruction.MANUAL_CONTROL,
-        #     )
-        # elif self.profile == ControllerProfile.PROFILE_1:
-        #     instruction = PixhawkInstruction(
-        #         forward=float(axes[LJOYY]),  # Left Joystick Y
-        #         lateral=-float(axes[LJOYX]),  # Left Joystick X
-        #         vertical=float(axes[L2PRESS_PERCENT] - axes[R2PRESS_PERCENT]) / 2,  # L2/R2 triggers
-        #         roll=float(buttons[X_BUTTON] - buttons[O_BUTTON]),  # L1/R1 buttons
-        #         pitch=float(axes[RJOYY]),  # Right Joystick Y
-        #         yaw=-float(axes[RJOYX]),  # Right Joystick X
-        #         author=PixhawkInstruction.MANUAL_CONTROL,
-        #     )
-
         self.rc_pub.publish(instruction)
 
     def manip_callback(self, msg: Joy) -> None:
@@ -196,35 +181,18 @@ class ManualControlNode(Node):
             manip_button.last_button_state = just_pressed
 
     def valve_manip_callback(self, msg: Joy) -> None:
-        # if self.profile == ControllerProfile.PROFILE_0:
-        #     clockwise_pressed = msg.buttons[TRI_BUTTON] == PRESSED
-        #     counter_clockwise_pressed = msg.buttons[SQUARE_BUTTON] == PRESSED
-        # elif self.profile == ControllerProfile.PROFILE_1:
-        #     clockwise_pressed = msg.buttons[SQUARE_BUTTON] == PRESSED
-        #     counter_clockwise_pressed = msg.buttons[TRI_BUTTON] == PRESSED
         clockwise_pressed = msg.buttons[self.profile.valve_clockwise] == PRESSED
         counter_clockwise_pressed = msg.buttons[self.profile.valve_counterclockwise] == PRESSED
 
         if clockwise_pressed and not self.valve_manip_state:
             self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MAX_PWM))
             self.valve_manip_state = True
-        elif counter_clockwise_pressed_pressed and not self.valve_manip_state:
+        elif counter_clockwise_pressed and not self.valve_manip_state:
             self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MIN_PWM))
             self.valve_manip_state = True
         elif self.valve_manip_state and not clockwise_pressed and not counter_clockwise_pressed:
             self.valve_manip.publish(ValveManip(active=False))
             self.valve_manip_state = False
-        # tri_pressed = msg.buttons[TRI_BUTTON] == PRESSED
-        # square_pressed = msg.buttons[SQUARE_BUTTON] == PRESSED
-        # if tri_pressed and not self.valve_manip_state:
-        #     self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MAX_PWM))
-        #     self.valve_manip_state = True
-        # elif square_pressed and not self.valve_manip_state:
-        #     self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MIN_PWM))
-        #     self.valve_manip_state = True
-        # elif self.valve_manip_state and not tri_pressed and not square_pressed:
-        #     self.valve_manip.publish(ValveManip(active=False))
-        #     self.valve_manip_state = False
 
     def toggle_cameras(self, msg: Joy) -> None:
         """Cycles through connected cameras on pilot GUI using menu and pairing buttons."""
@@ -241,17 +209,6 @@ class ManualControlNode(Node):
             self.seen_left_cam = False
             self.camera_toggle_publisher.publish(CameraControllerSwitch(toggle_right=False))
 
-        # if buttons[MENU] == PRESSED:
-        #     self.seen_right_cam = True
-        # elif buttons[PAIRING_BUTTON] == PRESSED:
-        #     self.seen_left_cam = True
-        # elif buttons[MENU] == UNPRESSED and self.seen_right_cam:
-        #     self.seen_right_cam = False
-        #     self.camera_toggle_publisher.publish(CameraControllerSwitch(toggle_right=True))
-        # elif buttons[PAIRING_BUTTON] == UNPRESSED and self.seen_left_cam:
-        #     self.seen_left_cam = False
-        #     self.camera_toggle_publisher.publish(CameraControllerSwitch(toggle_right=False))
-
     def set_arming(self, msg: Joy) -> None:
         """Set the arming state using the menu and pairing buttons."""
         buttons: MutableSequence[int] = msg.buttons
@@ -260,11 +217,6 @@ class ManualControlNode(Node):
             self.arm_client.call_async(ARM_MESSAGE)
         elif buttons[self.profile.disarm_button] == PRESSED:
             self.arm_client.call_async(DISARM_MESSAGE)
-
-        # if buttons[MENU] == PRESSED:
-        #     self.arm_client.call_async(ARM_MESSAGE)
-        # elif buttons[PAIRING_BUTTON] == PRESSED:
-        #     self.arm_client.call_async(DISARM_MESSAGE)
 
 
 class ManipButton:
