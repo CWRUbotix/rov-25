@@ -3,14 +3,16 @@ import signal
 from threading import Thread
 
 import rclpy.utilities
-from PyQt6.QtWidgets import QApplication, QWidget
+from PyQt6.QtWidgets import QApplication, QWidget, QMainWindow
 from rclpy.executors import MultiThreadedExecutor
 
 from gui.gui_node import GUINode
+from PyQt6.QtGui import QIcon
 
 
-class App(QWidget):
+class App(QMainWindow):
     """Main app window."""
+   
 
     app = QApplication([])
 
@@ -19,9 +21,11 @@ class App(QWidget):
             rclpy.init()
         super().__init__()
         self.node = GUINode(node_name)
+        
 
         self.theme_param = self.node.declare_parameter('theme', '')
         self.resize(1850, 720)
+       
 
         atexit.register(self._clean_shutdown)
 
