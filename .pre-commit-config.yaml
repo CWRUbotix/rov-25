@@ -2,7 +2,7 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.8.3
+    rev: v0.9.1
     hooks:
       # Run the linter.
       - id: ruff
@@ -11,7 +11,7 @@ repos:
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v19.1.5
+    rev: v19.1.6
     hooks:
       - id: clang-format
         types_or: [c++, c]
@@ -21,6 +21,6 @@ repos:
     hooks:
       - id: trailing-whitespace
   - repo: https://github.com/google/yamlfmt
-    rev: v0.14.0
+    rev: v0.15.0
     hooks:
       - id: yamlfmt
