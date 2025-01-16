@@ -17,7 +17,7 @@ def main() -> None:
     pi_main_share = get_package_share_directory('pi_main')
 
     file_location = Path(__file__).parent.resolve()
-    udev_script = str(file_location / 'copy.py')
+    udev_script = str(file_location / 'copy_udev.py')
 
     cmd = ['/usr/bin/sudo', '/usr/bin/python3', udev_script, pi_main_share]
 
