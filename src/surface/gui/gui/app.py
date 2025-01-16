@@ -12,6 +12,8 @@ from PyQt6.QtGui import QIcon
 
 class App(QMainWindow):
     """Main app window."""
+
+    #here
    
 
     app = QApplication([])
