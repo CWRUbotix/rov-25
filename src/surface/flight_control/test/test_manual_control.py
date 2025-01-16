@@ -39,6 +39,6 @@ def test_joystick_profiles() -> None:
 
     # 1539 1378
 
-    assert msg.s == ZERO_SPEED + int(RANGE_SPEED * 0.34)
-    assert msg.r == ZERO_SPEED + int(RANGE_SPEED * -0.6)
-    assert msg.t == ZERO_SPEED + int(RANGE_SPEED * 0.92)
+    assert msg.s == ZERO_SPEED + RANGE_SPEED * 0.34
+    assert msg.r == ZERO_SPEED + RANGE_SPEED * -0.6
+    assert msg.t == ZERO_SPEED + RANGE_SPEED * 0.92
