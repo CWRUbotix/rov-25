@@ -19,9 +19,8 @@ class OperatorApp(App):
         super().__init__('operator_gui_node')
 
         self.setWindowTitle('Operator GUI - CWRUbotix ROV 2024')
-        self.setWindowIconText("hgfvdgshklghpidn")
         icon = QIcon('control48.png')
-        self.app.setWindowIcon(QIcon('control48.png'))
+        self.setWindowIcon(QIcon('control48.png'))
             
         
         
@@ -60,7 +59,7 @@ class OperatorApp(App):
 
         # Add tabs to root
         root_layout = QVBoxLayout()
-        wid.setLayout(root_layout)
+        self.setLayout(root_layout)
 
         tabs = QTabWidget()
         tabs.addTab(main_tab, 'Main')
