@@ -61,16 +61,16 @@ class ControllerProfile:
     manip_right: int = O_BUTTON
     valve_clockwise: int = TRI_BUTTON
     valve_counterclockwise: int = SQUARE_BUTTON
-    roll_left: int = L1
-    roll_right: int = R1
+    roll_left: int = L1 # positive roll
+    roll_right: int = R1 # negative roll
     cam_toggle_left: int = PAIRING_BUTTON
     cam_toggle_right: int = MENU
     arm_button: int = MENU
     disarm_button: int = PAIRING_BUTTON
     lateral: int = LJOYX
     forward: int = LJOYY
-    vertical_up: int = L2PRESS_PERCENT
-    vertical_down: int = R2PRESS_PERCENT
+    vertical_down: int = L2PRESS_PERCENT # negative vertical value
+    vertical_up: int = R2PRESS_PERCENT # positive vertical value
     yaw: int = RJOYX
     pitch: int = RJOYY
 
@@ -89,8 +89,8 @@ CONTROLLER_PROFILES = [
         disarm_button=MENU,
         lateral=RJOYX,
         forward=RJOYY,
-        vertical_up=R2PRESS_PERCENT,
-        vertical_down=L2PRESS_PERCENT,
+        vertical_down=R2PRESS_PERCENT,
+        vertical_up=L2PRESS_PERCENT,
         yaw=LJOYX,
         pitch=LJOYY
     ),
@@ -157,7 +157,7 @@ class ManualControlNode(Node):
         instruction = PixhawkInstruction(
             forward=float(axes[self.profile.forward]),
             lateral=-float(axes[self.profile.lateral]),
-            vertical=float(axes[self.profile.vertical_up] - axes[self.profile.vertical_down]) / 2,
+            vertical=float(axes[self.profile.vertical_down] - axes[self.profile.vertical_up]) / 2,
             roll=float(buttons[self.profile.roll_left] - buttons[self.profile.roll_right]),
             pitch=float(axes[self.profile.pitch]),
             yaw=-float(axes[self.profile.yaw]),
