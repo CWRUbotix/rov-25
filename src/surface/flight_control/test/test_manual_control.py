@@ -5,7 +5,7 @@ from flight_control.multiplexer import (
     Z_RANGE_SPEED,
     Z_ZERO_SPEED,
     ZERO_SPEED,
-    MultiplexerNode,
+    to_manual_control,
 )
 
 from rov_msgs.msg import PixhawkInstruction
@@ -31,7 +31,7 @@ def test_joystick_profiles() -> None:
         roll=0.92,
     )
 
-    msg = MultiplexerNode.to_manual_control(instruction)
+    msg = to_manual_control(instruction)
 
     assert msg.x == ZERO_SPEED
     assert msg.z == (Z_ZERO_SPEED + Z_RANGE_SPEED)
@@ -39,6 +39,6 @@ def test_joystick_profiles() -> None:
 
     # 1539 1378
 
-    assert msg.s == ZERO_SPEED + int(RANGE_SPEED * 0.34)
-    assert msg.r == ZERO_SPEED + int(RANGE_SPEED * -0.6)
-    assert msg.t == ZERO_SPEED + int(RANGE_SPEED * 0.92)
+    assert msg.s == ZERO_SPEED + RANGE_SPEED * 0.34
+    assert msg.r == ZERO_SPEED + RANGE_SPEED * -0.6
+    assert msg.t == ZERO_SPEED + RANGE_SPEED * 0.92
