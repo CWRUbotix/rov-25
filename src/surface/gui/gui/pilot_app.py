@@ -45,9 +45,10 @@ class PilotApp(App):
         super().__init__('pilot_gui_node')
 
         wid = QWidget()
-        self.setCentralWidget(wid)
+        #self.setCentralWidget(wid)
+
         main_layout = QVBoxLayout()
-        wid.setLayout(main_layout)
+        self.setLayout(main_layout)
         
 
         simulation_param = self.node.declare_parameter('simulation', value=False)

@@ -9,6 +9,9 @@ from rclpy.executors import MultiThreadedExecutor
 from gui.gui_node import GUINode
 from PyQt6.QtGui import QIcon
 
+#revert back to QWidget
+#restart changing back to QMainWindow
+
 
 class App(QMainWindow):
     """Main app window."""

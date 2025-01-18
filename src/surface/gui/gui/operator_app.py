@@ -13,15 +13,23 @@ from gui.widgets.timer import InteractiveTimer
 
 from PyQt6.QtGui import QIcon
 
+#operator works with QMainWindow
+#change all "self" to wid
+#set wid as central widget at the end
+
 
 class OperatorApp(App):
     def __init__(self) -> None:
         super().__init__('operator_gui_node')
 
+        wid = QWidget()
+
         self.setWindowTitle('Operator GUI - CWRUbotix ROV 2024')
-        self.setWindowIconText("hgfvdgshklghpidn")
+        wid.setWindowIconText("hgfvdgshklghpidn")
         icon = QIcon('control48.png')
-        self.app.setWindowIcon(QIcon('control48.png'))
+        self.setWindowIcon(QIcon('control48.png'))
+
+        
             
         
         
@@ -31,8 +39,8 @@ class OperatorApp(App):
 # wid.setLayout(layout)
 
         # Main tab
-        wid = QWidget()
-        self.setCentralWidget(wid)
+
+
         main_tab = QWidget()
         main_layout = QHBoxLayout()
         main_tab.setLayout(main_layout)
@@ -43,8 +51,21 @@ class OperatorApp(App):
         main_layout.addLayout(left_pane)
         main_layout.addLayout(right_pane)
 
-        self.float_comm: FloatComm = FloatComm()
-        left_pane.addWidget(self.float_comm)
+
+        # wid = QWidget()
+        # self.setCentralWidget(wid)
+        # main_tab = QWidget()
+        # main_layout = QHBoxLayout()
+        # main_tab.setLayout(main_layout)
+
+        # left_pane = QVBoxLayout()
+        # right_pane = QVBoxLayout()
+
+        # main_layout.addLayout(left_pane)
+        # main_layout.addLayout(right_pane)
+
+        wid.float_comm: FloatComm = FloatComm()
+        left_pane.addWidget(wid.float_comm)
 
         logger = Logger()
         left_pane.addWidget(logger)
@@ -66,6 +87,8 @@ class OperatorApp(App):
         tabs.addTab(main_tab, 'Main')
         tabs.addTab(GeneralDebugTab(), 'General Debug')
         root_layout.addWidget(tabs)
+
+        self.setCentralWidget(wid)
 
 
 def run_gui_operator() -> None:
