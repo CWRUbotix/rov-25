@@ -38,7 +38,7 @@ def generate_launch_description() -> LaunchDescription:
     multiplexer_node = Node(
         package='flight_control',
         executable='multiplexer_node',
-        remappings=[('/surface/mavros/rc/override', '/tether/mavros/rc/override')],
+        remappings=[('/surface/mavros/manual_control/send', '/tether/mavros/manual_control/send')],
         emulate_tty=True,
         output='screen',
     )
