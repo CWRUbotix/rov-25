@@ -33,6 +33,7 @@ EXTENSIONS_CODE: Final = 0b00000011
 
 NEXT_INSTR_FRAC: Final = 0.05
 PREV_INSTR_FRAC: Final = 1 - NEXT_INSTR_FRAC
+INSTR_EPSILON: Final = 0.05
 
 
 def joystick_map(raw: float) -> float:
@@ -89,7 +90,14 @@ def smooth_value(prev_value: float, next_value: float) -> float:
     float
         The resulting value between prev_value & next_value
     """
-    return PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
+    smoothed_value = PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
+
+    # If close to target value, snap to it
+    # (we want to get there eventually, not approach in the limit)
+    if next_value - INSTR_EPSILON <= smoothed_value <= next_value + INSTR_EPSILON:
+        return next_value
+
+    return smoothed_value
 
 
 def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
