@@ -8,10 +8,6 @@ requires-python = ">=3.12"
 strict = true
 # Done because tons of Python packages are missing stubs or py.typed markers
 ignore_missing_imports = true
-# Done because some calls inside rclpy are not typed
-disallow_untyped_calls = false
-# Done because rclpy Node has type Any
-disallow_subclassing_any = false
 
 # For pre-commit CI
 [tool.ruff]
