@@ -13,21 +13,6 @@
 
   <depend>mavros</depend>
 
-  <!-- Dependencies for mavproxy -->
-  <depend>python3</depend>
-  <depend>python3-yaml</depend>
-  <depend>python3-opencv</depend>
-  <depend>python3-pip</depend>
-  <depend>python3-matplotlib</depend>
-  <depend>python3-lxml</depend>
-  <depend>python3-pygame</depend>
-  <depend>python3-numpy</depend>
-
-  <!-- Dependencies for pymavlink -->
-  <depend>python3-future</depend>
-  <depend>python-pymavlink</depend>
-  <depend>python3-mavproxy-pip</depend>
-
   <export>
     <build_type>ament_python</build_type>
   </export>
