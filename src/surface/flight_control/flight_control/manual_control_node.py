@@ -1,6 +1,6 @@
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import TYPE_CHECKING
-from dataclasses import dataclass
 
 import rclpy
 from mavros_msgs.srv import CommandBool
@@ -56,34 +56,37 @@ class ControllerMode(IntEnum):
     ARM = 0
     TOGGLE_CAMERAS = 1
 
+
 @dataclass
 class ControllerProfile:
     manip_left: int = O_BUTTON
     manip_right: int = X_BUTTON
     valve_clockwise: int = TRI_BUTTON
     valve_counterclockwise: int = SQUARE_BUTTON
-    roll_left: int = L1 # positive roll
-    roll_right: int = R1 # negative roll
+    roll_left: int = L1  # positive roll
+    roll_right: int = R1  # negative roll
     cam_toggle_left: int = PAIRING_BUTTON
     cam_toggle_right: int = MENU
     arm_button: int = MENU
     disarm_button: int = PAIRING_BUTTON
     lateral: int = LJOYX
     forward: int = LJOYY
-    vertical_down: int = L2PRESS_PERCENT # negative vertical value
-    vertical_up: int = R2PRESS_PERCENT # positive vertical value
+    vertical_down: int = L2PRESS_PERCENT  # negative vertical value
+    vertical_up: int = R2PRESS_PERCENT  # positive vertical value
     yaw: int = RJOYX
     pitch: int = RJOYY
+
 
 CONTROLLER_PROFILES = (
     ControllerProfile(),
     ControllerProfile(
-        manip_left=L1, 
-        manip_right=R1, 
-        roll_left=X_BUTTON, 
+        manip_left=L1,
+        manip_right=R1,
+        roll_left=X_BUTTON,
         roll_right=O_BUTTON,
     ),
 )
+
 
 class ManualControlNode(Node):
     def __init__(self) -> None:
