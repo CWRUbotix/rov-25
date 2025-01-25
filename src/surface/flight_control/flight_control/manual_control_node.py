@@ -79,20 +79,8 @@ CONTROLLER_PROFILES = [
     ControllerProfile(
         manip_left=L1, 
         manip_right=R1, 
-        roll_left=TRI_BUTTON, 
-        roll_right=SQUARE_BUTTON,
-        valve_clockwise=X_BUTTON,
-        valve_counterclockwise=O_BUTTON,
-        cam_toggle_left=MENU,
-        cam_toggle_right=PAIRING_BUTTON,
-        arm_button=PAIRING_BUTTON,
-        disarm_button=MENU,
-        lateral=RJOYX,
-        forward=RJOYY,
-        vertical_down=R2PRESS_PERCENT,
-        vertical_up=L2PRESS_PERCENT,
-        yaw=LJOYX,
-        pitch=LJOYY
+        roll_left=X_BUTTON, 
+        roll_right=O_BUTTON,
     ),
 ]
 
