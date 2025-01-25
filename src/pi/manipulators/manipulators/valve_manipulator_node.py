@@ -4,12 +4,15 @@ import lgpio
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
+from rclpy.qos import QoSPresetProfiles
+from mavros_msgs.msg import ManualControl
 
 from rov_msgs.msg import ValveManip
 
 # Configuration
 SERVO_PIN: Final = 12  # pin used to drive Valve Manip
 
+EXTENSIONS_CODE: Final = 0b00000100
 
 class ValveManipulator(Node):
     def __init__(self) -> None:
@@ -23,6 +26,9 @@ class ValveManipulator(Node):
         self.curr_active = False
 
     def servo(self, width: int, freq: int = 50) -> None:
+        # mc_msg = ManualControl()
+        # mc_msg.enabled_extensions = EXTENSIONS_CODE
+        # mc_msg.aux1 = 1000
         lgpio.tx_servo(self.gpio_handle, SERVO_PIN, width, freq)
 
     def manip_callback(self, message: ValveManip) -> None:

@@ -4,6 +4,7 @@ float32 lateral
 float32 pitch
 float32 yaw
 float32 roll
+float32 aux1
 
 uint8 MANUAL_CONTROL = 0
 uint8 KEYBOARD_CONTROL = 1

@@ -5,7 +5,7 @@ from rov_msgs.msg import PixhawkInstruction
 
 def pixhawk_instruction_to_tuple(
     msg: PixhawkInstruction,
-) -> tuple[float, float, float, float, float, float]:
+) -> tuple[float, float, float, float, float, float, float]:
     """
     Convert PixhawkInstruction to tuple of dimensions.
 
@@ -19,7 +19,7 @@ def pixhawk_instruction_to_tuple(
     tuple[float, float, float, float, float, float]
         Tuple of dimensions from the instruction
     """
-    return (msg.forward, msg.vertical, msg.lateral, msg.pitch, msg.yaw, msg.roll)
+    return (msg.forward, msg.vertical, msg.lateral, msg.pitch, msg.yaw, msg.roll, msg.aux1)
 
 
 def tuple_to_pixhawk_instruction(
@@ -48,6 +48,7 @@ def tuple_to_pixhawk_instruction(
         yaw=instruction_tuple[4],
         roll=instruction_tuple[5],
         author=author,
+        aux1=instruction_tuple[6],
     )
 
 

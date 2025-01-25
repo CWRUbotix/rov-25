@@ -102,6 +102,7 @@ class ManualControlNode(Node):
         self.valve_manip_state = False
 
     def controller_callback(self, msg: Joy) -> None:
+        self.get_logger().debug("Controller Callback")
         self.joystick_to_pixhawk(msg)
         self.valve_manip_callback(msg)
         self.manip_callback(msg)
@@ -111,6 +112,8 @@ class ManualControlNode(Node):
         axes: MutableSequence[float] = msg.axes
         buttons: MutableSequence[int] = msg.buttons
 
+        self.get_logger().debug("PixhawkInstruction creation")
+
         instruction = PixhawkInstruction(
             forward=float(axes[LJOYY]),  # Left Joystick Y
             lateral=-float(axes[LJOYX]),  # Left Joystick X
@@ -119,6 +122,7 @@ class ManualControlNode(Node):
             pitch=float(axes[RJOYY]),  # Right Joystick Y
             yaw=-float(axes[RJOYX]),  # Right Joystick X
             author=PixhawkInstruction.MANUAL_CONTROL,
+            aux1=1900
         )
 
         self.rc_pub.publish(instruction)
