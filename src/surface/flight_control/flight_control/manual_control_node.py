@@ -49,6 +49,7 @@ ARM_MESSAGE = CommandBool.Request(value=True)
 DISARM_MESSAGE = CommandBool.Request(value=False)
 
 CONTROLLER_MODE_PARAM = 'controller_mode'
+CONTROLLER_PROFILE_PARAM = 'controller_profile'
 
 
 class ControllerMode(IntEnum):
@@ -74,7 +75,7 @@ class ControllerProfile:
     yaw: int = RJOYX
     pitch: int = RJOYY
 
-CONTROLLER_PROFILES = [
+CONTROLLER_PROFILES = (
     ControllerProfile(),
     ControllerProfile(
         manip_left=L1, 
@@ -82,14 +83,14 @@ CONTROLLER_PROFILES = [
         roll_left=X_BUTTON, 
         roll_right=O_BUTTON,
     ),
-]
+)
 
 class ManualControlNode(Node):
     def __init__(self) -> None:
         super().__init__('manual_control_node')
 
         mode_param = self.declare_parameter(CONTROLLER_MODE_PARAM, value=ControllerMode.ARM)
-        profile_param = self.declare_parameter('controller_profile', value=0)
+        profile_param = self.declare_parameter(CONTROLLER_PROFILE_PARAM, value=0)
         self.profile = CONTROLLER_PROFILES[profile_param.value]
 
         self.rc_pub = self.create_publisher(
