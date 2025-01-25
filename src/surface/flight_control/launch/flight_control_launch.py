@@ -9,7 +9,7 @@ def generate_launch_description() -> LaunchDescription:
         executable='manual_control_node',
         parameters=[
             {'controller_mode': LaunchConfiguration('controller_mode', default=0)},
-            {'controller_profile': LaunchConfiguration('controller_profile', default=0)}
+            {'controller_profile': LaunchConfiguration('controller_profile', default=0)},
         ],
         remappings=[
             ('/surface/manipulator_control', '/tether/manipulator_control'),
