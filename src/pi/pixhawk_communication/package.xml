@@ -11,7 +11,7 @@
   <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
 
-  <depend>mavros</depend>
+  <exec_depend>mavros</exec_depend>
 
   <!-- Dependencies for mavproxy -->
   <depend>python3</depend>

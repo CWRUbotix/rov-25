@@ -18,7 +18,7 @@
   <test_depend>python3-pytest</test_depend>
   <test_depend>launch_testing</test_depend>
 
-  <depend>mavros</depend>
+  <exec_depend>mavros_msgs</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>
