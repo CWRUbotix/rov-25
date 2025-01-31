@@ -59,12 +59,12 @@ class ControllerMode(IntEnum):
 
 @dataclass
 class ControllerProfile:
-    manip_left: int = X_BUTTON
-    manip_right: int = O_BUTTON
+    manip_left: int = L1
+    manip_right: int = R1
     valve_clockwise: int = TRI_BUTTON
     valve_counterclockwise: int = SQUARE_BUTTON
-    roll_left: int = L1  # positive roll
-    roll_right: int = R1  # negative roll
+    roll_left: int = X_BUTTON  # positive roll
+    roll_right: int = O_BUTTON  # negative roll
     cam_toggle_left: int = PAIRING_BUTTON
     cam_toggle_right: int = MENU
     arm_button: int = MENU
@@ -80,10 +80,10 @@ class ControllerProfile:
 CONTROLLER_PROFILES = (
     ControllerProfile(),
     ControllerProfile(
-        manip_left=L1,
-        manip_right=R1,
-        roll_left=X_BUTTON,
-        roll_right=O_BUTTON,
+        manip_left=X_BUTTON,
+        manip_right=O_BUTTON,
+        roll_left=L1,
+        roll_right=R1,
     ),
 )
 
