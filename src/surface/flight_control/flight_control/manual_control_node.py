@@ -59,8 +59,8 @@ class ControllerMode(IntEnum):
 
 @dataclass
 class ControllerProfile:
-    manip_left: int = O_BUTTON
-    manip_right: int = X_BUTTON
+    manip_left: int = X_BUTTON
+    manip_right: int = O_BUTTON
     valve_clockwise: int = TRI_BUTTON
     valve_counterclockwise: int = SQUARE_BUTTON
     roll_left: int = L1  # positive roll
