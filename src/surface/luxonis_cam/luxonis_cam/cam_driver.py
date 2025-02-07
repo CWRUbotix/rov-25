@@ -130,17 +130,18 @@ class LuxonisCamDriverNode(Node):
                 img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
                 self.video_publisher.publish(img_msg)
 
-            disparity_frame = self.disparity_queue.get()  # blocking call, will wait until a new data has arrived
+        disparity_frame = self.disparity_queue.tryGet()  # blocking call, will wait until a new data has arrived
 
-        frame = disparity_frame.getFrame()
-        frame = (frame * (255 / self.stereo_node.initialConfig.getMaxDisparity())).astype(uint8)
+        if disparity_frame:
+            frame = disparity_frame.getFrame()
+            frame = (frame * (255 / self.stereo_node.initialConfig.getMaxDisparity())).astype(uint8)
 
-        cv2.imshow("disparity", frame)
-        frame = cv2.applyColorMap(frame, cv2.COLORMAP_JET)
-        cv2.imshow("disparity_color", frame)
+            cv2.imshow("disparity", frame)
+            frame = cv2.applyColorMap(frame, cv2.COLORMAP_JET)
+            cv2.imshow("disparity_color", frame)
 
-        if cv2.waitKey(1) == ord('q'):
-            raise KeyboardInterrupt
+            if cv2.waitKey(1) == ord('q'):
+                raise KeyboardInterrupt
 
 
     def shutdown(self) -> None:
