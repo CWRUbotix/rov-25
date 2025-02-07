@@ -33,6 +33,11 @@ If you have the Git CLI, start by opening up a terminal, navigating to where you
 git clone --recurse-submodules git@github.com:CWRUbotix/rov-25.git
 ```
 
+> For already cloned repos, make sure you download submodules:
+> ```bash
+> git submodule update --init --recursive
+> ```
+
 If you've never contributed to a git repository before, you might receive an error message saying you don't have access. In that case visit [this tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh) to set up SSH for local GitHub access.
 
 After cloning the code, we need to set up our IDE: VSCode. If you already have it, great. Otherwise follow [this](https://code.visualstudio.com/download) tutorial. We recommend installing the mypy and autoDocstring VSCode extensions. Our autoDocstring settings are `Docstring Format: Numpy` and `Start On New Line: Start docstring on new line`.
@@ -303,3 +308,5 @@ For the ROV:
  - +Y is left
  - +Z is up
 
+## Development on shared devices
+For competition/bay laptops, install [deploy keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys#deploy-keys) for the necessary repos rather than using one random person's Github SSH keys. Our keys are stored in the private [rov-keys](https://github.com/CWRUbotix/rov-keys) repo. The settings for deploy keys for this repo are [here](https://github.com/CWRUbotix/rov-25/settings/keys).
