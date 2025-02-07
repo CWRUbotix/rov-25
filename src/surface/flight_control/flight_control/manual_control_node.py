@@ -156,7 +156,7 @@ class ManualControlNode(Node):
             pitch=float(axes[self.profile.pitch]),
             yaw=-float(axes[self.profile.yaw]),
             author=PixhawkInstruction.MANUAL_CONTROL,
-            aux1=float(self.valve_manip_pwm)
+            aux1=float((self.valve_manip_pwm-1500)/400)
         )
 
         self.rc_pub.publish(instruction)
