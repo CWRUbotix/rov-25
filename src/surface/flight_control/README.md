@@ -23,6 +23,11 @@ ros2 launch flight_control keyboard_control_launch.py
 ## Launch files
 
 * **flight_control_launch.py:** launches the PS5 controller and readies the auto docking controller
+
+  * **`controller_mode`** Whether the controller arms or toggles cameras; options are 0 (arming), 1 (cameras). Default: 0.
+
+  * **`controller_profile`** Profile controls what buttons do what; value is the profile index. Default: 0.
+
 * **keyboard_control_launch.py:** launches the keyboard controller under the `/surface` namespace
 
 ## Nodes

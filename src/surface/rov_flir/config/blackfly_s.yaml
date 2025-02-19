@@ -3,7 +3,6 @@
 #
 # This file maps the ros parameters to the corresponding Spinnaker "nodes" in the camera.
 # For more details on how to modify this file, see the README on camera configuration files.
-
 parameters:
   #
   # -------- user set control
