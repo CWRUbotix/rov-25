@@ -1,7 +1,8 @@
 from typing import Final
 
 import rclpy
-from mavros_msgs.msg import ManualControl
+from mavros_msgs.msg import ManualControl, CommandCode
+from mavros_msgs.srv import CommandLong, CommandLong_Request
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
@@ -11,7 +12,7 @@ from flight_control.pixhawk_instruction_utils import (
     pixhawk_instruction_to_tuple,
     tuple_to_pixhawk_instruction,
 )
-from rov_msgs.msg import PixhawkInstruction
+from rov_msgs.msg import PixhawkInstruction, ValveManip
 from rov_msgs.srv import AutonomousFlight
 
 # Brown out protection
@@ -29,7 +30,7 @@ Z_MAX_RANGE_SPEED: Final = 1000
 RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
 Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
 
-EXTENSIONS_CODE: Final = 0b00000111
+EXTENSIONS_CODE: Final = 0b11111111
 
 NEXT_INSTR_FRAC: Final = 0.05
 PREV_INSTR_FRAC: Final = 1 - NEXT_INSTR_FRAC
@@ -130,8 +131,24 @@ def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
     mc_msg.s = mapped_msg.pitch
     mc_msg.t = mapped_msg.roll
     mc_msg.aux1 = mapped_msg.aux1
+    mc_msg.aux2 = mapped_msg.aux1
+    mc_msg.aux3 = mapped_msg.aux1
+    mc_msg.aux4 = mapped_msg.aux1
+    mc_msg.aux5 = mapped_msg.aux1
+    mc_msg.aux6 = mapped_msg.aux1
 
     return mc_msg
+
+
+def to_command_long(msg: ValveManip):
+    cl_msg = CommandLong_Request()
+
+    cl_msg.command = CommandCode.DO_SET_SERVO
+    cl_msg.confirmation = 0
+    cl_msg.param1 = 9
+    cl_msg.param2 = msg.pwm
+
+    return cl_msg
 
 
 class MultiplexerNode(Node):
@@ -151,9 +168,18 @@ class MultiplexerNode(Node):
             QoSPresetProfiles.DEFAULT.value,
         )
 
+        self.valve_subscription = self.create_subscription(
+            ValveManip,
+            'valve_manipulator',
+            self.valve_callback,
+            QoSPresetProfiles.DEFAULT.value
+        )
+
         self.mc_pub = self.create_publisher(
             ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
         )
+
+        self.cmd_client = self.create_client(CommandLong, 'mavros/cmd/command')
 
         self.previous_instruction_tuple: tuple[float, ...] = pixhawk_instruction_to_tuple(
             PixhawkInstruction()
@@ -202,6 +228,9 @@ class MultiplexerNode(Node):
 
         smoothed_instruction = self.smooth_pixhawk_instruction(msg)
         self.mc_pub.publish(to_manual_control(smoothed_instruction))
+
+    def valve_callback(self, msg: ValveManip) -> None:
+        self.cmd_client.call_async(to_command_long(msg))
 
 
 def main() -> None:

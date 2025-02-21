@@ -156,7 +156,7 @@ class ManualControlNode(Node):
             pitch=float(axes[self.profile.pitch]),
             yaw=-float(axes[self.profile.yaw]),
             author=PixhawkInstruction.MANUAL_CONTROL,
-            aux1=float((self.valve_manip_pwm-1500)/400)
+            aux1=float((self.valve_manip_pwm-1500)/400) # Map to range [-1, 1]
         )
 
         self.rc_pub.publish(instruction)
@@ -178,12 +178,15 @@ class ManualControlNode(Node):
         counter_clockwise_pressed = msg.buttons[self.profile.valve_counterclockwise] == PRESSED
 
         if clockwise_pressed and not self.valve_manip_state:
+            self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MAX_PWM))
             self.valve_manip_pwm = ValveManip.MAX_PWM
             self.valve_manip_state = True
         elif counter_clockwise_pressed and not self.valve_manip_state:
+            self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MIN_PWM))
             self.valve_manip_pwm = ValveManip.MIN_PWM
             self.valve_manip_state = True
         elif self.valve_manip_state and not clockwise_pressed and not counter_clockwise_pressed:
+            self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.NEUTRAL_PWM))
             self.valve_manip_pwm = ValveManip.NEUTRAL_PWM
             self.valve_manip_state = False
 
