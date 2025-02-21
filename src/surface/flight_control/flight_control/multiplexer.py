@@ -145,8 +145,8 @@ def to_command_long(msg: ValveManip):
 
     cl_msg.command = CommandCode.DO_SET_SERVO
     cl_msg.confirmation = 0
-    cl_msg.param1 = 9
-    cl_msg.param2 = msg.pwm
+    cl_msg.param1 = float(9)
+    cl_msg.param2 = float(msg.pwm)
 
     return cl_msg
 
