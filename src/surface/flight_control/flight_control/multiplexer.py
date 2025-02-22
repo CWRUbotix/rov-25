@@ -2,7 +2,7 @@ from typing import Final
 
 import rclpy
 from mavros_msgs.msg import CommandCode, ManualControl
-from mavros_msgs.srv import CommandLong, CommandLong_Request
+from mavros_msgs.srv import CommandLong
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
@@ -134,8 +134,8 @@ def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
     return mc_msg
 
 
-def to_command_long(msg: ValveManip) -> CommandLong_Request:
-    cl_msg = CommandLong_Request()
+def to_command_long(msg: ValveManip) -> CommandLong.Request:
+    cl_msg = CommandLong.Request()
 
     cl_msg.command = CommandCode.DO_SET_SERVO
     cl_msg.confirmation = 0
