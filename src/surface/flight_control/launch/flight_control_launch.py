@@ -13,7 +13,6 @@ def generate_launch_description() -> LaunchDescription:
         ],
         remappings=[
             ('/surface/manipulator_control', '/tether/manipulator_control'),
-            # ('/surface/valve_manipulator', '/tether/valve_manipulator'),
             ('/surface/mavros/cmd/arming', '/tether/mavros/cmd/arming'),
         ],
         emulate_tty=True,

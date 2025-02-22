@@ -30,7 +30,7 @@ Z_MAX_RANGE_SPEED: Final = 1000
 RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
 Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
 
-EXTENSIONS_CODE: Final = 0b11111111
+EXTENSIONS_CODE: Final = 0b00000011
 
 NEXT_INSTR_FRAC: Final = 0.05
 PREV_INSTR_FRAC: Final = 1 - NEXT_INSTR_FRAC
@@ -130,12 +130,6 @@ def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
     mc_msg.enabled_extensions = EXTENSIONS_CODE
     mc_msg.s = mapped_msg.pitch
     mc_msg.t = mapped_msg.roll
-    mc_msg.aux1 = mapped_msg.aux1
-    mc_msg.aux2 = mapped_msg.aux1
-    mc_msg.aux3 = mapped_msg.aux1
-    mc_msg.aux4 = mapped_msg.aux1
-    mc_msg.aux5 = mapped_msg.aux1
-    mc_msg.aux6 = mapped_msg.aux1
 
     return mc_msg
 
