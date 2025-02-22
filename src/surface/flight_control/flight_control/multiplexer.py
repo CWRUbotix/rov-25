@@ -1,7 +1,7 @@
 from typing import Final
 
 import rclpy
-from mavros_msgs.msg import ManualControl, CommandCode
+from mavros_msgs.msg import CommandCode, ManualControl
 from mavros_msgs.srv import CommandLong, CommandLong_Request
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
@@ -163,10 +163,7 @@ class MultiplexerNode(Node):
         )
 
         self.valve_subscription = self.create_subscription(
-            ValveManip,
-            'valve_manipulator',
-            self.valve_callback,
-            QoSPresetProfiles.DEFAULT.value
+            ValveManip, 'valve_manipulator', self.valve_callback, QoSPresetProfiles.DEFAULT.value
         )
 
         self.mc_pub = self.create_publisher(
