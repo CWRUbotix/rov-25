@@ -3,44 +3,83 @@ import os
 import re
 import subprocess
 from signal import SIGINT
-from subprocess import Popen
+from subprocess import Popen, TimeoutExpired
 
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
+from rov_msgs.srv import CameraManage
+
 WATCHDOG_RATE = 10
 NAMESPACE = 'surface'
 MIN_FPS = 1.0
+KILL_TIMEOUT_S = 5
 
 
 class Watchdog:
-    def __init__(self, name: str, node: Node, args: list[str]) -> None:
+    def __init__(self, name: str, node: Node, args: list[str], should_be_alive: bool = True) -> None:
         self.name = name
         self.node = node
         self.args = args
         self.process: Popen[bytes]
 
-        self.start_process()
+        self.should_be_alive = should_be_alive
 
-    def start_process(self) -> None:
+        if self.should_be_alive:
+            self._start_process()
+
+    def _start_process(self) -> None:
         self.process = Popen(self.args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
+        self.should_be_alive = True
+
         if self.process.stdout is None:
-            raise RuntimeError('Child process has not stdout')
+            raise RuntimeError('Child process has no stdout')
 
         os.set_blocking(self.process.stdout.fileno(), False)
 
+    def start_process(self) -> bool:
+        if self.is_alive():
+            return True
+
+        try:
+            self._start_process()
+        except RuntimeError:
+            return False
+
+        return True
+
+    def kill_process(self) -> bool:
+        self.should_be_alive = False
+        # self.process.kill()
+        self.process.send_signal(SIGINT)
+        self.node.get_logger().info('DIE')
+        try:
+            self.process.wait(timeout=KILL_TIMEOUT_S)
+            # TODO: doesn't return right value on success
+            print(self.is_alive())
+            return self.is_alive()
+        except TimeoutExpired:
+            return False
+
     def read_stdout(self) -> bytes:
         if self.process.stdout is None:
-            raise RuntimeError('Child process has not stdout')
+            raise RuntimeError('Child process has no stdout')
 
         return self.process.stdout.readline()
 
     def poll(self) -> None:
-        if self.process.poll() is not None:
+        if self.should_be_alive:
+            self.keep_alive()
+
+    def is_alive(self) -> bool:
+        return self.process.poll() is None
+
+    def keep_alive(self) -> None:
+        if not self.is_alive():
             self.node.get_logger().warning(f'{self.name} has crashed, restarting...')
-            self.start_process()
+            self._start_process()
             return
 
         line = self.read_stdout()
@@ -59,9 +98,6 @@ class Watchdog:
                     return
 
             line = self.read_stdout()
-
-    def kill(self) -> None:
-        self.process.kill()
 
 
 class FlirWatchdogNode(Node):
@@ -97,8 +133,28 @@ class FlirWatchdogNode(Node):
             ],
         )
 
-        atexit.register(self.front_watchdog.kill)
-        atexit.register(self.bottom_watchdog.kill)
+        self.cam_manage_service = self.create_service(CameraManage, 'manage_flir', self.manage_cams_callback)
+
+        atexit.register(self.front_watchdog.kill_process)
+        atexit.register(self.bottom_watchdog.kill_process)
+
+    def manage_cams_callback(self, request: CameraManage.Request, response: CameraManage.Response) -> CameraManage.Response:
+        if request.cam == CameraManage.Request.DOWN:
+            self.get_logger().info(f'Received down cam {"on" if request.on else "off"} request')
+            target_watchdog = self.bottom_watchdog
+        elif request.cam == CameraManage.Request.FRONT:
+            self.get_logger().info(f'Received front cam {"on" if request.on else "off"} request')
+            target_watchdog = self.front_watchdog
+        else:
+            response.success = False
+            return response
+
+        if request.on:
+            response.success = target_watchdog.start_process()
+        else:
+            response.success = target_watchdog.kill_process()
+
+        return response
 
     def timer_callback(self) -> None:
         self.front_watchdog.poll()

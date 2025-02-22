@@ -42,6 +42,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/PixhawkInstruction.msg"
   "srv/AutonomousFlight.srv"
   "srv/MissionTimerSet.srv"
+  "srv/CameraManage.srv"
   DEPENDENCIES std_msgs
 )
 
