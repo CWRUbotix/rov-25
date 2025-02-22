@@ -16,12 +16,4 @@ def generate_launch_description() -> LaunchDescription:
         output='screen',
     )
 
-    valve_manip_node = Node(
-        package='manipulators',
-        executable='valve_manipulator',
-        remappings=[('/pi/valve_manipulator', '/tether/valve_manipulator')],
-        emulate_tty=True,
-        output='screen',
-    )
-
-    return LaunchDescription([manip_node, valve_manip_node])
+    return LaunchDescription([manip_node])
