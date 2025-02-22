@@ -151,7 +151,7 @@ class ManualControlNode(Node):
             lateral=-float(axes[self.profile.lateral]),
             vertical=float(axes[self.profile.vertical_down] - axes[self.profile.vertical_up]) / 2,
             roll=float(buttons[self.profile.roll_left] - buttons[self.profile.roll_right]),
-            pitch=float(axes[self.profile.pitch]),
+            pitch=float(axes[self.profile.pitch] / 2),
             yaw=-float(axes[self.profile.yaw]),
             author=PixhawkInstruction.MANUAL_CONTROL,
         )
