@@ -134,7 +134,7 @@ def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
     return mc_msg
 
 
-def to_command_long(msg: ValveManip):
+def to_command_long(msg: ValveManip) -> CommandLong_Request:
     cl_msg = CommandLong_Request()
 
     cl_msg.command = CommandCode.DO_SET_SERVO
