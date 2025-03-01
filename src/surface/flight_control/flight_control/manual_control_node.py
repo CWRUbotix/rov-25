@@ -114,22 +114,6 @@ CONTROLLER_PROFILES = (
     ),
 )
 
-def manual_control_map(value: float) -> float:
-    """
-    Convert the provided float in [-1.0, 1.0] to a ManualControl dimension.
-
-    Parameters
-    ----------
-    value : float
-        The float in [-1.0, 1.0] to convert to a ManualControl dimension
-
-    Returns
-    -------
-    float
-        The resulting ManualControl dimension
-    """
-    return RANGE_SPEED * value + ZERO_SPEED
-
 def joystick_map(raw: float) -> float:
     """
     Convert the provided joystick position to a
@@ -148,6 +132,7 @@ def joystick_map(raw: float) -> float:
     mapped = abs(raw) ** JOYSTICK_EXPONENT
     if raw < 0:
         mapped *= -1
+    mapped = RANGE_SPEED * mapped + ZERO_SPEED
     return mapped
 
 
@@ -224,7 +209,7 @@ class ManualControlNode(Node):
         self.valve_cmd_client = self.create_client(CommandLong, 'mavros/cmd/command')
 
         self.previous_instruction_tuple: tuple[float, ...] = manual_control_to_tuple(
-            ManualControl()
+            ManualControl(z=Z_ZERO_SPEED)
         )
 
         controller_mode = ControllerMode(mode_param.value)
@@ -259,19 +244,23 @@ class ManualControlNode(Node):
         axes: MutableSequence[float] = msg.axes
         buttons: MutableSequence[int] = msg.buttons
 
-        mc_msg = ManualControl()
+        msg = ManualControl()
 
-        mc_msg.x = float(axes[self.profile.forward])
-        mc_msg.y = -float(axes[self.profile.lateral])
-        mc_msg.z = float(axes[self.profile.vertical_down] - axes[self.profile.vertical_up]) / 2
-        mc_msg.r = -float(axes[self.profile.yaw]) # Yaw
-        mc_msg.enabled_extensions = EXTENSIONS_CODE
-        mc_msg.s = float(axes[self.profile.pitch]) # Pitch
-        mc_msg.t = float(buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) # Roll
+        msg.x = float(axes[self.profile.forward])
+        msg.y = -float(axes[self.profile.lateral])
+        msg.z = float(axes[self.profile.vertical_down] - axes[self.profile.vertical_up]) / 2
+        msg.r = -float(axes[self.profile.yaw])
+        msg.enabled_extensions = EXTENSIONS_CODE
+        msg.s = float(axes[self.profile.pitch])
+        msg.t = float(buttons[self.profile.roll_left] - buttons[self.profile.roll_right])
 
-        mc_msg = apply_function(mc_msg, manual_control_map)
-        mc_msg = self.smoothed_manual_control(mc_msg)
+        # Convert to manual_control values
+        mc_msg = apply_function(msg, joystick_map)
+        mc_msg.z = Z_RANGE_SPEED * msg.z + Z_ZERO_SPEED
+
+        # Apply functions
         mc_msg = self.invert_manual_control(mc_msg)
+        mc_msg = self.smooth_manual_control(mc_msg)
         
         self.mc_pub.publish(mc_msg)
 
@@ -341,12 +330,7 @@ class ManualControlNode(Node):
         self.previous_instruction_tuple = smoothed_tuple
 
         return smoothed_instruction
-
-    def smoothed_manual_control(self, msg: ManualControl) -> ManualControl:
-        msg = apply_function(msg, joystick_map)
-        smoothed_instruction = self.smooth_manual_control(msg)
-        return smoothed_instruction
-    
+        
     def invert_manual_control(self, msg: ManualControl) -> ManualControl:
         if self.inverted:
             msg.x *= -1 # Forward
