@@ -18,7 +18,7 @@ class AutoDocker(Node):
         self.pixhawk_control = self.create_publisher(
             PixhawkInstruction,
             'pixhawk_control',
-            QoSPresetProfiles.DEFAULT.value,
+            QoSPresetProfiles.SENSOR_DATA.value,
         )
 
         self.current_state = AutonomousFlight.Request.STOP

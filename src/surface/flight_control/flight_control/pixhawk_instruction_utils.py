@@ -23,7 +23,7 @@ def pixhawk_instruction_to_tuple(
 
 
 def tuple_to_pixhawk_instruction(
-    instruction_tuple: tuple[float, ...], author: int = PixhawkInstruction.MANUAL_CONTROL
+    instruction_tuple: tuple[float, ...], header, author: int = PixhawkInstruction.MANUAL_CONTROL
 ) -> PixhawkInstruction:
     """
     Convert tuple of dimensions and author to a PixhawkInstruction.
@@ -41,6 +41,7 @@ def tuple_to_pixhawk_instruction(
         A new PixhawkInstruction with the provided dimensions and author
     """
     return PixhawkInstruction(
+        header=header,
         forward=instruction_tuple[0],
         vertical=instruction_tuple[1],
         lateral=instruction_tuple[2],
@@ -72,4 +73,4 @@ def apply_function(
     """
     instruction_tuple = pixhawk_instruction_to_tuple(msg)
     modified_tuple = tuple(function_to_apply(value) for value in instruction_tuple)
-    return tuple_to_pixhawk_instruction(modified_tuple, msg.author)
+    return tuple_to_pixhawk_instruction(modified_tuple, msg.header, msg.author)

@@ -123,6 +123,7 @@ def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
     # To account for different z limits
     mapped_msg.vertical = Z_RANGE_SPEED * msg.vertical + Z_ZERO_SPEED
 
+    mc_msg.header = msg.header
     mc_msg.x = mapped_msg.forward
     mc_msg.z = mapped_msg.vertical
     mc_msg.y = mapped_msg.lateral
@@ -159,7 +160,7 @@ class MultiplexerNode(Node):
             PixhawkInstruction,
             'pixhawk_control',
             self.control_callback,
-            QoSPresetProfiles.DEFAULT.value,
+            QoSPresetProfiles.SENSOR_DATA.value,
         )
 
         self.valve_subscription = self.create_subscription(
@@ -185,7 +186,7 @@ class MultiplexerNode(Node):
                 self.previous_instruction_tuple, instruction_tuple, strict=True
             )
         )
-        smoothed_instruction = tuple_to_pixhawk_instruction(smoothed_tuple, msg.author)
+        smoothed_instruction = tuple_to_pixhawk_instruction(smoothed_tuple, msg.header, msg.author)
 
         self.previous_instruction_tuple = smoothed_tuple
 
@@ -218,6 +219,17 @@ class MultiplexerNode(Node):
             return
 
         smoothed_instruction = self.smooth_pixhawk_instruction(msg)
+
+        import time
+        from rclpy.time import Time
+
+        stamp = msg.header.stamp
+        now = Time(nanoseconds=time.time_ns()).to_msg()
+
+        diff = now.sec - stamp.sec + (now.nanosec - stamp.nanosec) / 10**9
+
+        self.get_logger().info(f'Header: {stamp} Current: {now} Diff: {diff}')
+
         self.mc_pub.publish(to_manual_control(smoothed_instruction))
 
     def valve_callback(self, msg: ValveManip) -> None:

@@ -33,11 +33,11 @@ class ControlInverterNode(Node):
             PixhawkInstruction,
             'uninverted_pixhawk_control',
             self.control_callback,
-            QoSPresetProfiles.DEFAULT.value,
+            QoSPresetProfiles.SENSOR_DATA.value,
         )
 
         self.pixhawk_control = self.create_publisher(
-            PixhawkInstruction, 'pixhawk_control', QoSPresetProfiles.DEFAULT.value
+            PixhawkInstruction, 'pixhawk_control', QoSPresetProfiles.SENSOR_DATA.value
         )
 
     def invert_callback(self, _: CameraControllerSwitch) -> None:

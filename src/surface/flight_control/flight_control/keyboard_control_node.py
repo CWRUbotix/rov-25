@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import rclpy.utilities
 from pynput.keyboard import Key, KeyCode, Listener
 from rclpy.node import Node
-from rclpy.qos import qos_profile_system_default
+from rclpy.qos import qos_profile_system_default, qos_profile_sensor_data
 
 from rov_msgs.msg import PixhawkInstruction
 
@@ -57,8 +57,8 @@ class KeyboardListenerNode(Node):
     def __init__(self) -> None:
         super().__init__('keyboard_listener_node', parameter_overrides=[])
 
-        self.rc_pub: Publisher = self.create_publisher(
-            PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_system_default
+        self.rc_pub = self.create_publisher(
+            PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_sensor_data
         )
 
         self.get_logger().info(HELP_MSG)

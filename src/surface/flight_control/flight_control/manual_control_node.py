@@ -2,12 +2,16 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import TYPE_CHECKING
 
+import time
 import rclpy
 from mavros_msgs.srv import CommandBool
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
 from sensor_msgs.msg import Joy
+from std_msgs.msg import Header
+# from builtin_interfaces.msg import Time
+from rclpy.time import Time
 
 from rov_msgs.msg import CameraControllerSwitch, Manip, PixhawkInstruction, ValveManip
 
@@ -97,7 +101,7 @@ class ManualControlNode(Node):
         self.profile = CONTROLLER_PROFILES[profile_param.value]
 
         self.rc_pub = self.create_publisher(
-            PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_system_default
+            PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_sensor_data
         )
 
         self.subscription = self.create_subscription(
@@ -147,6 +151,7 @@ class ManualControlNode(Node):
         buttons: MutableSequence[int] = msg.buttons
 
         instruction = PixhawkInstruction(
+            header=Header(stamp=Time(nanoseconds=time.time_ns()).to_msg()),
             forward=float(axes[self.profile.forward]),
             lateral=-float(axes[self.profile.lateral]),
             vertical=float(axes[self.profile.vertical_down] - axes[self.profile.vertical_up]) / 2,
