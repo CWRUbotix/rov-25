@@ -28,18 +28,6 @@ def generate_launch_description() -> LaunchDescription:
         PythonLaunchDescriptionSource([str(Path(manip_path) / 'launch' / 'manip_launch.py')])
     )
 
-    # Commented out because no usb cams are planned
-    # Camera Streamer
-    # cam_path = get_package_share_directory('camera_streamer')
-
-    # cam_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource([
-    #         os.path.join(
-    #             cam_path, 'launch', 'camera_launch.py'
-    #         )
-    #     ])
-    # )
-
     # Pixhawk Communication
     pixhawk_path = get_package_share_directory('pixhawk_communication')
 
@@ -67,23 +55,12 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
-    # Temperature sensor
-    temp_sensor_path = get_package_share_directory('temp_sensor')
-
-    temp_sensor_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [str(Path(temp_sensor_path) / 'launch' / 'temp_sensor_launch.py')]
-        )
-    )
-
     namespace_launch = GroupAction(
         actions=[
             PushRosNamespace(NAMESPACE),
             manip_launch,
             pixhawk_launch,
-            # cam_launch,
             flood_detection_launch,
-            temp_sensor_launch,
             pi_info_launch,
         ]
     )
