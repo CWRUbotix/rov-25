@@ -12,15 +12,6 @@ NAMESPACE = 'pi'
 
 
 def generate_launch_description() -> LaunchDescription:
-    """
-    Generate LaunchDescription for pi_main.
-
-    Returns
-    -------
-    LaunchDescription
-        Launches camera_streamer package and pixhawk_communication package.
-
-    """
     # Manipulator Controller
     manip_path = get_package_share_directory('manipulators')
 
