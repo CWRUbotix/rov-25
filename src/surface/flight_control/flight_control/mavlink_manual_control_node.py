@@ -102,10 +102,10 @@ class MavlinkManualControlNode(Node):
             Joy, 'joy', self.controller_callback, qos_profile_sensor_data
         )
 
-        # # Manipulators
-        # self.manip_publisher = self.create_publisher(
-        #     Manip, 'manipulator_control', qos_profile_system_default
-        # )
+        # Manipulators
+        self.manip_publisher = self.create_publisher(
+            Manip, 'manipulator_control', qos_profile_system_default
+        )
 
         # # Valve Manip
         # self.valve_manip = self.create_publisher(
@@ -125,10 +125,10 @@ class MavlinkManualControlNode(Node):
         #     # Control arming
         #     self.arm_client = self.create_client(CommandBool, 'mavros/cmd/arming')
 
-        # self.manip_buttons: dict[int, ManipButton] = {
-        #     self.profile.manip_left: ManipButton('left'),
-        #     self.profile.manip_right: ManipButton('right'),
-        # }
+        self.manip_buttons: dict[int, ManipButton] = {
+            self.profile.manip_left: ManipButton('left'),
+            self.profile.manip_right: ManipButton('right'),
+        }
 
         # self.seen_left_cam = False
         # self.seen_right_cam = False
@@ -154,7 +154,7 @@ class MavlinkManualControlNode(Node):
         self.send_mavlink_control(msg)
         
         # self.valve_manip_callback(msg)
-        # self.manip_callback(msg)
+        self.manip_callback(msg)
         # self.misc_controls_callback(msg)
 
     def send_mavlink_control(self, msg: Joy) -> None:
@@ -173,21 +173,25 @@ class MavlinkManualControlNode(Node):
             int(-axes[self.profile.lateral] * 1000),
             int((axes[self.profile.vertical_down] - axes[self.profile.vertical_up] + 1) / 2 * 1000),
             int(axes[self.profile.yaw] * 1000),
+            0,
+            0,
+            0,
+            0,
             int(axes[self.profile.pitch] * 1000),
             int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000),
         )
 
-#     def manip_callback(self, msg: Joy) -> None:
-#         buttons: MutableSequence[int] = msg.buttons
-#         for button_id, manip_button in self.manip_buttons.items():
-#             just_pressed = buttons[button_id] == PRESSED
-#             if manip_button.last_button_state is False and just_pressed:
-#                 new_manip_state = not manip_button.is_active
-#                 manip_button.is_active = new_manip_state
-#                 manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
-#                 self.manip_publisher.publish(manip_msg)
+    def manip_callback(self, msg: Joy) -> None:
+        buttons: MutableSequence[int] = msg.buttons
+        for button_id, manip_button in self.manip_buttons.items():
+            just_pressed = buttons[button_id] == PRESSED
+            if manip_button.last_button_state is False and just_pressed:
+                new_manip_state = not manip_button.is_active
+                manip_button.is_active = new_manip_state
+                manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
+                self.manip_publisher.publish(manip_msg)
 
-#             manip_button.last_button_state = just_pressed
+            manip_button.last_button_state = just_pressed
 
 #     def valve_manip_callback(self, msg: Joy) -> None:
 #         clockwise_pressed = msg.buttons[self.profile.valve_clockwise] == PRESSED
@@ -228,11 +232,11 @@ class MavlinkManualControlNode(Node):
 #             self.arm_client.call_async(DISARM_MESSAGE)
 
 
-# class ManipButton:
-#     def __init__(self, claw: str) -> None:
-#         self.claw = claw
-#         self.last_button_state: bool = False
-#         self.is_active: bool = False
+class ManipButton:
+    def __init__(self, claw: str) -> None:
+        self.claw = claw
+        self.last_button_state: bool = False
+        self.is_active: bool = False
 
 
 def main() -> None:
