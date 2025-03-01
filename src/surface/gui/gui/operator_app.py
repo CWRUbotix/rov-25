@@ -41,7 +41,7 @@ class OperatorApp(App):
         right_pane.addWidget(TemperatureSensor())
         right_pane.addWidget(IPWidget())
         right_pane.addStretch()
-        right_pane.addWidget(TaskSelector())
+        # right_pane.addWidget(TaskSelector())
 
         # Add tabs to root
         root_layout = QVBoxLayout()

@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 import rclpy.utilities
 from pynput.keyboard import Key, KeyCode, Listener
 from rclpy.node import Node
-from rclpy.qos import qos_profile_system_default
+from rclpy.qos import QoSPresetProfiles
 
-from rov_msgs.msg import PixhawkInstruction
+from mavros_msgs.msg import ManualControl
 
 if TYPE_CHECKING:
     from rclpy.publisher import Publisher
@@ -57,8 +57,9 @@ class KeyboardListenerNode(Node):
     def __init__(self) -> None:
         super().__init__('keyboard_listener_node', parameter_overrides=[])
 
-        self.rc_pub: Publisher = self.create_publisher(
-            PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_system_default
+        # Manual Control
+        self.mc_pub: Publisher = self.create_publisher(
+            ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
         )
 
         self.get_logger().info(HELP_MSG)
@@ -112,17 +113,16 @@ class KeyboardListenerNode(Node):
         self.pub_rov_control()
 
     def pub_rov_control(self) -> None:
-        instruction = PixhawkInstruction(
-            pitch=float(self.status[PITCH_UP] - self.status[PITCH_DOWN]),
-            roll=float(self.status[ROLL_LEFT] - self.status[ROLL_RIGHT]),
-            vertical=float(self.status[UP] - self.status[DOWN]),
-            forward=float(self.status[FORWARD] - self.status[BACKWARD]),
-            lateral=float(self.status[LEFT] - self.status[RIGHT]),
-            yaw=float(self.status[YAW_LEFT] - self.status[YAW_RIGHT]),
-            author=PixhawkInstruction.KEYBOARD_CONTROL,
+        instruction = ManualControl(
+            s=float(self.status[PITCH_UP] - self.status[PITCH_DOWN]),
+            t=float(self.status[ROLL_LEFT] - self.status[ROLL_RIGHT]),
+            z=float(self.status[UP] - self.status[DOWN]),
+            x=float(self.status[FORWARD] - self.status[BACKWARD]),
+            y=float(self.status[LEFT] - self.status[RIGHT]),
+            r=float(self.status[YAW_LEFT] - self.status[YAW_RIGHT]),
         )
 
-        self.rc_pub.publish(instruction)
+        self.mc_pub.publish(instruction)
 
     def spin(self) -> None:
         with Listener(on_press=self.on_press, on_release=self.on_release) as listener:
