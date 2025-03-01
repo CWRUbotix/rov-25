@@ -134,6 +134,7 @@ class MavlinkManualControlNode(Node):
         # self.seen_right_cam = False
         # self.valve_manip_state = False
 
+        self.get_logger().info("Connecting to mavlink...")
         self.mavlink = mavutil.mavlink_connection('udpin:0.0.0.0:14550', source_system=255)
         self.mavlink.wait_heartbeat()
         self.get_logger().info("Mavlink connected!")
