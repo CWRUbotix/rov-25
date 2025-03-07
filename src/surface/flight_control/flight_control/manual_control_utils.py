@@ -52,20 +52,20 @@ def apply_function(
     msg: ManualControl, function_to_apply: Callable[[float], float]
 ) -> ManualControl:
     """
-    Run the provided function on each dimension of a PixhawkInstruction.
-    Does not modify the original PixhawkInstruction.
+    Run the provided function on each dimension of a ManualControl instruction.
+    Does not modify the original ManualControl.
 
     Parameters
     ----------
-    msg : PixhawkInstruction
+    msg : ManualControl
         The instruction to run the function on
     function_to_apply : Callable[[float], float]
         The function to apply to each dimension
 
     Returns
     -------
-    PixhawkInstruction
-        The new PixhawkInstruction made by applying the function to each dimension of msg
+    ManualControl
+        The new ManualControl made by applying the function to each dimension of msg
     """
     instruction_tuple = manual_control_to_tuple(msg)
     modified_tuple = tuple(function_to_apply(value) for value in instruction_tuple)
