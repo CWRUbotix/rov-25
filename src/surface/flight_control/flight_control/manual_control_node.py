@@ -235,12 +235,12 @@ class ManualControlNode(Node):
         self.valve_manip_state = False
 
     def controller_callback(self, msg: Joy) -> None:
-        self.joystick_to_manual_control(msg)
+        self.joystick_callback(msg)
         self.valve_manip_callback(msg)
         self.manip_callback(msg)
         self.misc_controls_callback(msg)
 
-    def joystick_to_manual_control(self, msg: Joy) -> None:
+    def joystick_callback(self, msg: Joy) -> None:
         axes: MutableSequence[float] = msg.axes
         buttons: MutableSequence[int] = msg.buttons
 
