@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from pi_main.run_on_boot import main
