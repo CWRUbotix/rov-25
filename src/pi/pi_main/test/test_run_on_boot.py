@@ -12,7 +12,7 @@ def test_install_on_boot() -> None:
     main()
 
     # Test for files being copied correctly
-    actual_rules_files = set(os.listdir(Path('/etc') / 'udev' / 'rules.d'))
+    actual_rules_files = set((Path('/etc') / 'udev' / 'rules.d').iterdir())
     expected_rules_files = {'i2c.rules', 'camera.rules', 'pixhawk.rules'}
     assert expected_rules_files.issubset(actual_rules_files)
 
