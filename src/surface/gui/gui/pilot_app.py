@@ -11,7 +11,7 @@ from gui.widgets.livestream_header import LivestreamHeader
 from gui.widgets.timer import TimerDisplay
 from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
 
-FRONT_CAM_TOPIC = 'front_cam/image_raw'
+FRONT_CAM_TOPIC = 'luxonis_cam_stream'
 BOTTOM_CAM_TOPIC = 'bottom_cam/image_raw'
 
 
@@ -52,7 +52,7 @@ class PilotApp(App):
             front_cam_type = CameraType.SIMULATION
             bottom_cam_type = CameraType.SIMULATION
         else:
-            front_cam_type = CameraType.ETHERNET
+            front_cam_type = CameraType.DEPTH
             bottom_cam_type = CameraType.ETHERNET
 
         gui_type = GuiType(gui_param.value)
