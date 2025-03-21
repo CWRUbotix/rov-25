@@ -44,7 +44,7 @@ def generate_launch_description() -> LaunchDescription:
             PushRosNamespace('surface'),
             gui_launch,
             flight_control_launch,
-            vehicle_manager_launch,
+            # vehicle_manager_launch,
             transceiver_launch,
         ]
     )
