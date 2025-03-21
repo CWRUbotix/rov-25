@@ -6,6 +6,14 @@ from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 
 from mavros_msgs.msg import ManualControl
+from flight_control.manual_control_utils import (
+    joystick_map,
+    apply_function
+)
+from flight_control.manual_control_node import (
+    Z_ZERO_SPEED,
+    Z_RANGE_SPEED
+)
 
 if TYPE_CHECKING:
     from rclpy.publisher import Publisher
@@ -122,7 +130,11 @@ class KeyboardListenerNode(Node):
             r=float(self.status[YAW_LEFT] - self.status[YAW_RIGHT]),
         )
 
-        self.mc_pub.publish(instruction)
+        # Convert to manual_control values
+        msg = apply_function(instruction, joystick_map)
+        msg.z = Z_RANGE_SPEED * instruction.z + Z_ZERO_SPEED
+
+        self.mc_pub.publish(msg)
 
     def spin(self) -> None:
         with Listener(on_press=self.on_press, on_release=self.on_release) as listener:

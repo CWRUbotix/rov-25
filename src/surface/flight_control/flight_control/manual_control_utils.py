@@ -1,6 +1,43 @@
 from collections.abc import Callable
 
 from mavros_msgs.msg import ManualControl
+from typing import Final
+
+# Brown out protection
+SPEED_THROTTLE: Final = 0.65
+
+# Joystick curve
+JOYSTICK_EXPONENT: Final = 3
+
+# Range of values Pixhawk takes
+# In microseconds
+ZERO_SPEED: Final = 0
+Z_ZERO_SPEED: Final = 500
+MAX_RANGE_SPEED: Final = 2000
+Z_MAX_RANGE_SPEED: Final = 1000
+RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
+Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
+
+def joystick_map(raw: float) -> float:
+    """
+    Convert the provided joystick position to a
+    float in [-, 1.0] for use in a PixhawkInstruction.
+
+    Parameters
+    ----------
+    raw : float
+        The joystick position to convert
+
+    Returns
+    -------
+    float
+        A float in [-1.0, 1.0] to act as a ManualControl dimension
+    """
+    mapped = abs(raw) ** JOYSTICK_EXPONENT
+    if raw < 0:
+        mapped *= -1
+    mapped = RANGE_SPEED * mapped + ZERO_SPEED
+    return mapped
 
 
 def manual_control_to_tuple(

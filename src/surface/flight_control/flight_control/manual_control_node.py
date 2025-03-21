@@ -12,14 +12,16 @@ from sensor_msgs.msg import Joy
 from mavros_msgs.msg import ManualControl, CommandCode
 from rov_msgs.msg import CameraControllerSwitch, Manip, ValveManip
 from flight_control.manual_control_utils import (
+    joystick_map,
     apply_function,
     manual_control_to_tuple,
     tuple_to_manual_control,
+    Z_ZERO_SPEED,
+    Z_RANGE_SPEED
 )
 
 if TYPE_CHECKING:
     from collections.abc import MutableSequence
-
 
 UNPRESSED = 0
 PRESSED = 1
@@ -49,21 +51,6 @@ RJOYY = 4
 R2PRESS_PERCENT = 5
 DPADHOR = 6
 DPADVERT = 7
-
-# Brown out protection
-SPEED_THROTTLE: Final = 0.65
-
-# Joystick curve
-JOYSTICK_EXPONENT: Final = 3
-
-# Range of values Pixhawk takes
-# In microseconds
-ZERO_SPEED: Final = 0
-Z_ZERO_SPEED: Final = 500
-MAX_RANGE_SPEED: Final = 2000
-Z_MAX_RANGE_SPEED: Final = 1000
-RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
-Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
 
 EXTENSIONS_CODE: Final = 0b00000011
 
@@ -114,28 +101,6 @@ CONTROLLER_PROFILES = (
     ),
 )
 
-def joystick_map(raw: float) -> float:
-    """
-    Convert the provided joystick position to a
-    float in [-1.0, 1.0] for use in a PixhawkInstruction.
-
-    Parameters
-    ----------
-    raw : float
-        The joystick position to convert
-
-    Returns
-    -------
-    float
-        A float in [-1.0, 1.0] to act as a PixhawkInstruction dimension
-    """
-    mapped = abs(raw) ** JOYSTICK_EXPONENT
-    if raw < 0:
-        mapped *= -1
-    mapped = RANGE_SPEED * mapped + ZERO_SPEED
-    return mapped
-
-
 def smooth_value(prev_value: float, next_value: float) -> float:
     """
     Get a value that interpolates prev_value & next_value.
@@ -171,6 +136,7 @@ def to_command_long(msg: ValveManip) -> CommandLong.Request:
     cl_msg.param2 = float(msg.pwm)
 
     return cl_msg
+
 
 class ManualControlNode(Node):
     def __init__(self) -> None:
