@@ -44,4 +44,3 @@ def test_joystick_map() -> None:
     assert msg.s == ZERO_SPEED + RANGE_SPEED * (0.34 ** JOYSTICK_EXPONENT)
     assert msg.r == ZERO_SPEED + RANGE_SPEED * (-0.6 ** JOYSTICK_EXPONENT)
     assert msg.t == ZERO_SPEED + RANGE_SPEED * (0.92 ** JOYSTICK_EXPONENT)
-    rclpy.shutdown()

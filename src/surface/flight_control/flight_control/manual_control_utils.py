@@ -21,7 +21,7 @@ Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
 def joystick_map(raw: float) -> float:
     """
     Convert the provided joystick position to a
-    float in [-1.0, 1.0] for use in a PixhawkInstruction.
+    float in [-1300, 1300] for use in a ManualControl instruction.
 
     Parameters
     ----------
@@ -31,7 +31,7 @@ def joystick_map(raw: float) -> float:
     Returns
     -------
     float
-        A float in [-1.0, 1.0] to act as a ManualControl dimension
+        A float in [-1300, 1300] to act as a ManualControl dimension
     """
     mapped = abs(raw) ** JOYSTICK_EXPONENT
     if raw < 0:
