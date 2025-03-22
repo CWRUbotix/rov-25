@@ -12,6 +12,7 @@ from sensor_msgs.msg import Joy
 
 from rov_msgs.msg import Manip, Heartbeat
 from rov_msgs.msg import VehicleState as VehicleStateMsg
+from rov_msgs.srv import VehicleArming
 
 
 if TYPE_CHECKING:
@@ -165,8 +166,6 @@ class MavlinkManualControlNode(Node):
 
         self.get_logger().info("Connecting to mavlink...")
         self.mavlink = mavutil.mavlink_connection('udpin:0.0.0.0:14550', source_system=255)
-        self.mavlink.wait_heartbeat()
-        self.get_logger().info("Mavlink connected!")
 
         # Send mavlink arm message
         # self.mavlink.mav.command_long_send(
@@ -185,6 +184,10 @@ class MavlinkManualControlNode(Node):
 
         self.mavros_subscription = self.create_subscription(
             Heartbeat, 'pi_heartbeat', self.pi_heartbeat_callback, 10
+        )
+
+        self.arming_service = self.create_service(
+            VehicleArming, 'arming', callback=self.arming_service_callback
         )
 
         self.last_pi_heartbeat: float = 0  # Unix timestamp of the last mavlink heartbeat from the pi
@@ -264,12 +267,34 @@ class MavlinkManualControlNode(Node):
             int(arm),
             0, 0, 0, 0, 0, 0
         )
+        self.get_logger().info(f"Setting armed state to {arm}")
+
+    def arming_service_callback(self, request: VehicleArming.Request, response: VehicleArming.Response
+                                ) -> VehicleArming.Response:
+        """Handle a request to arm or disarm the robot
+
+        Parameters
+        ----------
+        request : VehicleArming.Request
+            The ROS service request that resulted in this callback being called
+        response : VehicleArming.Response
+            The ROS service response to be sent to the node that made the service call
+
+        Returns
+        -------
+        VehicleArming.Response
+            The filled ROS service response
+        """
+
+        self.set_armed(request.arm)
+
+        response.message_sent = True
+        return response
 
 
     def process_arming_buttons(self, msg: Joy) -> None:
         """Set the arming state using the menu and pairing buttons."""
         buttons: MutableSequence[int] = msg.buttons
-        # self.get_logger().info(str(buttons))
 
         if buttons[self.profile.disarm_button] == PRESSED:
             self.get_logger().info("Sending disarm command")
