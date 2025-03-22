@@ -22,43 +22,18 @@ from pymavlink import mavutil
 
 JOY_MAP_STRENGTH = 2  # 1 disables joystick mapping, higher number decrease intermediate joystick values to allow for finer control
 GLOBAL_THROTTLE = 0.65  # From 0 to 1, lower numbers decrease the thrust in every direction
-PITCH_THROTTLE = 0.5
+PITCH_THROTTLE = 0.5  # From 0 to 1, stacks multiplicatively with GLOBAL_THROTTLE
 
 MAVLINK_POLL_RATE = 20  # Hz
 PI_TIMEOUT = 1  # Seconds since last heartbeat before the pi is considered disconnected
 ARDUSUB_TIMEOUT = 3  # Seconds since last heartbeat before ardusub is considered disconnected
 
+VEHICLE_COMPONENT_ID = 1
 MANUAL_CONTROL_EXTENSIONS_CODE = 0b00000011
 
 
 UNPRESSED = 0
 PRESSED = 1
-
-# # Button meanings for PS5 Control might be different for others
-# X_BUTTON = 0  # Manipulator 0
-# O_BUTTON = 1  # Manipulator 1
-# TRI_BUTTON = 2  # Manipulator 2
-# SQUARE_BUTTON = 3  # Manipulator 3
-# L1 = 4
-# R1 = 5
-# L2 = 6
-# R2 = 7
-# PAIRING_BUTTON = 8
-# MENU = 9
-# PS_BUTTON = 10
-# LJOYPRESS = 11
-# RJOYPRESS = 12
-# # Joystick Directions 1 is up/left -1 is down/right
-# # X is forward/backward Y is left/right
-# # L2 and R2 1 is not pressed and -1 is pressed
-# LJOYX = 0
-# LJOYY = 1
-# L2PRESS_PERCENT = 2
-# RJOYX = 3
-# RJOYY = 4
-# R2PRESS_PERCENT = 5
-# DPADHOR = 6
-# DPADVERT = 7
 
 # Button meanings for PS5 Control might be different for others
 X_BUTTON = 0  # Manipulator 0
@@ -69,8 +44,8 @@ L1 = 4
 R1 = 5
 L2 = 6
 R2 = 7
-PAIRING_BUTTON = 4
-MENU = 6
+PAIRING_BUTTON = 8
+MENU = 9
 PS_BUTTON = 10
 LJOYPRESS = 11
 RJOYPRESS = 12
@@ -79,12 +54,38 @@ RJOYPRESS = 12
 # L2 and R2 1 is not pressed and -1 is pressed
 LJOYX = 0
 LJOYY = 1
-RJOYX = 2
-RJOYY = 3
-L2PRESS_PERCENT = 4
+L2PRESS_PERCENT = 2
+RJOYX = 3
+RJOYY = 4
 R2PRESS_PERCENT = 5
 DPADHOR = 6
 DPADVERT = 7
+
+# # Button meanings for PS5 Control might be different for others
+# X_BUTTON = 0  # Manipulator 0
+# O_BUTTON = 1  # Manipulator 1
+# TRI_BUTTON = 2  # Manipulator 2
+# SQUARE_BUTTON = 3  # Manipulator 3
+# L1 = 4
+# R1 = 5
+# L2 = 6
+# R2 = 7
+# PAIRING_BUTTON = 4
+# MENU = 6
+# PS_BUTTON = 10
+# LJOYPRESS = 11
+# RJOYPRESS = 12
+# # Joystick Directions 1 is up/left -1 is down/right
+# # X is forward/backward Y is left/right
+# # L2 and R2 1 is not pressed and -1 is pressed
+# LJOYX = 0
+# LJOYY = 1
+# RJOYX = 2
+# RJOYY = 3
+# L2PRESS_PERCENT = 4
+# R2PRESS_PERCENT = 5
+# DPADHOR = 6
+# DPADVERT = 7
 
 CONTROLLER_MODE_PARAM = 'controller_mode'
 CONTROLLER_PROFILE_PARAM = 'controller_profile'
@@ -214,13 +215,13 @@ class MavlinkManualControlNode(Node):
         float
             The output of the mapping, between -1 and 1
         """
-        return math.copysign(math.fabs(raw) ** JOY_MAP_STRENGTH, raw)
+        return math.copysign(math.fabs(raw) ** JOY_MAP_STRENGTH, raw) * GLOBAL_THROTTLE
 
     def send_mavlink_control(self, msg: Joy) -> None:        
         axes: MutableSequence[float] = msg.axes
         buttons: MutableSequence[int] = msg.buttons
 
-        self.get_logger().info(str(axes))
+        # self.get_logger().info(str(axes))
         # self.get_logger().info(str((self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5)) / 2 * 1000 + 500))
 
         self.mavlink.mav.manual_control_send(
@@ -231,7 +232,7 @@ class MavlinkManualControlNode(Node):
             int(self.joystick_map(axes[self.profile.yaw]) * 1000),
             0, 0,
             MANUAL_CONTROL_EXTENSIONS_CODE,
-            int(self.joystick_map(axes[self.profile.pitch]) * 1000),
+            int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000),
             0  #int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000),
         )
 
@@ -296,7 +297,9 @@ class MavlinkManualControlNode(Node):
 
         mavlink_msg=self.mavlink.recv_match()
         while mavlink_msg:
-            if mavlink_msg.get_type() == 'HEARTBEAT':
+            if mavlink_msg._header.srcComponent == VEHICLE_COMPONENT_ID and mavlink_msg.get_type() == 'HEARTBEAT':
+                # self.get_logger().info(f"sys: {mavlink_msg._header.srcSystem}, comp: {mavlink_msg._header.srcComponent}, system status: {mavlink_msg.system_status}")
+
                 self.last_ardusub_heartbeat = time.time()
 
                 new_state.ardusub_connected = True
