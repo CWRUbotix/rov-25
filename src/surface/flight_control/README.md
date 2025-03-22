@@ -58,6 +58,10 @@ Controls motors, manipulators, and camera switching (if applicable) from the PS5
 
     Instructions to set the Valve Manipulator servo
 
+* **`/tether/mavros/cmd/arming`** ([mavros_msgs/srv/CommandBool.srv])
+
+    Instruction to arm the robot
+
 ### keyboard_control_node
 
 Controls motors (only) from the keyboard. Not run by general surface launch files. Run this separately with its launch file to use it.
@@ -65,6 +69,6 @@ This node can publish concurrently with manual control/auto docking.
 
 #### Published Topics
 
-* **`/tether/mavros/rc/override`** ([mavros_msgs/msg/OverrideRcIn])
+* **`/tether/mavros/manual_control/send`** ([mavros_msgs/msg/ManualControl])
 
-    The movement instructions for the Pixhawk. This node can publish concurrently with manual control.
+    The movement instructions for the Pixhawk
