@@ -3,6 +3,7 @@ from mavros_msgs.msg import ManualControl
 
 from flight_control.manual_control_node import ManualControlNode
 from flight_control.manual_control_utils import (
+    JOYSTICK_EXPONENT,
     ZERO_SPEED,
     Z_ZERO_SPEED,
     Z_RANGE_SPEED,
@@ -40,7 +41,7 @@ def test_joystick_map() -> None:
  
     # 1539 1378
 
-    assert msg.s == ZERO_SPEED + RANGE_SPEED ** 3 * 0.34
-    assert msg.r == ZERO_SPEED + RANGE_SPEED ** 3 * -0.6
-    assert msg.t == ZERO_SPEED + RANGE_SPEED ** 3 * 0.92
+    assert msg.s == ZERO_SPEED + RANGE_SPEED * (0.34 ** JOYSTICK_EXPONENT)
+    assert msg.r == ZERO_SPEED + RANGE_SPEED * (-0.6 ** JOYSTICK_EXPONENT)
+    assert msg.t == ZERO_SPEED + RANGE_SPEED * (0.92 ** JOYSTICK_EXPONENT)
     rclpy.shutdown()
