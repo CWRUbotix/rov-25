@@ -8,9 +8,7 @@ from rclpy.qos import QoSPresetProfiles
 from mavros_msgs.msg import ManualControl
 from flight_control.manual_control_utils import (
     joystick_map,
-    apply_function
-)
-from flight_control.manual_control_node import (
+    apply_function,
     Z_ZERO_SPEED,
     Z_RANGE_SPEED
 )
