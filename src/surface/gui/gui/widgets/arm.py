@@ -1,22 +1,22 @@
-from mavros_msgs.srv import CommandBool
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
 from gui.gui_node import GUINode
 from gui.styles.custom_styles import ButtonIndicator, WidgetState
 from rov_msgs.msg import VehicleState
+from rov_msgs.srv import VehicleArming
 
 
 class Arm(QWidget):
     """Arm widget for sending Arm Commands."""
 
-    ARM_REQUEST = CommandBool.Request(value=True)
-    DISARM_REQUEST = CommandBool.Request(value=False)
+    ARM_REQUEST = VehicleArming.Request(arm=True)
+    DISARM_REQUEST = VehicleArming.Request(arm=False)
     BUTTON_WIDTH = 120
     BUTTON_HEIGHT = 60
     BUTTON_STYLESHEET = 'QPushButton { font-size: 20px; }'
 
-    command_response_signal = pyqtSignal(CommandBool.Response)
+    command_response_signal = pyqtSignal(VehicleArming.Response)
     vehicle_state_signal = pyqtSignal(VehicleState)
 
     def __init__(self) -> None:
@@ -48,7 +48,7 @@ class Arm(QWidget):
 
         self.command_response_signal.connect(self.arm_status)
 
-        self.arm_client = GUINode().create_client_multithreaded(CommandBool, 'mavros/cmd/arming')
+        self.arm_client = GUINode().create_client_multithreaded(VehicleArming, 'arming')
 
         GUINode().create_signal_subscription(
             VehicleState,
@@ -68,9 +68,9 @@ class Arm(QWidget):
             self.arm_client, self.DISARM_REQUEST, self.command_response_signal
         )
 
-    @pyqtSlot(CommandBool.Response)
-    def arm_status(self, res: CommandBool.Response) -> None:
-        if not res:
+    @pyqtSlot(VehicleArming.Response)
+    def arm_status(self, res: VehicleArming.Response) -> None:
+        if not res or not res.message_sent:
             GUINode().get_logger().warning('Failed to arm or disarm.')
 
     @pyqtSlot(VehicleState)
