@@ -1,16 +1,16 @@
 from typing import TYPE_CHECKING
 
 import rclpy.utilities
+from mavros_msgs.msg import ManualControl
 from pynput.keyboard import Key, KeyCode, Listener
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 
-from mavros_msgs.msg import ManualControl
 from flight_control.manual_control_utils import (
-    joystick_map,
-    apply_function,
+    Z_RANGE_SPEED,
     Z_ZERO_SPEED,
-    Z_RANGE_SPEED
+    apply_function,
+    joystick_map,
 )
 
 if TYPE_CHECKING:

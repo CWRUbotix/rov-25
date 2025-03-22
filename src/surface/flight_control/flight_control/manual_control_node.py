@@ -3,22 +3,22 @@ from enum import IntEnum
 from typing import TYPE_CHECKING, Final
 
 import rclpy
+from mavros_msgs.msg import CommandCode, ManualControl
 from mavros_msgs.srv import CommandBool, CommandLong
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default, QoSPresetProfiles
+from rclpy.qos import QoSPresetProfiles, qos_profile_sensor_data, qos_profile_system_default
 from sensor_msgs.msg import Joy
 
-from mavros_msgs.msg import ManualControl, CommandCode
-from rov_msgs.msg import CameraControllerSwitch, Manip, ValveManip
 from flight_control.manual_control_utils import (
-    joystick_map,
+    Z_RANGE_SPEED,
+    Z_ZERO_SPEED,
     apply_function,
+    joystick_map,
     manual_control_to_tuple,
     tuple_to_manual_control,
-    Z_ZERO_SPEED,
-    Z_RANGE_SPEED
 )
+from rov_msgs.msg import CameraControllerSwitch, Manip, ValveManip
 
 if TYPE_CHECKING:
     from collections.abc import MutableSequence
@@ -100,6 +100,7 @@ CONTROLLER_PROFILES = (
         roll_right=R1,
     ),
 )
+
 
 def smooth_value(prev_value: float, next_value: float) -> float:
     """
@@ -227,7 +228,7 @@ class ManualControlNode(Node):
         # Apply functions
         mc_msg = self.invert_manual_control(mc_msg)
         mc_msg = self.smooth_manual_control(mc_msg)
-        
+
         self.mc_pub.publish(mc_msg)
 
     def manip_callback(self, msg: Joy) -> None:
@@ -296,13 +297,13 @@ class ManualControlNode(Node):
         self.previous_instruction_tuple = smoothed_tuple
 
         return smoothed_instruction
-        
+
     def invert_manual_control(self, msg: ManualControl) -> ManualControl:
         if self.inverted:
-            msg.x *= -1 # Forward
-            msg.y *= -1 # Lateral
-            msg.s *= -1 # Pitch
-            msg.t *= -1 # Roll
+            msg.x *= -1  # Forward
+            msg.y *= -1  # Lateral
+            msg.s *= -1  # Pitch
+            msg.t *= -1  # Roll
 
         return msg
 
@@ -322,4 +323,3 @@ def main() -> None:
     manual_control = ManualControlNode()
     executor = MultiThreadedExecutor()
     rclpy.spin(manual_control, executor=executor)
-    

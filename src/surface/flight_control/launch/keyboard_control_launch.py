@@ -1,6 +1,6 @@
 from launch.launch_description import LaunchDescription
 from launch.substitutions.launch_configuration import LaunchConfiguration
-from launch_ros.actions import Node, PushRosNamespace
+from launch_ros.actions import Node
 
 
 def generate_launch_description() -> LaunchDescription:

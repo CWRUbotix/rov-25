@@ -21,6 +21,4 @@ def generate_launch_description() -> LaunchDescription:
         output='screen',
     )
 
-    return LaunchDescription(
-        [manual_control_node]
-    )
+    return LaunchDescription([manual_control_node])

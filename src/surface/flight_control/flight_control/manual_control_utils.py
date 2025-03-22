@@ -1,7 +1,7 @@
 from collections.abc import Callable
+from typing import Final
 
 from mavros_msgs.msg import ManualControl
-from typing import Final
 
 # Brown out protection
 SPEED_THROTTLE: Final = 0.65
@@ -17,6 +17,7 @@ MAX_RANGE_SPEED: Final = 2000
 Z_MAX_RANGE_SPEED: Final = 1000
 RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
 Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
+
 
 def joystick_map(raw: float) -> float:
     """
@@ -59,9 +60,7 @@ def manual_control_to_tuple(
     return (msg.x, msg.z, msg.y, msg.s, msg.r, msg.t)
 
 
-def tuple_to_manual_control(
-    instruction_tuple: tuple[float, ...]
-) -> ManualControl:
+def tuple_to_manual_control(instruction_tuple: tuple[float, ...]) -> ManualControl:
     """
     Convert tuple of dimensions and author to a ManualControl.
 

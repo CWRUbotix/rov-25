@@ -7,7 +7,6 @@ from gui.widgets.heartbeat import HeartbeatWidget
 from gui.widgets.ip_widget import IPWidget
 from gui.widgets.logger import Logger
 from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
-from gui.widgets.task_selector import TaskSelector
 from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.timer import InteractiveTimer
 
