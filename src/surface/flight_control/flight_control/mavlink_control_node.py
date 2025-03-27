@@ -3,6 +3,7 @@ from enum import IntEnum
 from typing import TYPE_CHECKING
 import time
 import math
+import os
 
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
@@ -21,8 +22,14 @@ if TYPE_CHECKING:
 from pymavlink import mavutil
 
 
+NATIVE_JOYSTICK = True
+if NATIVE_JOYSTICK:
+    from pygame import joystick
+    os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
+
+
 JOY_MAP_STRENGTH = 2  # 1 disables joystick mapping, higher number decrease intermediate joystick values to allow for finer control
-GLOBAL_THROTTLE = 0.65  # From 0 to 1, lower numbers decrease the thrust in every direction
+GLOBAL_THROTTLE = 1.0  # From 0 to 1, lower numbers decrease the thrust in every direction
 PITCH_THROTTLE = 0.5  # From 0 to 1, stacks multiplicatively with GLOBAL_THROTTLE
 
 MAVLINK_POLL_RATE = 20  # Hz
@@ -151,9 +158,10 @@ class MavlinkManualControlNode(Node):
         profile_param = self.declare_parameter(CONTROLLER_PROFILE_PARAM, value=0)
         self.profile = CONTROLLER_PROFILES[profile_param.value]
 
-        self.subscription = self.create_subscription(
-            Joy, 'joy', self.controller_callback, qos_profile_sensor_data
-        )
+        if not NATIVE_JOYSTICK:
+            self.subscription = self.create_subscription(
+                Joy, 'joy', self.controller_callback, qos_profile_sensor_data
+            )
 
         # Manipulators
         self.manip_publisher = self.create_publisher(
@@ -165,6 +173,7 @@ class MavlinkManualControlNode(Node):
             self.profile.manip_right: ManipButton('right'),
         }
 
+        # os.environ["MAVLINK20"] = '1'
         self.get_logger().info("Connecting to mavlink...")
         self.mavlink = mavutil.mavlink_connection('udpin:0.0.0.0:14550', source_system=255)
 
@@ -222,7 +231,6 @@ class MavlinkManualControlNode(Node):
 
     def send_mavlink_control(self, msg: Joy) -> None:        
         axes: MutableSequence[float] = msg.axes
-        buttons: MutableSequence[int] = msg.buttons
 
         # self.get_logger().info(str(axes))
         # self.get_logger().info(str((self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5)) / 2 * 1000 + 500))
@@ -232,7 +240,7 @@ class MavlinkManualControlNode(Node):
             int(self.joystick_map(axes[self.profile.forward]) * 1000),
             int(-self.joystick_map(axes[self.profile.lateral]) * 1000),
             int((self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5)) / 2 * 1000 + 500),
-            int(self.joystick_map(axes[self.profile.yaw]) * 1000),
+            int(-self.joystick_map(axes[self.profile.yaw]) * 1000),
             0, 0,
             MANUAL_CONTROL_EXTENSIONS_CODE,
             int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000),
