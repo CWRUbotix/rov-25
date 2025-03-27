@@ -1,19 +1,27 @@
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 import rclpy
-from mavros_msgs.srv import CommandBool
+from mavros_msgs.msg import CommandCode, ManualControl
+from mavros_msgs.srv import CommandBool, CommandLong
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
+from rclpy.qos import QoSPresetProfiles, qos_profile_sensor_data, qos_profile_system_default
 from sensor_msgs.msg import Joy
 
-from rov_msgs.msg import CameraControllerSwitch, Manip, PixhawkInstruction, ValveManip
+from flight_control.manual_control_utils import (
+    Z_RANGE_SPEED,
+    Z_ZERO_SPEED,
+    apply_function,
+    joystick_map,
+    manual_control_to_tuple,
+    tuple_to_manual_control,
+)
+from rov_msgs.msg import CameraControllerSwitch, Manip, ValveManip
 
 if TYPE_CHECKING:
     from collections.abc import MutableSequence
-
 
 UNPRESSED = 0
 PRESSED = 1
@@ -43,6 +51,12 @@ RJOYY = 4
 R2PRESS_PERCENT = 5
 DPADHOR = 6
 DPADVERT = 7
+
+EXTENSIONS_CODE: Final = 0b00000011
+
+NEXT_INSTR_FRAC: Final = 0.05
+PREV_INSTR_FRAC: Final = 1 - NEXT_INSTR_FRAC
+INSTR_EPSILON: Final = 0.05
 
 ARMING_SERVICE_TIMEOUT = 3.0
 ARM_MESSAGE = CommandBool.Request(value=True)
@@ -88,6 +102,43 @@ CONTROLLER_PROFILES = (
 )
 
 
+def smooth_value(prev_value: float, next_value: float) -> float:
+    """
+    Get a value that interpolates prev_value & next_value.
+
+    Parameters
+    ----------
+    prev_value : float
+        The previous value, affects the result based on PREV_INSTR_FRAC
+    next_value : float
+        The next value, affects the result based on NEXT_INSTR_FRAC
+
+    Returns
+    -------
+    float
+        The resulting value between prev_value & next_value
+    """
+    smoothed_value = PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
+
+    # If close to target value, snap to it
+    # (we want to get there eventually, not approach in the limit)
+    if next_value - INSTR_EPSILON <= smoothed_value <= next_value + INSTR_EPSILON:
+        return next_value
+
+    return smoothed_value
+
+
+def to_command_long(msg: ValveManip) -> CommandLong.Request:
+    cl_msg = CommandLong.Request()
+
+    cl_msg.command = CommandCode.DO_SET_SERVO
+    cl_msg.confirmation = 0
+    cl_msg.param1 = float(9)
+    cl_msg.param2 = float(msg.pwm)
+
+    return cl_msg
+
+
 class ManualControlNode(Node):
     def __init__(self) -> None:
         super().__init__('manual_control_node')
@@ -96,8 +147,15 @@ class ManualControlNode(Node):
         profile_param = self.declare_parameter(CONTROLLER_PROFILE_PARAM, value=0)
         self.profile = CONTROLLER_PROFILES[profile_param.value]
 
-        self.rc_pub = self.create_publisher(
-            PixhawkInstruction, 'uninverted_pixhawk_control', qos_profile_system_default
+        self.inverted = False
+
+        self.valve_manip = ValveManip(active=True, pwm=ValveManip.NEUTRAL_PWM)
+
+        self.inversion_subscription = self.create_subscription(
+            CameraControllerSwitch,
+            'camera_switch',
+            self.invert_callback,
+            QoSPresetProfiles.DEFAULT.value,
         )
 
         self.subscription = self.create_subscription(
@@ -109,9 +167,16 @@ class ManualControlNode(Node):
             Manip, 'manipulator_control', qos_profile_system_default
         )
 
+        # Manual Control
+        self.mc_pub = self.create_publisher(
+            ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
+        )
+
         # Valve Manip
-        self.valve_manip = self.create_publisher(
-            ValveManip, 'valve_manipulator', qos_profile_system_default
+        self.valve_cmd_client = self.create_client(CommandLong, 'mavros/cmd/command')
+
+        self.previous_instruction_tuple: tuple[float, ...] = manual_control_to_tuple(
+            ManualControl(z=Z_ZERO_SPEED)
         )
 
         controller_mode = ControllerMode(mode_param.value)
@@ -137,26 +202,34 @@ class ManualControlNode(Node):
         self.valve_manip_state = False
 
     def controller_callback(self, msg: Joy) -> None:
-        self.joystick_to_pixhawk(msg)
+        self.joystick_callback(msg)
         self.valve_manip_callback(msg)
         self.manip_callback(msg)
         self.misc_controls_callback(msg)
 
-    def joystick_to_pixhawk(self, msg: Joy) -> None:
+    def joystick_callback(self, msg: Joy) -> None:
         axes: MutableSequence[float] = msg.axes
         buttons: MutableSequence[int] = msg.buttons
 
-        instruction = PixhawkInstruction(
-            forward=float(axes[self.profile.forward]),
-            lateral=-float(axes[self.profile.lateral]),
-            vertical=float(axes[self.profile.vertical_down] - axes[self.profile.vertical_up]) / 2,
-            roll=float(buttons[self.profile.roll_left] - buttons[self.profile.roll_right]),
-            pitch=float(axes[self.profile.pitch]),
-            yaw=-float(axes[self.profile.yaw]),
-            author=PixhawkInstruction.MANUAL_CONTROL,
-        )
+        msg = ManualControl()
 
-        self.rc_pub.publish(instruction)
+        msg.x = float(axes[self.profile.forward])
+        msg.y = -float(axes[self.profile.lateral])
+        msg.z = float(axes[self.profile.vertical_down] - axes[self.profile.vertical_up]) / 2
+        msg.r = -float(axes[self.profile.yaw])
+        msg.enabled_extensions = EXTENSIONS_CODE
+        msg.s = float(axes[self.profile.pitch])
+        msg.t = float(buttons[self.profile.roll_left] - buttons[self.profile.roll_right])
+
+        # Convert to manual_control values
+        mc_msg = apply_function(msg, joystick_map)
+        mc_msg.z = Z_RANGE_SPEED * msg.z + Z_ZERO_SPEED
+
+        # Apply functions
+        mc_msg = self.invert_manual_control(mc_msg)
+        mc_msg = self.smooth_manual_control(mc_msg)
+
+        self.mc_pub.publish(mc_msg)
 
     def manip_callback(self, msg: Joy) -> None:
         buttons: MutableSequence[int] = msg.buttons
@@ -175,14 +248,16 @@ class ManualControlNode(Node):
         counter_clockwise_pressed = msg.buttons[self.profile.valve_counterclockwise] == PRESSED
 
         if clockwise_pressed and not self.valve_manip_state:
-            self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MAX_PWM))
+            self.valve_manip = ValveManip(active=True, pwm=ValveManip.MAX_PWM)
             self.valve_manip_state = True
         elif counter_clockwise_pressed and not self.valve_manip_state:
-            self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MIN_PWM))
+            self.valve_manip = ValveManip(active=True, pwm=ValveManip.MIN_PWM)
             self.valve_manip_state = True
         elif self.valve_manip_state and not clockwise_pressed and not counter_clockwise_pressed:
-            self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.NEUTRAL_PWM))
+            self.valve_manip = ValveManip(active=True, pwm=ValveManip.NEUTRAL_PWM)
             self.valve_manip_state = False
+
+        self.valve_cmd_client.call_async(to_command_long(self.valve_manip))
 
     def toggle_cameras(self, msg: Joy) -> None:
         """Cycles through connected cameras on pilot GUI using menu and pairing buttons."""
@@ -207,6 +282,33 @@ class ManualControlNode(Node):
             self.arm_client.call_async(ARM_MESSAGE)
         elif buttons[self.profile.disarm_button] == PRESSED:
             self.arm_client.call_async(DISARM_MESSAGE)
+
+    def smooth_manual_control(self, msg: ManualControl) -> ManualControl:
+        instruction_tuple = manual_control_to_tuple(msg)
+
+        smoothed_tuple = tuple(
+            smooth_value(previous_value, value)
+            for (previous_value, value) in zip(
+                self.previous_instruction_tuple, instruction_tuple, strict=True
+            )
+        )
+        smoothed_instruction = tuple_to_manual_control(smoothed_tuple)
+
+        self.previous_instruction_tuple = smoothed_tuple
+
+        return smoothed_instruction
+
+    def invert_manual_control(self, msg: ManualControl) -> ManualControl:
+        if self.inverted:
+            msg.x *= -1  # Forward
+            msg.y *= -1  # Lateral
+            msg.s *= -1  # Pitch
+            msg.t *= -1  # Roll
+
+        return msg
+
+    def invert_callback(self, _: CameraControllerSwitch) -> None:
+        self.inverted = not self.inverted
 
 
 class ManipButton:

@@ -2,11 +2,11 @@
 
 ## Overview
 
-This package includes keyboard, PS5 controller, and automatic docking pilot nodes. It abstracts creating motor control messages with `PixhawkInstruction`s.
+This package includes keyboard and PS5 controller nodes.
 
 ## Usage
 
-The PS5 controller (`manual_control_node`) and the auto docking controller (`auto_docking_node`) are both run when the pilot is launched.
+The PS5 controller (`manual_control_node`) is run when the pilot is launched.
 You can run them on their own with:
 
 ```bash
@@ -22,11 +22,7 @@ ros2 launch flight_control keyboard_control_launch.py
 
 ## Launch files
 
-* **flight_control_launch.py:** launches the PS5 controller and readies the auto docking controller
-
-  * **`controller_mode`** Whether the controller arms or toggles cameras; options are 0 (arming), 1 (cameras). Default: 0.
-
-  * **`controller_profile`** Profile controls what buttons do what; value is the profile index. Default: 0.
+* **flight_control_launch.py:** launches the PS5 controller
 
 * **keyboard_control_launch.py:** launches the keyboard controller under the `/surface` namespace
 
@@ -42,19 +38,29 @@ Controls motors, manipulators, and camera switching (if applicable) from the PS5
 
     PS5 controller instructions.
 
+* **`/surface/camera_switch`** ([rov_msgs/msg/CameraControllerSwitch])
+
+    Instructions to change which camera should be active. TODO: Remove this if possible after upgrading to FLIR cams.
+
 #### Published Topics
-
-* **`/tether/mavros/rc/override`** ([mavros_msgs/msg/OverrideRcIn])
-
-    The movement instructions for the Pixhawk.
 
 * **`/tether/manipulator_control`** ([rov_msgs/msg/Manip])
 
     Manipulator instructions for the Pi.
 
-* **`/surface/camera_switch`** ([rov_msgs/msg/CameraControllerSwitch])
+* **`/tether/mavros/manual_control/send`** ([mavros_msgs/msg/ManualControl])
 
-    Instructions to change which camera should be active. TODO: Remove this if possible after upgrading to FLIR cams.
+    The movement instructions for the Pixhawk
+
+#### Services
+
+* **`/tether/mavros/cmd/command`** ([mavros_msgs/srv/CommandLong.srv])
+
+    Instructions to set the Valve Manipulator servo
+
+* **`/tether/mavros/cmd/arming`** ([mavros_msgs/srv/CommandBool.srv])
+
+    Instruction to arm the robot
 
 ### keyboard_control_node
 
@@ -63,19 +69,6 @@ This node can publish concurrently with manual control/auto docking.
 
 #### Published Topics
 
-* **`/tether/mavros/rc/override`** ([mavros_msgs/msg/OverrideRcIn])
+* **`/tether/mavros/manual_control/send`** ([mavros_msgs/msg/ManualControl])
 
-    The movement instructions for the Pixhawk. This node can publish concurrently with manual control.
-
-### auto_docking_node
-
-Execute an automatic docking sequence. This node must be "activated" with its service before it will publish movement instructions.
-Once activated, it will publish concurrently with manual control/keyboard control nodes.
-
-TODO: actually implement autodocking.
-
-#### Services
-
-* **`/surface/auto_docker_control`** ([rov_msgs/srv/AutonomousFlight.srv])
-
-    Toggles whether the auto docker is running (sending instructions) and returns the new state.
+    The movement instructions for the Pixhawk
