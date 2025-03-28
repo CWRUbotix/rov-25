@@ -51,7 +51,7 @@ def generate_launch_description() -> LaunchDescription:
         actions=[
             PushRosNamespace('surface'), 
             gui_launch, 
-            controller_launch, 
+            # controller_launch, 
             flir_watchdog
         ]
     )
