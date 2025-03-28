@@ -14,7 +14,6 @@ def generate_launch_description() -> LaunchDescription:
         remappings=[
             ('/surface/manipulator_control', '/tether/manipulator_control'),
             ('/surface/pi_heartbeat', '/tether/pi_heartbeat'),
-            # ('/surface/valve_manipulator', '/tether/valve_manipulator'),
             # ('/surface/mavros/cmd/arming', '/tether/mavros/cmd/arming'),
         ],
         emulate_tty=True,
@@ -39,7 +38,10 @@ def generate_launch_description() -> LaunchDescription:
     # multiplexer_node = Node(
     #     package='flight_control',
     #     executable='multiplexer_node',
-    #     remappings=[('/surface/mavros/manual_control/send', '/tether/mavros/manual_control/send')],
+    #     remappings=[
+    #         ('/surface/mavros/manual_control/send', '/tether/mavros/manual_control/send'),
+    #         ('/surface/mavros/cmd/command', '/tether/mavros/cmd/command'),
+    #     ],
     #     emulate_tty=True,
     #     output='screen',
     # )

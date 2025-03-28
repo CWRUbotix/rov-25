@@ -4,7 +4,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description() -> LaunchDescription:
-    """Asynchronously launches pilot's gui node."""
     pilot_node = Node(
         package='gui',
         executable='run_pilot',

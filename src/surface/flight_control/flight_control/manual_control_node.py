@@ -181,7 +181,7 @@ class ManualControlNode(Node):
             self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.MIN_PWM))
             self.valve_manip_state = True
         elif self.valve_manip_state and not clockwise_pressed and not counter_clockwise_pressed:
-            self.valve_manip.publish(ValveManip(active=False))
+            self.valve_manip.publish(ValveManip(active=True, pwm=ValveManip.NEUTRAL_PWM))
             self.valve_manip_state = False
 
     def toggle_cameras(self, msg: Joy) -> None:
