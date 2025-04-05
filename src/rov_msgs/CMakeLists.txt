@@ -39,7 +39,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/FloatCommand.msg"
   "msg/FloatSerial.msg"
   "msg/FloatSingle.msg"
-  "msg/PixhawkInstruction.msg"
   "srv/AutonomousFlight.srv"
   "srv/MissionTimerSet.srv"
   "srv/VehicleArming.srv"

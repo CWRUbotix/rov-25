@@ -14,7 +14,6 @@ def generate_launch_description() -> LaunchDescription:
         remappings=[
             ('/surface/manipulator_control', '/tether/manipulator_control'),
             ('/surface/pi_heartbeat', '/tether/pi_heartbeat'),
-            # ('/surface/mavros/cmd/arming', '/tether/mavros/cmd/arming'),
         ],
         emulate_tty=True,
         output='screen',
@@ -28,25 +27,6 @@ def generate_launch_description() -> LaunchDescription:
     #     output='screen',
     # )
 
-    # control_inverter_node = Node(
-    #     package='flight_control',
-    #     executable='control_inverter_node',
-    #     emulate_tty=True,
-    #     output='screen',
-    # )
-
-    # multiplexer_node = Node(
-    #     package='flight_control',
-    #     executable='multiplexer_node',
-    #     remappings=[
-    #         ('/surface/mavros/manual_control/send', '/tether/mavros/manual_control/send'),
-    #         ('/surface/mavros/cmd/command', '/tether/mavros/cmd/command'),
-    #     ],
-    #     emulate_tty=True,
-    #     output='screen',
-    # )
-
     return LaunchDescription(
         [mavlink_node]
-        # [manual_control_node, auto_docking_node, control_inverter_node, multiplexer_node]
     )

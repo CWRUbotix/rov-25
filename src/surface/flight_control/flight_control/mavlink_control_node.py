@@ -76,38 +76,8 @@ R2PRESS_PERCENT = 5
 DPADHOR = 6
 DPADVERT = 7
 
-# # Button meanings for PS5 Control might be different for others
-# X_BUTTON = 0  # Manipulator 0
-# O_BUTTON = 1  # Manipulator 1
-# TRI_BUTTON = 2  # Manipulator 2
-# SQUARE_BUTTON = 3  # Manipulator 3
-# L1 = 4
-# R1 = 5
-# L2 = 6
-# R2 = 7
-# PAIRING_BUTTON = 4
-# MENU = 6
-# PS_BUTTON = 10
-# LJOYPRESS = 11
-# RJOYPRESS = 12
-# # Joystick Directions 1 is up/left -1 is down/right
-# # X is forward/backward Y is left/right
-# # L2 and R2 1 is not pressed and -1 is pressed
-# LJOYX = 0
-# LJOYY = 1
-# RJOYX = 2
-# RJOYY = 3
-# L2PRESS_PERCENT = 4
-# R2PRESS_PERCENT = 5
-# DPADHOR = 6
-# DPADVERT = 7
 
 CONTROLLER_PROFILE_PARAM = 'controller_profile'
-
-
-class ControllerMode(IntEnum):
-    ARM = 0
-    TOGGLE_CAMERAS = 1
 
 
 class ManipButton:
@@ -186,17 +156,6 @@ class MavlinkManualControlNode(Node):
         self.get_logger().info("Connecting to mavlink...")
         self.mavlink = mavutil.mavlink_connection('udpin:0.0.0.0:14550', source_system=255)
 
-        # Send mavlink arm message
-        # self.mavlink.mav.command_long_send(
-        #     self.mavlink.target_system,
-        #     self.mavlink.target_component,
-        #     mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-        #     0,
-        #     1, 0, 0, 0, 0, 0, 0
-        # )
-        # self.mavlink.motors_armed_wait()
-        # self.get_logger().info("Vehicle armed")
-
         self.state_publisher = self.create_publisher(
             VehicleStateMsg, 'vehicle_state_event', qos_profile_system_default
         )
@@ -208,6 +167,8 @@ class MavlinkManualControlNode(Node):
         self.arming_service = self.create_service(
             VehicleArming, 'arming', callback=self.arming_service_callback
         )
+
+        self.controls_inverted = False
 
         self.last_pi_heartbeat: float = 0  # Unix timestamp of the last mavlink heartbeat from the pi
         self.last_ardusub_heartbeat: float = 0  # Unix timestamp of the last mavlink heartbeat from the pi
@@ -222,6 +183,7 @@ class MavlinkManualControlNode(Node):
         self.process_arming_buttons(msg)
         self.send_mavlink_control(msg)        
         self.manip_callback(msg)
+        self.process_camera_buttons(msg)
 
     def joystick_map(self, raw: float) -> float:
         """Apply a mapping to a joystick axis before it is used for control
@@ -242,21 +204,12 @@ class MavlinkManualControlNode(Node):
         axes: MutableSequence[float] = msg.axes
         buttons: MutableSequence[float] = msg.buttons
 
-        # self.get_logger().info(" ".join(f"{n:05d}" for n in [
-        #     int(self.joystick_map(axes[self.profile.forward]) * 1000),
-        #     int(-self.joystick_map(axes[self.profile.lateral]) * 1000),
-        #     int((self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5)) / 2 * 1000 + 500),
-        #     int(-self.joystick_map(axes[self.profile.yaw]) * 1000),
-        #     int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000),
-        #     int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000 * GLOBAL_THROTTLE),
-        # ]))
-
         self.mavlink.mav.manual_control_send(
             self.mavlink.target_system,
-            int(self.joystick_map(axes[self.profile.forward]) * -1000),
-            int(-self.joystick_map(axes[self.profile.lateral]) * -1000),
+            int(-self.joystick_map(axes[self.profile.forward]) * 1000),
+            int(self.joystick_map(axes[self.profile.lateral]) * 1000),
             int((self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5)) / 2 * 1000 + 500),
-            int(-self.joystick_map(axes[self.profile.yaw]) * -1000),
+            int(self.joystick_map(axes[self.profile.yaw]) * 1000),
             0, 0,
             MANUAL_CONTROL_EXTENSIONS_CODE,
             int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000),
@@ -275,7 +228,6 @@ class MavlinkManualControlNode(Node):
 
             manip_button.last_button_state = just_pressed
 
-
     def set_armed(self, arm: bool) -> None:
         """Send a mavlink message to arm or disarm the vehicle
 
@@ -292,7 +244,6 @@ class MavlinkManualControlNode(Node):
             int(arm),
             0, 0, 0, 0, 0, 0
         )
-
 
     def arming_service_callback(self, request: VehicleArming.Request, response: VehicleArming.Response
                                 ) -> VehicleArming.Response:
@@ -318,7 +269,7 @@ class MavlinkManualControlNode(Node):
 
 
     def process_arming_buttons(self, msg: Joy) -> None:
-        """Set the arming state using the menu and pairing buttons."""
+        """Set the arming state using the menu and pairing buttons"""
         buttons: MutableSequence[int] = msg.buttons
 
         if buttons[self.profile.disarm_button] == PRESSED:
@@ -327,6 +278,13 @@ class MavlinkManualControlNode(Node):
         elif buttons[self.profile.arm_button] == PRESSED:
             self.get_logger().info("Sending arm command")
             self.set_armed(True)
+
+    def process_camera_buttons(self, msg: Joy) -> None:
+        """Switch cameras and invert control when camera switch buttons are pressed"""
+
+        # Camera switching uses the DPAD, currently not remapable with the controller profile system
+        # because DPADs are presented as axes not buttons and using any other axis is non-sensible
+        self.get_logger().info(f"{msg.buttons}")
 
     def publish_state(self, state: VehicleState) -> None:
         self.state_publisher.publish(
@@ -347,8 +305,6 @@ class MavlinkManualControlNode(Node):
         mavlink_msg=self.mavlink.recv_match()
         while mavlink_msg:
             if mavlink_msg._header.srcComponent == VEHICLE_COMPONENT_ID and mavlink_msg.get_type() == 'HEARTBEAT':
-                # self.get_logger().info(f"sys: {mavlink_msg._header.srcSystem}, comp: {mavlink_msg._header.srcComponent}, system status: {mavlink_msg.system_status}")
-
                 self.last_ardusub_heartbeat = time.time()
 
                 new_state.ardusub_connected = True
@@ -383,7 +339,7 @@ class MavlinkManualControlNode(Node):
         if self.vehicle_state != new_state:
             self.vehicle_state = new_state
             self.publish_state(new_state)
-        
+
 
     def pi_heartbeat_callback(self, _: Heartbeat) -> None:
         self.last_pi_heartbeat = time.time()
@@ -402,7 +358,7 @@ class MavlinkManualControlNode(Node):
 
         self.last_state_subscriber_count = subscriber_count
 
-    
+
     def poll_joystick(self) -> None:
         """Read the current state of the joystick and send a mavlink message
         """
@@ -467,7 +423,6 @@ def main() -> None:
         if NATIVE_JOYSTICK:
             manual_control.poll_joystick()
 
-        # manual_control.get_logger().info(str(time.time() - loop_start))
         sleep_time = last_loop_start + loop_period - time.time()
         if sleep_time > 0:
             time.sleep(sleep_time)
