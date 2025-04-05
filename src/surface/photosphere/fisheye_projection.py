@@ -105,6 +105,7 @@ right_seam =  [
 # The output projection image
 projection = np.zeros((output_dimension[1], output_dimension[0], 3), dtype = np.uint8)
 
+# Loop through each output pixel and find its color from the fisheye
 for row_index, row in enumerate(projection):
     for col_index, pixel in enumerate(row):
 
