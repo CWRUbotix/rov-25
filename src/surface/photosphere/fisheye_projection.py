@@ -60,10 +60,6 @@ def projection_to_fisheye(x: float, y: float, img: int) -> list:
 
     fisheye_coord = [y, x]
 
-    # Check that it isn't out of bounds
-    if x * x + y * y > 1:
-        fisheye_coord = [2, 2]
-
     return fisheye_coord
 
 
@@ -74,7 +70,7 @@ def max_width() -> float:
 
     result = [0, 0]
 
-    while result[0] != 2:
+    while result[0] * result[0] + result[1] * result[1] < 1:
         x += 0.005
         result = projection_to_fisheye(x, y, 0)
 
@@ -115,7 +111,7 @@ projection = np.zeros((output_dimension[1], output_dimension[0], 3), dtype=np.ui
 
 # Loop through each output pixel and find its color from the fisheye
 for row_index, row in enumerate(projection):
-    for col_index in enumberate(row):
+    for col_index, _pixel in enumerate(row):
         # Calculate the unit coordinates of the current pixel
         unit_x = normal_to_unit_grid(col_index, projection.shape[1])
         unit_y = normal_to_unit_grid(row_index, projection.shape[0])
