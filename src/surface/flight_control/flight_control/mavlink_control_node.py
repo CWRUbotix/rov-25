@@ -253,10 +253,10 @@ class MavlinkManualControlNode(Node):
 
         self.mavlink.mav.manual_control_send(
             self.mavlink.target_system,
-            int(self.joystick_map(axes[self.profile.forward]) * 1000),
-            int(-self.joystick_map(axes[self.profile.lateral]) * 1000),
-            int((self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5)) / 2 * 1000 + 500),
-            int(-self.joystick_map(axes[self.profile.yaw]) * 1000),
+            int(self.joystick_map(axes[self.profile.forward]) * -1000),
+            int(-self.joystick_map(axes[self.profile.lateral]) * -1000),
+            int((self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5)) / 2 * 1000 + 500),
+            int(-self.joystick_map(axes[self.profile.yaw]) * -1000),
             0, 0,
             MANUAL_CONTROL_EXTENSIONS_CODE,
             int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000),
@@ -432,7 +432,7 @@ class MavlinkManualControlNode(Node):
             axes = [joy.get_axis(ax) for ax in range(0, joy.get_numaxes())]
             buttons = [joy.get_button(btn) for btn in range(0, joy.get_numbuttons())]
 
-            self.send_mavlink_control(Joy(
+            self.controller_callback(Joy(
                 axes=axes,
                 buttons=buttons
             ))
