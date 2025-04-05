@@ -132,7 +132,7 @@ if __name__ == '__main__':
                 fisheye_coord1 = unit_to_fisheye_coord(unit_coord1, 0)
                 fisheye_coord2 = unit_to_fisheye_coord(unit_coord2, 1)
 
-                # Calculate the alpha for the blur depending on whether it is in the left or right seam
+                # Calculate the alpha for the blur depending on which seam it is in
                 if unit_x < 0:
                     alpha = (col_index - LEFT_SEAM[0]) / (LEFT_SEAM[1] - LEFT_SEAM[0])
                 else:
