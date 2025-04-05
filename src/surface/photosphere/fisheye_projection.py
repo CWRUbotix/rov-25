@@ -6,7 +6,7 @@ import numpy as np
 
 
 @dataclass
-class Fisheye_Image:
+class FisheyeImage:
     img: np.ndarray
     img_num: int
     left: int
@@ -22,14 +22,14 @@ apeture = 195 * math.pi / 180
 
 # The fisheye images with their information
 fisheye_images = [
-    Fisheye_Image(
+    FisheyeImage(
         img=cv2.imread('src/surface/photosphere/fisheye1.jpg'),
         img_num=0,
         left=400,
         top=28,
         diameter=3052,
     ),
-    Fisheye_Image(
+    FisheyeImage(
         img=cv2.imread('src/surface/photosphere/fisheye2.jpg'),
         img_num=1,
         left=404,
@@ -41,7 +41,7 @@ fisheye_images = [
 
 # Converts the coordinates in the projection to coordinates in the fisheye image
 # all coordinates are in unit coordinates (-1 to 1 in all dimensions with 0 being center)
-def projection_to_fisheye(x: float, y: float, img: int):
+def projection_to_fisheye(x: float, y: float, img: int) -> list:
     # Equirectangular to latitude/longitude
     theta = math.pi * x + math.pi * img
     phi = math.pi * y / 2
@@ -58,17 +58,17 @@ def projection_to_fisheye(x: float, y: float, img: int):
     x = r * math.cos(theta)
     y = r * math.sin(theta)
 
-    fisheyeCoord = [y, x]
+    fisheye_coord = [y, x]
 
     # Check that it isn't out of bounds
     if x * x + y * y > 1:
-        fisheyeCoord = [2, 2]
+        fisheye_coord = [2, 2]
 
-    return fisheyeCoord
+    return fisheye_coord
 
 
 # calculate the maximum width a projection can cover in unit coordinates
-def max_width():
+def max_width() -> float:
     x = 0.5
     y = 0
 
@@ -82,7 +82,7 @@ def max_width():
 
 
 # Calculate the unit coordinate according to the given normal coordinate and width
-def normal_to_unit_grid(x: float, width):
+def normal_to_unit_grid(x: int, width: int) -> float:
     x = x / width
     x = x - 0.5
     x = x * 2
@@ -90,7 +90,7 @@ def normal_to_unit_grid(x: float, width):
 
 
 # Calculate the normal coordinate according to the given unit coordinate and width
-def unit_to_normal_grid(x: float, width):
+def unit_to_normal_grid(x: float, width:int ) -> int:
     x = x + 1
     x = x * width
     x = x / 2
@@ -115,7 +115,7 @@ projection = np.zeros((output_dimension[1], output_dimension[0], 3), dtype=np.ui
 
 # Loop through each output pixel and find its color from the fisheye
 for row_index, row in enumerate(projection):
-    for col_index, pixel in enumerate(row):
+    for col_index in enumberate(row):
         # Calculate the unit coordinates of the current pixel
         unit_x = normal_to_unit_grid(col_index, projection.shape[1])
         unit_y = normal_to_unit_grid(row_index, projection.shape[0])
