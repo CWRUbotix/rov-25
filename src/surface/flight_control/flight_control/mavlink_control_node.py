@@ -300,7 +300,7 @@ class MavlinkManualControlNode(Node):
             self.set_armed(arm=True)
 
     def process_camera_buttons(self, joy_state: JoystickState) -> None:
-        """Switch cameras and invert control when camera switch buttons are pressed"""
+        """Switch cameras and invert control when camera switch buttons are pressed."""
         # Camera switching uses the DPAD, currently not remapable with the controller profile system
         # because DPADs are presented as axes not buttons and using any other axis is non-sensible
         if joy_state.buttons[self.profile.cam_front_button]:
