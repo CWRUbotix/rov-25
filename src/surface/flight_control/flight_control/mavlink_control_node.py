@@ -24,7 +24,6 @@ os.environ['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1'
 import pygame
 from pygame import joystick
 
-
 JOYSTICK_POLL_RATE = 50  # Hz
 
 # 1 disables joystick mapping, higher numbers decrease intermediate joystick values to allow for finer control
@@ -343,7 +342,6 @@ class MavlinkManualControlNode(Node):
 
     def poll_mavlink_for_new_state(self) -> VehicleState:
         """Read incoming mavlink messages to determine the state of the vehicle."""
-        
         new_state = VehicleState(
             pi_connected=self.vehicle_state.pi_connected,
             ardusub_connected=self.vehicle_state.ardusub_connected,
@@ -352,12 +350,12 @@ class MavlinkManualControlNode(Node):
 
         # Walrus operator <3 <3
         while mavlink_msg := self.mavlink.recv_match():
-            if(
+            if (
                 mavlink_msg._header.srcComponent != VEHICLE_COMPONENT_ID
                 or mavlink_msg.get_type() != 'HEARTBEAT'
             ):
                 continue
-            
+
             self.last_ardusub_heartbeat = time.time()
 
             new_state.ardusub_connected = True
