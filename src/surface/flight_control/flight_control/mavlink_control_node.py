@@ -1,6 +1,5 @@
 import typing as t
 from dataclasses import dataclass
-from enum import IntEnum
 from typing import TYPE_CHECKING
 import time
 import math
@@ -10,7 +9,6 @@ import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
-from sensor_msgs.msg import Joy
 
 from rov_msgs.msg import Manip, Heartbeat
 from rov_msgs.msg import VehicleState as VehicleStateMsg
@@ -64,6 +62,10 @@ MENU = 9
 PS_BUTTON = 10
 LJOYPRESS = 11
 RJOYPRESS = 12
+DPAD_LEFT = 13
+DPAD_RIGHT = 14
+DPAD_DOWN = 15
+DPAD_UP = 16
 # Joystick Directions 1 is up/left -1 is down/right
 # X is forward/backward Y is left/right
 # L2 and R2 1 is not pressed and -1 is pressed
@@ -73,8 +75,6 @@ L2PRESS_PERCENT = 2
 RJOYX = 3
 RJOYY = 4
 R2PRESS_PERCENT = 5
-DPADHOR = 6
-DPADVERT = 7
 
 
 CONTROLLER_PROFILE_PARAM = 'controller_profile'
@@ -95,16 +95,22 @@ class ControllerProfile:
     valve_counterclockwise: int = SQUARE_BUTTON
     roll_left: int = X_BUTTON  # positive roll
     roll_right: int = O_BUTTON  # negative roll
-    cam_toggle_left: int = PAIRING_BUTTON
-    cam_toggle_right: int = MENU
     arm_button: int = MENU
     disarm_button: int = PAIRING_BUTTON
-    lateral: int = LJOYX        
+    cam_front_button: int = DPAD_UP
+    cam_back_button: int = DPAD_DOWN
+    lateral: int = LJOYX
     forward: int = LJOYY
     vertical_down: int = L2PRESS_PERCENT  # negative vertical value
     vertical_up: int = R2PRESS_PERCENT  # positive vertical value
     yaw: int = RJOYX
     pitch: int = RJOYY
+
+
+@dataclass
+class JoystickState():
+    axes: list[float]
+    buttons: list[bool]
 
 
 CONTROLLER_PROFILES = (
@@ -131,18 +137,13 @@ class MavlinkManualControlNode(Node):
         super().__init__('mavlink_control_node')
 
         profile_param = self.declare_parameter(CONTROLLER_PROFILE_PARAM, value=0)
-        self.profile = CONTROLLER_PROFILES[profile_param.value]
+        self.profile: ControllerProfile = CONTROLLER_PROFILES[profile_param.value]
 
-        if NATIVE_JOYSTICK:
-            self.joysticks: t.Dict[int, pygame.joystick.Joystick] = {}
-            self.current_joystick_id: int | None = None
-            pygame.init()
-            pygame.display.init()
-        else:
-            self.subscription = self.create_subscription(
-                Joy, 'joy', self.controller_callback, qos_profile_sensor_data
-            )
-
+        self.joysticks: t.Dict[int, pygame.joystick.Joystick] = {}
+        self.current_joystick_id: int | None = None
+        pygame.init()
+        pygame.display.init()
+        
         # Manipulators
         self.manip_publisher = self.create_publisher(
             Manip, 'manipulator_control', qos_profile_system_default
@@ -168,7 +169,7 @@ class MavlinkManualControlNode(Node):
             VehicleArming, 'arming', callback=self.arming_service_callback
         )
 
-        self.controls_inverted = False
+        self.invert_controls = False
 
         self.last_pi_heartbeat: float = 0  # Unix timestamp of the last mavlink heartbeat from the pi
         self.last_ardusub_heartbeat: float = 0  # Unix timestamp of the last mavlink heartbeat from the pi
@@ -179,11 +180,11 @@ class MavlinkManualControlNode(Node):
         self.timer = self.create_timer(1 / MAVLINK_POLL_RATE, self.poll_mavlink)
 
 
-    def controller_callback(self, msg: Joy) -> None:
-        self.process_arming_buttons(msg)
-        self.send_mavlink_control(msg)        
-        self.manip_callback(msg)
-        self.process_camera_buttons(msg)
+    def controller_callback(self, joy_state: JoystickState) -> None:
+        self.process_arming_buttons(joy_state)
+        self.send_mavlink_control(joy_state)        
+        self.manip_callback(joy_state)
+        self.process_camera_buttons(joy_state)
 
     def joystick_map(self, raw: float) -> float:
         """Apply a mapping to a joystick axis before it is used for control
@@ -200,24 +201,26 @@ class MavlinkManualControlNode(Node):
         """
         return math.copysign(math.fabs(raw) ** JOY_MAP_STRENGTH, raw) * GLOBAL_THROTTLE
 
-    def send_mavlink_control(self, msg: Joy) -> None:        
-        axes: MutableSequence[float] = msg.axes
-        buttons: MutableSequence[float] = msg.buttons
+    def send_mavlink_control(self, joy_state: JoystickState) -> None:        
+        axes: MutableSequence[float] = joy_state.axes
+        buttons: MutableSequence[float] = joy_state.buttons
+
+        inv = -1 if self.invert_controls else 1
 
         self.mavlink.mav.manual_control_send(
             self.mavlink.target_system,
-            int(-self.joystick_map(axes[self.profile.forward]) * 1000),
-            int(self.joystick_map(axes[self.profile.lateral]) * 1000),
+            int(-self.joystick_map(axes[self.profile.forward]) * 1000) * inv,
+            int(self.joystick_map(axes[self.profile.lateral]) * 1000) * inv,
             int((self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5)) / 2 * 1000 + 500),
             int(self.joystick_map(axes[self.profile.yaw]) * 1000),
             0, 0,
             MANUAL_CONTROL_EXTENSIONS_CODE,
-            int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000),
-            int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000),
+            int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000) * inv,
+            int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000) * inv,
         )
 
-    def manip_callback(self, msg: Joy) -> None:
-        buttons: MutableSequence[int] = msg.buttons
+    def manip_callback(self, joy_state: JoystickState) -> None:
+        buttons: MutableSequence[int] = joy_state.buttons
         for button_id, manip_button in self.manip_buttons.items():
             just_pressed = buttons[button_id] == PRESSED
             if manip_button.last_button_state is False and just_pressed:
@@ -268,9 +271,9 @@ class MavlinkManualControlNode(Node):
         return response
 
 
-    def process_arming_buttons(self, msg: Joy) -> None:
+    def process_arming_buttons(self, joy_state: JoystickState) -> None:
         """Set the arming state using the menu and pairing buttons"""
-        buttons: MutableSequence[int] = msg.buttons
+        buttons: MutableSequence[int] = joy_state.buttons
 
         if buttons[self.profile.disarm_button] == PRESSED:
             self.get_logger().info("Sending disarm command")
@@ -279,12 +282,17 @@ class MavlinkManualControlNode(Node):
             self.get_logger().info("Sending arm command")
             self.set_armed(True)
 
-    def process_camera_buttons(self, msg: Joy) -> None:
+    def process_camera_buttons(self, joy_state: JoystickState) -> None:
         """Switch cameras and invert control when camera switch buttons are pressed"""
 
         # Camera switching uses the DPAD, currently not remapable with the controller profile system
         # because DPADs are presented as axes not buttons and using any other axis is non-sensible
-        self.get_logger().info(f"{msg.buttons}")
+        if joy_state.buttons[self.profile.cam_front_button]:
+            # TODO: Message camera manager and gui to swap cameras
+            self.invert_controls = False
+        elif joy_state.buttons[self.profile.cam_back_button]:
+            # TODO: Message camera manager and gui to swap cameras
+            self.invert_controls = True
 
     def publish_state(self, state: VehicleState) -> None:
         self.state_publisher.publish(
@@ -388,7 +396,17 @@ class MavlinkManualControlNode(Node):
             axes = [joy.get_axis(ax) for ax in range(0, joy.get_numaxes())]
             buttons = [joy.get_button(btn) for btn in range(0, joy.get_numbuttons())]
 
-            self.controller_callback(Joy(
+            # Represent dpad movements as button presses
+            for hat_idx in range(joy.get_numhats()):
+                for hat_axis in joy.get_hat(hat_idx):
+                    if hat_axis > 0:
+                        buttons += [0, 1]
+                    elif hat_axis < 0:
+                        buttons += [1, 0]
+                    else:
+                        buttons += [0, 0]
+
+            self.controller_callback(JoystickState(
                 axes=axes,
                 buttons=buttons
             ))
