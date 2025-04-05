@@ -19,17 +19,6 @@ def generate_launch_description() -> LaunchDescription:
         PythonLaunchDescriptionSource([str(Path(manip_path) / 'launch' / 'manip_launch.py')])
     )
 
-    # Pixhawk Communication
-    # pixhawk_path = get_package_share_directory('pixhawk_communication')
-
-    # pixhawk_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         [
-    #             str(Path(pixhawk_path) / 'launch' / 'mavros_launch.py'),
-    #         ]
-    #     )
-    # )
-
     # Pi Info
     pi_info_path = get_package_share_directory('pi_info')
 
@@ -50,7 +39,6 @@ def generate_launch_description() -> LaunchDescription:
         actions=[
             PushRosNamespace(NAMESPACE),
             manip_launch,
-            # pixhawk_launch,
             flood_detection_launch,
             pi_info_launch,
         ]
