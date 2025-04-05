@@ -341,7 +341,7 @@ class MavlinkManualControlNode(Node):
             self.vehicle_state = new_state
             self.publish_state(new_state)
 
-    def poll_mavlink_for_new_state(self):
+    def poll_mavlink_for_new_state(self) -> VehicleState:
         """Read incoming mavlink messages to determine the state of the vehicle."""
         
         new_state = VehicleState(
@@ -364,11 +364,11 @@ class MavlinkManualControlNode(Node):
             if not self.vehicle_state.ardusub_connected:
                 self.get_logger().info('Ardusub connected')
 
-            if mavlink_msg.system_status == 4:  # MAV_STATE_STANDBY
+            if mavlink_msg.system_status == mavutil.mavlink.MAV_STATE_STANDBY:
                 new_state.armed = True
                 if not self.vehicle_state.armed:
                     self.get_logger().info('Vehicle armed')
-            elif mavlink_msg.system_status == 3:  # MAV_STATE_ACTIVE
+            elif mavlink_msg.system_status == mavutil.mavlink.MAV_STATE_ACTIVE:
                 new_state.armed = False
                 if self.vehicle_state.armed:
                     self.get_logger().info('Vehicle disarmed')
