@@ -26,7 +26,8 @@ from pygame import joystick
 
 JOYSTICK_POLL_RATE = 50  # Hz
 
-# 1 disables joystick mapping, higher numbers decrease intermediate joystick values to allow for finer control
+# A strength of 1 disables joystick mapping, higher numbers
+# decrease intermediate joystick values to allow for finer control
 JOY_MAP_STRENGTH = 2
 
 GLOBAL_THROTTLE = 1.0  # From 0 to 1, lower numbers decrease the thrust in every direction
@@ -390,9 +391,7 @@ class MavlinkManualControlNode(Node):
 
         self.last_state_subscriber_count = subscriber_count
 
-    def poll_joystick(self) -> None:
-        """Read the current state of the joystick and send a mavlink message."""
-        # Handle pygame events
+    def handle_pygame_events(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.JOYDEVICEADDED:
                 new_joy = joystick.Joystick(event.device_index)
@@ -410,7 +409,11 @@ class MavlinkManualControlNode(Node):
                         self.current_joystick_id = None
                 self.get_logger().info(f'Joystick {event.instance_id} disconnected')
 
-        # Poll joystick
+
+    def poll_joystick(self) -> None:
+        """Read the current state of the joystick and send a mavlink message."""
+        self.handle_pygame_events()
+
         if self.current_joystick_id is not None:
             joy = self.joysticks[self.current_joystick_id]
 
