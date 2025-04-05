@@ -104,7 +104,7 @@ if __name__ == '__main__':
             # Calculate the unit coordinates of the current pixel
             projection_unit_coord = (
                 normal_to_unit_grid(col_index, projection.shape[1]),
-                normal_to_unit_grid(row_index, projection.shape[0])
+                normal_to_unit_grid(row_index, projection.shape[0]),
             )
 
             # if it is not in the overlapping section set the pixel
@@ -117,19 +117,27 @@ if __name__ == '__main__':
                     fisheye_num = 1
 
                 # Calculate the unit coordinates for the fisheye
-                fisheye_unit_coord = projection_to_fisheye((projection_unit_coord[0], projection_unit_coord[1]), fisheye_num)
+                fisheye_unit_coord = projection_to_fisheye(
+                    (projection_unit_coord[0], projection_unit_coord[1]), fisheye_num
+                )
 
                 # Calculate the normal coordinates for the fisheye
                 fisheye_normal_coord = unit_to_fisheye_coord(fisheye_unit_coord, fisheye_num)
 
                 # set the pixel
-                row[col_index] = FISHEYE_IMAGES[fisheye_num].img[fisheye_normal_coord[0]][fisheye_normal_coord[1]]
+                row[col_index] = FISHEYE_IMAGES[fisheye_num].img[fisheye_normal_coord[0]][
+                    fisheye_normal_coord[1]
+                ]
 
             # if it is in the overlapping area calculate the blur
             else:
                 # Calculate the unit coordinates for both fisheye images
-                fisheye_unit_coord1 = projection_to_fisheye((projection_unit_coord[0], projection_unit_coord[1]), 0)
-                fisheye_unit_coord2 = projection_to_fisheye((projection_unit_coord[0], projection_unit_coord[1]), 1)
+                fisheye_unit_coord1 = projection_to_fisheye(
+                    (projection_unit_coord[0], projection_unit_coord[1]), 0
+                )
+                fisheye_unit_coord2 = projection_to_fisheye(
+                    (projection_unit_coord[0], projection_unit_coord[1]), 1
+                )
 
                 # Calculate the normal coordinates for both fisheye images
                 fisheye_normal_coord1 = unit_to_fisheye_coord(fisheye_unit_coord1, 0)
@@ -142,10 +150,13 @@ if __name__ == '__main__':
                     alpha = 1 - (col_index - RIGHT_SEAM[0]) / (RIGHT_SEAM[1] - RIGHT_SEAM[0])
 
                 # Set the pixel using the alpha
-                fisheye1_pixel = FISHEYE_IMAGES[0].img[fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
-                fisheye2_pixel = FISHEYE_IMAGES[1].img[fisheye_normal_coord2[0]][fisheye_normal_coord2[1]] * (
-                    1 - alpha
+                fisheye1_pixel = (
+                    FISHEYE_IMAGES[0].img[fisheye_normal_coord1[0]][fisheye_normal_coord1[1]]
+                    * alpha
                 )
+                fisheye2_pixel = FISHEYE_IMAGES[1].img[fisheye_normal_coord2[0]][
+                    fisheye_normal_coord2[1]
+                ] * (1 - alpha)
                 row[col_index] = fisheye1_pixel + fisheye2_pixel
 
     cv2.imwrite('src/surface/photosphere/projection.png', projection)
