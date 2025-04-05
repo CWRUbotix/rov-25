@@ -7,7 +7,7 @@
                 "name": "left",
                 "hfov": 127,
                 "type": "color",
-		"model": "OV9782",
+		        "model": "OV9782",
                 "extrinsics": {
                     "to_cam": "CAM_D",
                     "specTranslation": {
@@ -25,7 +25,7 @@
             "CAM_D": {
                 "name": "right",
                 "hfov": 127,
-		"model": "OV9782",
+		        "model": "OV9782",
                 "type": "color"
             }
         },
