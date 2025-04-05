@@ -10,7 +10,6 @@ from launch_ros.actions import PushRosNamespace
 def generate_launch_description() -> LaunchDescription:
     gui_path = get_package_share_directory('gui')
     flight_control_path = get_package_share_directory('flight_control')
-    vehicle_manager_path = get_package_share_directory('vehicle_manager')
     transceiver_path = get_package_share_directory('transceiver')
 
     # Launches Gui
@@ -22,13 +21,6 @@ def generate_launch_description() -> LaunchDescription:
     flight_control_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [str(Path(flight_control_path) / 'launch' / 'flight_control_launch.py')]
-        ),
-    )
-
-    # Launches Vehicle Manager
-    vehicle_manager_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [str(Path(vehicle_manager_path) / 'launch' / 'vehicle_manager_launch.py')]
         ),
     )
 
@@ -44,7 +36,6 @@ def generate_launch_description() -> LaunchDescription:
             PushRosNamespace('surface'),
             gui_launch,
             flight_control_launch,
-            # vehicle_manager_launch,
             transceiver_launch,
         ]
     )

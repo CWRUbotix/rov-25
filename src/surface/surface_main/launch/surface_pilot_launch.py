@@ -11,7 +11,6 @@ from launch_ros.actions import Node, PushRosNamespace
 
 def generate_launch_description() -> LaunchDescription:
     gui_path = get_package_share_directory('gui')
-    controller_path = get_package_share_directory('ps5_controller')
     # flir_path: str = get_package_share_directory('rov_flir')
 
     simulation_configuration = LaunchConfiguration('simulation', default=False)
@@ -19,13 +18,6 @@ def generate_launch_description() -> LaunchDescription:
     # Launches Gui
     gui_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([str(Path(gui_path) / 'launch' / 'pilot_launch.py')]),
-    )
-
-    # Launches Controller
-    controller_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [str(Path(controller_path) / 'launch' / 'controller_launch.py')]
-        ),
     )
 
     # Launches flir
@@ -51,7 +43,6 @@ def generate_launch_description() -> LaunchDescription:
         actions=[
             PushRosNamespace('surface'),
             gui_launch,
-            # controller_launch,
             flir_watchdog,
         ]
     )
