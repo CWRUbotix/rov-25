@@ -90,7 +90,7 @@ def normal_to_unit_grid(x: int, width: int) -> float:
 
 
 # Calculate the normal coordinate according to the given unit coordinate and width
-def unit_to_normal_grid(x: float, width:int ) -> int:
+def unit_to_normal_grid(x: float, width: int) -> int:
     x = x + 1
     x = x * width
     x = x / 2
