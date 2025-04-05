@@ -409,7 +409,6 @@ class MavlinkManualControlNode(Node):
                         self.current_joystick_id = None
                 self.get_logger().info(f'Joystick {event.instance_id} disconnected')
 
-
     def poll_joystick(self) -> None:
         """Read the current state of the joystick and send a mavlink message."""
         self.handle_pygame_events()
