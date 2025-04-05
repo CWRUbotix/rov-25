@@ -1,32 +1,29 @@
-import typing as t
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
-import time
 import math
 import os
+import time
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
+from rclpy.qos import qos_profile_system_default
 
-from rov_msgs.msg import Manip, Heartbeat
+from rov_msgs.msg import Heartbeat, Manip
 from rov_msgs.msg import VehicleState as VehicleStateMsg
 from rov_msgs.srv import VehicleArming
-
 
 if TYPE_CHECKING:
     from collections.abc import MutableSequence
 
-os.environ["MAVLINK20"] = '1'  # Force mavlink 2.0 for pymavlink
+os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
 from pymavlink import mavutil
-
 
 NATIVE_JOYSTICK = True
 JOYSTICK_POLL_RATE = 50  # Hz
 if NATIVE_JOYSTICK:
-    os.environ["SDL_VIDEODRIVER"] = "dummy"
-    os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
+    os.environ['SDL_VIDEODRIVER'] = 'dummy'
+    os.environ['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1'
     import pygame
     from pygame import joystick
 
@@ -35,7 +32,9 @@ JOY_MAP_STRENGTH = 2  # 1 disables joystick mapping, higher number decrease inte
 GLOBAL_THROTTLE = 1.0  # From 0 to 1, lower numbers decrease the thrust in every direction
 PITCH_THROTTLE = 0.5  # From 0 to 1, stacks multiplicatively with GLOBAL_THROTTLE
 
-SUBSCRIBER_POLL_RATE = 2  # How often to check for new subscribers and send them the current state, Hz
+SUBSCRIBER_POLL_RATE = (
+    2  # How often to check for new subscribers and send them the current state, Hz
+)
 
 MAVLINK_POLL_RATE = 20  # How frequently to check for mavlink heartbeats, Hz, cannot be greater than joystick polling rate
 PI_TIMEOUT = 1  # Seconds since last heartbeat before the pi is considered disconnected
@@ -108,7 +107,7 @@ class ControllerProfile:
 
 
 @dataclass
-class JoystickState():
+class JoystickState:
     axes: list[float]
     buttons: list[bool]
 
@@ -131,7 +130,6 @@ class VehicleState:
     armed: bool = False
 
 
-
 class MavlinkManualControlNode(Node):
     def __init__(self) -> None:
         super().__init__('mavlink_control_node')
@@ -139,11 +137,11 @@ class MavlinkManualControlNode(Node):
         profile_param = self.declare_parameter(CONTROLLER_PROFILE_PARAM, value=0)
         self.profile: ControllerProfile = CONTROLLER_PROFILES[profile_param.value]
 
-        self.joysticks: t.Dict[int, pygame.joystick.Joystick] = {}
+        self.joysticks: dict[int, pygame.joystick.Joystick] = {}
         self.current_joystick_id: int | None = None
         pygame.init()
         pygame.display.init()
-        
+
         # Manipulators
         self.manip_publisher = self.create_publisher(
             Manip, 'manipulator_control', qos_profile_system_default
@@ -154,7 +152,7 @@ class MavlinkManualControlNode(Node):
             self.profile.manip_right: ManipButton('right'),
         }
 
-        self.get_logger().info("Connecting to mavlink...")
+        self.get_logger().info('Connecting to mavlink...')
         self.mavlink = mavutil.mavlink_connection('udpin:0.0.0.0:14550', source_system=255)
 
         self.state_publisher = self.create_publisher(
@@ -171,18 +169,21 @@ class MavlinkManualControlNode(Node):
 
         self.invert_controls = False
 
-        self.last_pi_heartbeat: float = 0  # Unix timestamp of the last mavlink heartbeat from the pi
-        self.last_ardusub_heartbeat: float = 0  # Unix timestamp of the last mavlink heartbeat from the pi
+        self.last_pi_heartbeat: float = (
+            0  # Unix timestamp of the last mavlink heartbeat from the pi
+        )
+        self.last_ardusub_heartbeat: float = (
+            0  # Unix timestamp of the last mavlink heartbeat from the pi
+        )
         self.last_state_subscriber_count: int = 0
-        
+
         self.vehicle_state = VehicleState()
 
         self.timer = self.create_timer(1 / MAVLINK_POLL_RATE, self.poll_mavlink)
 
-
     def controller_callback(self, joy_state: JoystickState) -> None:
         self.process_arming_buttons(joy_state)
-        self.send_mavlink_control(joy_state)        
+        self.send_mavlink_control(joy_state)
         self.manip_callback(joy_state)
         self.process_camera_buttons(joy_state)
 
@@ -201,7 +202,7 @@ class MavlinkManualControlNode(Node):
         """
         return math.copysign(math.fabs(raw) ** JOY_MAP_STRENGTH, raw) * GLOBAL_THROTTLE
 
-    def send_mavlink_control(self, joy_state: JoystickState) -> None:        
+    def send_mavlink_control(self, joy_state: JoystickState) -> None:
         axes: MutableSequence[float] = joy_state.axes
         buttons: MutableSequence[float] = joy_state.buttons
 
@@ -211,9 +212,18 @@ class MavlinkManualControlNode(Node):
             self.mavlink.target_system,
             int(-self.joystick_map(axes[self.profile.forward]) * 1000) * inv,
             int(self.joystick_map(axes[self.profile.lateral]) * 1000) * inv,
-            int((self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5) - self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5)) / 2 * 1000 + 500),
+            int(
+                (
+                    self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5)
+                    - self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5)
+                )
+                / 2
+                * 1000
+                + 500
+            ),
             int(self.joystick_map(axes[self.profile.yaw]) * 1000),
-            0, 0,
+            0,
+            0,
             MANUAL_CONTROL_EXTENSIONS_CODE,
             int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000) * inv,
             int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000) * inv,
@@ -245,11 +255,17 @@ class MavlinkManualControlNode(Node):
             mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
             0,
             int(arm),
-            0, 0, 0, 0, 0, 0
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
         )
 
-    def arming_service_callback(self, request: VehicleArming.Request, response: VehicleArming.Response
-                                ) -> VehicleArming.Response:
+    def arming_service_callback(
+        self, request: VehicleArming.Request, response: VehicleArming.Response
+    ) -> VehicleArming.Response:
         """Handle a request to arm or disarm the robot
 
         Parameters
@@ -264,27 +280,24 @@ class MavlinkManualControlNode(Node):
         VehicleArming.Response
             The filled ROS service response
         """
-
         self.set_armed(request.arm)
 
         response.message_sent = True
         return response
-
 
     def process_arming_buttons(self, joy_state: JoystickState) -> None:
         """Set the arming state using the menu and pairing buttons"""
         buttons: MutableSequence[int] = joy_state.buttons
 
         if buttons[self.profile.disarm_button] == PRESSED:
-            self.get_logger().info("Sending disarm command")
+            self.get_logger().info('Sending disarm command')
             self.set_armed(False)
         elif buttons[self.profile.arm_button] == PRESSED:
-            self.get_logger().info("Sending arm command")
+            self.get_logger().info('Sending arm command')
             self.set_armed(True)
 
     def process_camera_buttons(self, joy_state: JoystickState) -> None:
         """Switch cameras and invert control when camera switch buttons are pressed"""
-
         # Camera switching uses the DPAD, currently not remapable with the controller profile system
         # because DPADs are presented as axes not buttons and using any other axis is non-sensible
         if joy_state.buttons[self.profile.cam_front_button]:
@@ -307,30 +320,33 @@ class MavlinkManualControlNode(Node):
         new_state = VehicleState(
             pi_connected=self.vehicle_state.pi_connected,
             ardusub_connected=self.vehicle_state.ardusub_connected,
-            armed=self.vehicle_state.armed
+            armed=self.vehicle_state.armed,
         )
 
-        mavlink_msg=self.mavlink.recv_match()
+        mavlink_msg = self.mavlink.recv_match()
         while mavlink_msg:
-            if mavlink_msg._header.srcComponent == VEHICLE_COMPONENT_ID and mavlink_msg.get_type() == 'HEARTBEAT':
+            if (
+                mavlink_msg._header.srcComponent == VEHICLE_COMPONENT_ID
+                and mavlink_msg.get_type() == 'HEARTBEAT'
+            ):
                 self.last_ardusub_heartbeat = time.time()
 
                 new_state.ardusub_connected = True
                 if not self.vehicle_state.ardusub_connected:
-                    self.get_logger().info("Ardusub connected")
-                
+                    self.get_logger().info('Ardusub connected')
+
                 if mavlink_msg.system_status == 4:  # MAV_STATE_STANDBY
                     new_state.armed = True
                     if not self.vehicle_state.armed:
-                        self.get_logger().info("Vehicle armed")
+                        self.get_logger().info('Vehicle armed')
                 elif mavlink_msg.system_status == 3:  # MAV_STATE_ACTIVE
                     new_state.armed = False
                     if self.vehicle_state.armed:
-                        self.get_logger().info("Vehicle disarmed")
+                        self.get_logger().info('Vehicle disarmed')
                 else:
                     self.get_logger().warning(f'Unknown ardusub state: {mavlink_msg.system_status}')
 
-            mavlink_msg=self.mavlink.recv_match()
+            mavlink_msg = self.mavlink.recv_match()
 
         # Check pi timeeout
         if self.vehicle_state.pi_connected and time.time() - self.last_pi_heartbeat > PI_TIMEOUT:
@@ -339,7 +355,10 @@ class MavlinkManualControlNode(Node):
             self.get_logger().warning('Pi disconnected')
 
         # Check ardusub timeeout
-        if self.vehicle_state.ardusub_connected and time.time() - self.last_ardusub_heartbeat > ARDUSUB_TIMEOUT:
+        if (
+            self.vehicle_state.ardusub_connected
+            and time.time() - self.last_ardusub_heartbeat > ARDUSUB_TIMEOUT
+        ):
             new_state.ardusub_connected = False
             self.publish_state(self.vehicle_state)
             self.get_logger().warning('Ardusub disconnected')
@@ -347,7 +366,6 @@ class MavlinkManualControlNode(Node):
         if self.vehicle_state != new_state:
             self.vehicle_state = new_state
             self.publish_state(new_state)
-
 
     def pi_heartbeat_callback(self, _: Heartbeat) -> None:
         self.last_pi_heartbeat = time.time()
@@ -357,7 +375,6 @@ class MavlinkManualControlNode(Node):
             self.publish_state(self.vehicle_state)
             self.get_logger().info('Pi connected')
 
-
     def poll_subscribers(self) -> None:
         # Whenever a node subscribes to vehicle state updates, send the current state
         subscriber_count = self.state_publisher.get_subscription_count()
@@ -366,11 +383,8 @@ class MavlinkManualControlNode(Node):
 
         self.last_state_subscriber_count = subscriber_count
 
-
     def poll_joystick(self) -> None:
-        """Read the current state of the joystick and send a mavlink message
-        """
-
+        """Read the current state of the joystick and send a mavlink message"""
         # Handle pygame events
         for event in pygame.event.get():
             if event.type == pygame.JOYDEVICEADDED:
@@ -378,8 +392,8 @@ class MavlinkManualControlNode(Node):
                 self.joysticks[new_joy.get_instance_id()] = new_joy
                 if not self.current_joystick_id:
                     self.current_joystick_id = new_joy.get_instance_id()
-                self.get_logger().info(f"Joystick {new_joy.get_instance_id()} connected")
-            
+                self.get_logger().info(f'Joystick {new_joy.get_instance_id()} connected')
+
             elif event.type == pygame.JOYDEVICEREMOVED:
                 del self.joysticks[event.instance_id]
                 if self.current_joystick_id == event.instance_id:
@@ -387,14 +401,14 @@ class MavlinkManualControlNode(Node):
                         self.current_joystick_id = self.joysticks.keys()[0]
                     else:
                         self.current_joystick_id = None
-                self.get_logger().info(f"Joystick {event.instance_id} disconnected")
+                self.get_logger().info(f'Joystick {event.instance_id} disconnected')
 
         # Poll joystick
         if self.current_joystick_id is not None:
             joy = self.joysticks[self.current_joystick_id]
 
-            axes = [joy.get_axis(ax) for ax in range(0, joy.get_numaxes())]
-            buttons = [joy.get_button(btn) for btn in range(0, joy.get_numbuttons())]
+            axes = [joy.get_axis(ax) for ax in range(joy.get_numaxes())]
+            buttons = [joy.get_button(btn) for btn in range(joy.get_numbuttons())]
 
             # Represent dpad movements as button presses
             for hat_idx in range(joy.get_numhats()):
@@ -406,18 +420,14 @@ class MavlinkManualControlNode(Node):
                     else:
                         buttons += [0, 0]
 
-            self.controller_callback(JoystickState(
-                axes=axes,
-                buttons=buttons
-            ))
-
+            self.controller_callback(JoystickState(axes=axes, buttons=buttons))
 
 
 def main() -> None:
     rclpy.init()
     manual_control = MavlinkManualControlNode()
     executor = MultiThreadedExecutor()
-    
+
     last_loop_start = time.time()
     last_mav_poll = time.time()
     last_sub_poll = time.time()
@@ -433,7 +443,7 @@ def main() -> None:
         if loop_start - last_mav_poll > mav_poll_period:
             manual_control.poll_mavlink()
             last_mav_poll += mav_poll_period
-        
+
         elif loop_start - last_sub_poll > sub_poll_period:
             manual_control.poll_subscribers()
             last_sub_poll += sub_poll_period
@@ -446,5 +456,5 @@ def main() -> None:
             time.sleep(sleep_time)
             last_loop_start += loop_period
         else:
-            manual_control.get_logger().warn(f"Loop overrun: {-sleep_time}")
+            manual_control.get_logger().warn(f'Loop overrun: {-sleep_time}')
             last_loop_start = loop_start

@@ -27,6 +27,4 @@ def generate_launch_description() -> LaunchDescription:
     #     output='screen',
     # )
 
-    return LaunchDescription(
-        [mavlink_node]
-    )
+    return LaunchDescription([mavlink_node])
