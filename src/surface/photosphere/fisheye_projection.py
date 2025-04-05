@@ -60,6 +60,7 @@ def projection_to_fisheye(projection_coord: list, img: int) -> tuple:
 
     return (fisheye_row, fisheye_col)
 
+
 # Calculate the unit coordinate according to the given normal coordinate and width
 def normal_to_unit_grid(x: int, width: int) -> float:
     return (x / width - 0.5) * 2
@@ -69,11 +70,15 @@ def normal_to_unit_grid(x: int, width: int) -> float:
 def unit_to_normal_grid(x: float, width: int) -> int:
     return math.floor((x + 1) * width / 2)
 
-def unit_to_fisheye_coord(unit_coord:tuple, fisheye_num:int) -> tuple:
+
+def unit_to_fisheye_coord(unit_coord: tuple, fisheye_num: int) -> tuple:
     return (
-        unit_to_normal_grid(unit_coord[0], FISHEYE_IMAGES[fisheye_num].diameter) + FISHEYE_IMAGES[fisheye_num].top,
-        unit_to_normal_grid(unit_coord[1], FISHEYE_IMAGES[fisheye_num].diameter) + FISHEYE_IMAGES[fisheye_num].left
+        unit_to_normal_grid(unit_coord[0], FISHEYE_IMAGES[fisheye_num].diameter)
+        + FISHEYE_IMAGES[fisheye_num].top,
+        unit_to_normal_grid(unit_coord[1], FISHEYE_IMAGES[fisheye_num].diameter)
+        + FISHEYE_IMAGES[fisheye_num].left,
     )
+
 
 # The maximum width a single projection covers in unit coordinates
 MAX_WIDTH = APERTURE / 2 / math.pi
@@ -100,7 +105,10 @@ if __name__ == '__main__':
             unit_y = normal_to_unit_grid(row_index, projection.shape[0])
 
             # if it is not in the overlapping section set the pixel
-            if not ((LEFT_SEAM[0] <= col_index and col_index <= LEFT_SEAM[1]) or (RIGHT_SEAM[0] <= col_index and col_index <= RIGHT_SEAM[1])):
+            if not (
+                (LEFT_SEAM[0] <= col_index <= LEFT_SEAM[1])
+                or (RIGHT_SEAM[0] <= col_index <= RIGHT_SEAM[1])
+            ):
                 fisheye_num = 0
                 if col_index < LEFT_SEAM[0] or RIGHT_SEAM[1] < col_index:
                     fisheye_num = 1
@@ -132,7 +140,9 @@ if __name__ == '__main__':
 
                 # Set the pixel using the alpha
                 fisheye1_pixel = FISHEYE_IMAGES[0].img[fisheye_coord1[0]][fisheye_coord1[1]] * alpha
-                fisheye2_pixel = FISHEYE_IMAGES[1].img[fisheye_coord2[0]][fisheye_coord2[1]] * (1 - alpha)
+                fisheye2_pixel = FISHEYE_IMAGES[1].img[fisheye_coord2[0]][fisheye_coord2[1]] * (
+                    1 - alpha
+                )
                 row[col_index] = fisheye1_pixel + fisheye2_pixel
 
     cv2.imwrite('src/surface/photosphere/projection.png', projection)
