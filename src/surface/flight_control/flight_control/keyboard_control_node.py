@@ -10,7 +10,6 @@ from rov_msgs.msg import PixhawkInstruction
 if TYPE_CHECKING:
     from rclpy.publisher import Publisher
 
-
 # key bindings
 FORWARD = 'w'
 BACKWARD = 's'
