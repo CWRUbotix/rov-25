@@ -43,6 +43,7 @@ MAVLINK_POLL_RATE = 20
 PI_TIMEOUT = 1  # Seconds since last heartbeat before the pi is considered disconnected
 ARDUSUB_TIMEOUT = 3  # Seconds since last heartbeat before ardusub is considered disconnected
 
+MAVLINK_CONNECTION_STRING = 'udpin:0.0.0.0:14550'
 VEHICLE_COMPONENT_ID = 1
 MANUAL_CONTROL_EXTENSIONS_CODE = 0b00000011
 
@@ -156,7 +157,7 @@ class MavlinkManualControlNode(Node):
         }
 
         self.get_logger().info('Connecting to mavlink...')
-        self.mavlink = mavutil.mavlink_connection('udpin:0.0.0.0:14550', source_system=255)
+        self.mavlink = mavutil.mavlink_connection(MAVLINK_CONNECTION_STRING, source_system=255)
 
         self.state_publisher = self.create_publisher(
             VehicleStateMsg, 'vehicle_state_event', qos_profile_system_default

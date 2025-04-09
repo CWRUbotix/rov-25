@@ -1,3 +1,8 @@
+"""
+Keyboard control is deprecated. This node is not compatible
+with the mavlink manual control node.
+"""
+
 from typing import TYPE_CHECKING
 
 import rclpy.utilities
