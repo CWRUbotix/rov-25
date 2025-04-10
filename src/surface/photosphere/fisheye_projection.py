@@ -144,7 +144,7 @@ def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]) -> np.
             # Calculate the unit coordinates of the current pixel
             projection_unit_coord = (
                 normal_to_unit_grid(col_index, projection.shape[1]),
-                normal_to_unit_grid(row_index, projection.shape[0])
+                normal_to_unit_grid(row_index, projection.shape[0]),
             )
 
             # if it is not in the overlapping section set the pixel
@@ -157,7 +157,9 @@ def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]) -> np.
                     fisheye_num = 1
 
                 # Calculate the unit coordinates for the fisheye
-                fisheye_unit_coord = projection_to_fisheye((projection_unit_coord[0], projection_unit_coord[1]), fisheye_num)
+                fisheye_unit_coord = projection_to_fisheye(
+                    (projection_unit_coord[0], projection_unit_coord[1]), fisheye_num
+                )
 
                 # Calculate the normal coordinates for the fisheye
                 fisheye_normal_coord = unit_to_fisheye_coord(fisheye_unit_coord, images[fisheye_num])
@@ -168,8 +170,12 @@ def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]) -> np.
             # if it is in the overlapping area calculate the blur
             else:
                 # Calculate the unit coordinates for both fisheye images
-                fisheye_unit_coord1 = projection_to_fisheye((projection_unit_coord[0], projection_unit_coord[1]), 0)
-                fisheye_unit_coord2 = projection_to_fisheye((projection_unit_coord[0], projection_unit_coord[1]), 1)
+                fisheye_unit_coord1 = projection_to_fisheye(
+                    (projection_unit_coord[0], projection_unit_coord[1]), 0
+                )
+                fisheye_unit_coord2 = projection_to_fisheye(
+                    (projection_unit_coord[0], projection_unit_coord[1]), 1
+                )
 
                 # Calculate the normal coordinates for both fisheye images
                 fisheye_normal_coord1 = unit_to_fisheye_coord(fisheye_unit_coord1, images[0])
