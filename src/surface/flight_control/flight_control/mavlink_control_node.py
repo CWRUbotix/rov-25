@@ -464,5 +464,5 @@ def main() -> None:
             time.sleep(sleep_time)
             last_loop_start += loop_period
         else:
-            manual_control.get_logger().warn(f'Loop overrun: {-sleep_time}')
+            manual_control.get_logger().warning(f'Loop overrun: {-sleep_time}')
             last_loop_start = loop_start
