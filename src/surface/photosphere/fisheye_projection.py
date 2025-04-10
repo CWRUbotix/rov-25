@@ -1,6 +1,5 @@
 import math
 from dataclasses import dataclass
-
 import cv2
 import numpy as np
 
@@ -24,28 +23,24 @@ APERTURE = 195 * math.pi / 180
 # The maximum width a single projection covers in unit coordinates
 MAX_WIDTH = APERTURE / 2 / math.pi
 
-# The fisheye images with their information
-# FISHEYE_IMAGES = (
-#     FisheyeImage(
-#         img=cv2.imread('src/surface/photosphere/fisheye1.jpg'),
-#         img_num=0,
-#         left=400,
-#         top=28,
-#         diameter=3052,
-#     ),
-#     FisheyeImage(
-#         img=cv2.imread('src/surface/photosphere/fisheye2.jpg'),
-#         img_num=1,
-#         left=404,
-#         top=-25,
-#         diameter=3040,
-#     ),
-# )
-
-
-# Converts the coordinates in the projection to coordinates in the fisheye image
-# all coordinates are in unit coordinates (-1 to 1 in all dimensions with 0 being center)
 def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tuple[float, float]:
+    """
+    Converts the coordinates in the projection to coordinates in the fisheye image
+    all coordinates are in unit coordinates (-1 to 1 in all dimensions with 0 as the center)
+
+    Parameters
+    ----------
+    projection_coord : tuple[float, float]
+        The unit coordinates in the projection to calculate the fisheye coordinates of
+    img : int
+        The number of the image, if in the center = 0, edges = 1
+
+    Returns
+    -------
+    tuple[float, float]
+        The corresponding unit fisheye coordinates for that image
+    """
+
     # Equirectangular to latitude/longitude
     theta = math.pi * projection_coord[0] + math.pi * img
     phi = math.pi * projection_coord[1] / 2
@@ -65,17 +60,60 @@ def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tu
     return (fisheye_row, fisheye_col)
 
 
-# Calculate the unit coordinate according to the given normal coordinate and width
 def normal_to_unit_grid(x: int, width: int) -> float:
+    """
+    Calculates the unit coordinate according to the given normal coordinate and width
+
+    Parameters
+    ----------
+    x : int
+        the normal coordinate
+    width : int
+        the width
+
+    Returns
+    -------
+    float
+        the unit coordinate that corresponds to the normal coordinate
+    """
     return (x / width - 0.5) * 2
 
 
-# Calculate the normal coordinate according to the given unit coordinate and width
 def unit_to_normal_grid(x: float, width: int) -> int:
+    """
+    Calculates the normal coordinate according to the given unit coordinate and width
+
+    Parameters
+    ----------
+    x : float
+        the unit coordinate
+    width : int
+        the width
+
+    Returns
+    -------
+    int
+        the normal coordinate that corresponds to the unit coordinate
+    """
     return math.floor((x + 1) * width / 2)
 
 
 def unit_to_fisheye_coord(unit_coord: tuple[int, int], fisheye_image: FisheyeImage) -> tuple[int, int]:
+    """
+    Calculates the normal fisheye coordinate given the unit coordinate and the image
+
+    Parameters
+    ----------
+    unit_coord : tuple[int, int]
+        the unit coordinate in [row, column]
+    fisheye_image : FisheyeImage
+        the image to find the coordinates for
+
+    Returns
+    -------
+    tuple[int, int]
+        the coordinates of the point in the fisheye image
+    """
     return (
         unit_to_normal_grid(unit_coord[0], fisheye_image.diameter)
         + fisheye_image.top,
@@ -83,7 +121,20 @@ def unit_to_fisheye_coord(unit_coord: tuple[int, int], fisheye_image: FisheyeIma
         + fisheye_image.left,
     )
 
-def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]):
+def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]) -> np.ndarray:
+    """
+    Creates an equirectangular projection based on two fisheye images
+
+    Parameters
+    ----------
+    images : tuple[FisheyeImage, FisheyeImage]
+        the fisheye images to use to create the projection
+
+    Returns
+    -------
+    np.ndarray
+        the projection image
+    """
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
 
