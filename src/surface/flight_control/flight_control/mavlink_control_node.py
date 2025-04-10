@@ -79,11 +79,11 @@ R2PRESS_PERCENT = 5
 CONTROLLER_PROFILE_PARAM = 'controller_profile'
 
 
+@dataclass
 class ManipButton:
-    def __init__(self, claw: str) -> None:
-        self.claw = claw
-        self.last_button_state: bool = False
-        self.is_active: bool = False
+    claw: str
+    last_button_state: bool = False
+    is_active: bool = False
 
 
 @dataclass
