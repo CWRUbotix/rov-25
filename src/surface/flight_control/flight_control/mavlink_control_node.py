@@ -350,7 +350,7 @@ class MavlinkManualControlNode(Node):
         # Walrus operator <3 <3
         while mavlink_msg := self.mavlink.recv_match():
             if (
-                mavlink_msg._header.srcComponent != VEHICLE_COMPONENT_ID
+                mavlink_msg.get_srcComponent() != VEHICLE_COMPONENT_ID
                 or mavlink_msg.get_type() != 'HEARTBEAT'
             ):
                 continue
