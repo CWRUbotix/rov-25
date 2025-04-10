@@ -160,7 +160,7 @@ class MavlinkManualControlNode(Node):
             VehicleStateMsg, 'vehicle_state_event', qos_profile_system_default
         )
 
-        self.mavros_subscription = self.create_subscription(
+        self.heartbeat_subscription = self.create_subscription(
             Heartbeat, 'pi_heartbeat', self.pi_heartbeat_callback, 10
         )
 
