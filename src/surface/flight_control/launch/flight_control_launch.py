@@ -8,7 +8,6 @@ def generate_launch_description() -> LaunchDescription:
         package='flight_control',
         executable='mavlink_control_node',
         parameters=[
-            {'controller_mode': LaunchConfiguration('controller_mode', default=0)},
             {'controller_profile': LaunchConfiguration('controller_profile', default=0)},
         ],
         remappings=[
