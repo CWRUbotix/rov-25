@@ -27,8 +27,8 @@ MAX_WIDTH = APERTURE / 2 / math.pi
 
 def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tuple[float, float]:
     """
-    Converts the coordinates in the projection to coordinates in the fisheye image
-    all coordinates are in unit coordinates (-1 to 1 in all dimensions with 0 as the center)
+    Convert the coordinates in the projection to coordinates in the fisheye image.
+    All coordinates are in unit coordinates (-1 to 1 in all dimensions with 0 as the center)
 
     Parameters
     ----------
@@ -63,7 +63,7 @@ def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tu
 
 def normal_to_unit_grid(x: int, width: int) -> float:
     """
-    Calculates the unit coordinate according to the given normal coordinate and width
+    Calculate the unit coordinate according to the given normal coordinate and width.
 
     Parameters
     ----------
@@ -103,7 +103,7 @@ def unit_to_fisheye_coord(
     unit_coord: tuple[int, int], fisheye_image: FisheyeImage
 ) -> tuple[int, int]:
     """
-    Calculates the normal fisheye coordinate given the unit coordinate and the image
+    Calculate the normal fisheye coordinate given the unit coordinate and the image.
 
     Parameters
     ----------
@@ -125,7 +125,7 @@ def unit_to_fisheye_coord(
 
 def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]) -> np.ndarray:
     """
-    Creates an equirectangular projection based on two fisheye images
+    Create an equirectangular projection based on two fisheye images.
 
     Parameters
     ----------
