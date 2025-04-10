@@ -162,12 +162,9 @@ class MavlinkManualControlNode(Node):
 
         self.invert_controls = False
 
-        self.last_pi_heartbeat: float = (
-            0  # Unix timestamp of the last mavlink heartbeat from the pi
-        )
-        self.last_ardusub_heartbeat: float = (
-            0  # Unix timestamp of the last mavlink heartbeat from the pi
-        )
+        # Unix timestamp of the last mavlink heartbeat from the pi
+        self.last_pi_heartbeat: float = 0
+        self.last_ardusub_heartbeat: float = 0
         self.last_state_subscriber_count: int = 0
 
         self.vehicle_state = VehicleState(pi_connected=False, ardusub_connected=False, armed=False)
