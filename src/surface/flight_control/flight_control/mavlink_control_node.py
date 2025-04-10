@@ -221,9 +221,7 @@ class MavlinkManualControlNode(Node):
                     self.joystick_map(axes[self.profile.vertical_up] / 2 + 0.5)
                     - self.joystick_map(axes[self.profile.vertical_down] / 2 + 0.5)
                 )
-                / 2
-                * 1000
-                + 500
+                / 2 * 1000 + 500
             ),
             int(self.joystick_map(axes[self.profile.yaw]) * 1000),
             0,
