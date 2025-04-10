@@ -9,8 +9,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 
-from rov_msgs.msg import Heartbeat, Manip
-from rov_msgs.msg import VehicleState
+from rov_msgs.msg import Heartbeat, Manip, VehicleState
 from rov_msgs.srv import VehicleArming
 
 os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
@@ -171,11 +170,7 @@ class MavlinkManualControlNode(Node):
         )
         self.last_state_subscriber_count: int = 0
 
-        self.vehicle_state = VehicleState(
-            pi_connected=False,
-            ardusub_connected=False,
-            armed=False
-        )
+        self.vehicle_state = VehicleState(pi_connected=False, ardusub_connected=False, armed=False)
 
         self.timer = self.create_timer(1 / MAVLINK_POLL_RATE, self.poll_mavlink)
 
@@ -304,7 +299,6 @@ class MavlinkManualControlNode(Node):
         elif joy_state.buttons[self.profile.cam_back_button]:
             # TODO: Message camera manager and gui to swap cameras
             self.invert_controls = True
-
 
     def poll_mavlink(self) -> None:
         new_state = self.poll_mavlink_for_new_state()
