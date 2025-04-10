@@ -2,7 +2,7 @@
 
 ## Overview
 
-This package create a Mavlink connection to a flight computer on the vehicle running Ardusub and sends it control messages. Control messages are derived from the pilot's joystick inputs. This node also read's the vehicles Mavlink heartbeat messages to determine its status and publishes status information to other nodes. All of these functions are contained in the monolithic `mavlink_manual_control` node. Previously, functionality was divided into many small nodes, but consolidating in a single process (and using pygame's joystick library) significantly reduced the control latency compared to our previous solution.
+This package creates a Mavlink connection to a flight computer on the vehicle running Ardusub and sends it control messages. Control messages are derived from the pilot's joystick inputs. This node also read's the vehicles Mavlink heartbeat messages to determine its status and publishes status information to other nodes. All of these functions are contained in the monolithic `mavlink_manual_control` node. Previously, functionality was divided into many small nodes, but consolidating in a single process (and using pygame's joystick library) significantly reduced the control latency compared to our previous solution.
 
 ## Usage
 
