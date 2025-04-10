@@ -18,12 +18,4 @@ def generate_launch_description() -> LaunchDescription:
         output='screen',
     )
 
-    # auto_docking_node = Node(
-    #     package='flight_control',
-    #     executable='auto_docking_node',
-    #     remappings=[('/surface/manipulator_control', '/tether/manipulator_control')],
-    #     emulate_tty=True,
-    #     output='screen',
-    # )
-
     return LaunchDescription([mavlink_node])

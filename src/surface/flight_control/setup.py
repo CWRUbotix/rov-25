@@ -27,8 +27,6 @@ setup(
     entry_points={
         'console_scripts': [
             'mavlink_control_node = flight_control.mavlink_control_node:main',
-            'keyboard_control_node = flight_control.keyboard_control_node:main',
-            'auto_docking_node = flight_control.auto_docking_node:main',
         ],
     },
 )

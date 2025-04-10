@@ -44,32 +44,3 @@ Reads joystick input and communicates with the vehicle
 * **`/surface/arming`** ([rov_msgs/srv/Arming.srv])
 
     Arm or disarm the flight computer on the vehicle. Arming the vehicle is necessary to spin thrusters.
-
-
-### keyboard_control_node
-
-**Deprecated!**
-
-Controls motors (only) from the keyboard. Not run by general surface launch files. Run this separately with its launch file to use it.
-This node can publish concurrently with manual control/auto docking.
-
-#### Published Topics
-
-* **`/tether/mavros/rc/override`** ([mavros_msgs/msg/OverrideRcIn])
-
-    The movement instructions for the Pixhawk. This node can publish concurrently with manual control.
-
-### auto_docking_node
-
-**Deprecated!**
-
-Execute an automatic docking sequence. This node must be "activated" with its service before it will publish movement instructions.
-Once activated, it will publish concurrently with manual control/keyboard control nodes.
-
-TODO: actually implement autodocking.
-
-#### Services
-
-* **`/surface/auto_docker_control`** ([rov_msgs/srv/AutonomousFlight.srv])
-
-    Toggles whether the auto docker is running (sending instructions) and returns the new state.
