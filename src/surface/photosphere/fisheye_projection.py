@@ -28,7 +28,7 @@ MAX_WIDTH = APERTURE / 2 / math.pi
 def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tuple[float, float]:
     """
     Convert the coordinates in the projection to coordinates in the fisheye image.
-    All coordinates are in unit coordinates (-1 to 1 in all dimensions with 0 as the center)
+    All coordinates are in unit coordinates (-1 to 1 in all dimensions with 0 as the center).
 
     Parameters
     ----------
@@ -82,7 +82,7 @@ def normal_to_unit_grid(x: int, width: int) -> float:
 
 def unit_to_normal_grid(x: float, width: int) -> int:
     """
-    Calculates the normal coordinate according to the given unit coordinate and width
+    Calculate the normal coordinate according to the given unit coordinate and width.
 
     Parameters
     ----------
