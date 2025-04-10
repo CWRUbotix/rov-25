@@ -15,28 +15,32 @@ class FisheyeImage:
 
 
 # The dimensions of the output image in width by height
+# needs to be 2:1 width to height
 OUTPUT_DIMENSION = (2000, 1000)
 
 # The APERTURE of the fisheyes in radians
 APERTURE = 195 * math.pi / 180
 
+# The maximum width a single projection covers in unit coordinates
+MAX_WIDTH = APERTURE / 2 / math.pi
+
 # The fisheye images with their information
-FISHEYE_IMAGES = (
-    FisheyeImage(
-        img=cv2.imread('src/surface/photosphere/fisheye1.jpg'),
-        img_num=0,
-        left=400,
-        top=28,
-        diameter=3052,
-    ),
-    FisheyeImage(
-        img=cv2.imread('src/surface/photosphere/fisheye2.jpg'),
-        img_num=1,
-        left=404,
-        top=-25,
-        diameter=3040,
-    ),
-)
+# FISHEYE_IMAGES = (
+#     FisheyeImage(
+#         img=cv2.imread('src/surface/photosphere/fisheye1.jpg'),
+#         img_num=0,
+#         left=400,
+#         top=28,
+#         diameter=3052,
+#     ),
+#     FisheyeImage(
+#         img=cv2.imread('src/surface/photosphere/fisheye2.jpg'),
+#         img_num=1,
+#         left=404,
+#         top=-25,
+#         diameter=3040,
+#     ),
+# )
 
 
 # Converts the coordinates in the projection to coordinates in the fisheye image
@@ -71,30 +75,15 @@ def unit_to_normal_grid(x: float, width: int) -> int:
     return math.floor((x + 1) * width / 2)
 
 
-def unit_to_fisheye_coord(unit_coord: tuple[int, int], fisheye_num: int) -> tuple[int, int]:
+def unit_to_fisheye_coord(unit_coord: tuple[int, int], fisheye_image: FisheyeImage) -> tuple[int, int]:
     return (
-        unit_to_normal_grid(unit_coord[0], FISHEYE_IMAGES[fisheye_num].diameter)
-        + FISHEYE_IMAGES[fisheye_num].top,
-        unit_to_normal_grid(unit_coord[1], FISHEYE_IMAGES[fisheye_num].diameter)
-        + FISHEYE_IMAGES[fisheye_num].left,
+        unit_to_normal_grid(unit_coord[0], fisheye_image.diameter)
+        + fisheye_image.top,
+        unit_to_normal_grid(unit_coord[1], fisheye_image.diameter)
+        + fisheye_image.left,
     )
 
-
-# The maximum width a single projection covers in unit coordinates
-MAX_WIDTH = APERTURE / 2 / math.pi
-
-# The portions of the projections that overlap and can be blurred
-# The first item is the left bound, the second is the right bound
-LEFT_SEAM = (
-    unit_to_normal_grid(-1 * MAX_WIDTH, OUTPUT_DIMENSION[0]),
-    unit_to_normal_grid(-1 + MAX_WIDTH, OUTPUT_DIMENSION[0]),
-)
-RIGHT_SEAM = (
-    unit_to_normal_grid(1 - MAX_WIDTH, OUTPUT_DIMENSION[0]),
-    unit_to_normal_grid(MAX_WIDTH, OUTPUT_DIMENSION[0]),
-)
-
-if __name__ == '__main__':
+def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]):
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
 
@@ -120,10 +109,10 @@ if __name__ == '__main__':
                 fisheye_unit_coord = projection_to_fisheye((projection_unit_coord[0], projection_unit_coord[1]), fisheye_num)
 
                 # Calculate the normal coordinates for the fisheye
-                fisheye_normal_coord = unit_to_fisheye_coord(fisheye_unit_coord, fisheye_num)
+                fisheye_normal_coord = unit_to_fisheye_coord(fisheye_unit_coord, images[fisheye_num])
 
                 # set the pixel
-                row[col_index] = FISHEYE_IMAGES[fisheye_num].img[fisheye_normal_coord[0]][fisheye_normal_coord[1]]
+                row[col_index] = images[fisheye_num].img[fisheye_normal_coord[0]][fisheye_normal_coord[1]]
 
             # if it is in the overlapping area calculate the blur
             else:
@@ -132,8 +121,8 @@ if __name__ == '__main__':
                 fisheye_unit_coord2 = projection_to_fisheye((projection_unit_coord[0], projection_unit_coord[1]), 1)
 
                 # Calculate the normal coordinates for both fisheye images
-                fisheye_normal_coord1 = unit_to_fisheye_coord(fisheye_unit_coord1, 0)
-                fisheye_normal_coord2 = unit_to_fisheye_coord(fisheye_unit_coord2, 1)
+                fisheye_normal_coord1 = unit_to_fisheye_coord(fisheye_unit_coord1, images[0])
+                fisheye_normal_coord2 = unit_to_fisheye_coord(fisheye_unit_coord2, images[1])
 
                 # Calculate the alpha for the blur depending on which seam it is in
                 if projection_unit_coord[0] < 0:
@@ -142,10 +131,42 @@ if __name__ == '__main__':
                     alpha = 1 - (col_index - RIGHT_SEAM[0]) / (RIGHT_SEAM[1] - RIGHT_SEAM[0])
 
                 # Set the pixel using the alpha
-                fisheye1_pixel = FISHEYE_IMAGES[0].img[fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
-                fisheye2_pixel = FISHEYE_IMAGES[1].img[fisheye_normal_coord2[0]][fisheye_normal_coord2[1]] * (
+                fisheye1_pixel = images[0].img[fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
+                fisheye2_pixel = images[1].img[fisheye_normal_coord2[0]][fisheye_normal_coord2[1]] * (
                     1 - alpha
                 )
                 row[col_index] = fisheye1_pixel + fisheye2_pixel
+    return projection
 
+
+# The portions of the projections that overlap and can be blurred
+# The first item is the left bound, the second is the right bound
+LEFT_SEAM = (
+    unit_to_normal_grid(-1 * MAX_WIDTH, OUTPUT_DIMENSION[0]),
+    unit_to_normal_grid(-1 + MAX_WIDTH, OUTPUT_DIMENSION[0]),
+)
+RIGHT_SEAM = (
+    unit_to_normal_grid(1 - MAX_WIDTH, OUTPUT_DIMENSION[0]),
+    unit_to_normal_grid(MAX_WIDTH, OUTPUT_DIMENSION[0]),
+)
+
+
+if __name__ == '__main__':
+    fisheye_images = (
+        FisheyeImage(
+            img=cv2.imread('src/surface/photosphere/fisheye1.jpg'),
+            img_num=0,
+            left=400,
+            top=28,
+            diameter=3052,
+        ),
+        FisheyeImage(
+            img=cv2.imread('src/surface/photosphere/fisheye2.jpg'),
+            img_num=1,
+            left=404,
+            top=-25,
+            diameter=3040,
+        ),
+    )
+    projection = equirectangular_projection(fisheye_images)
     cv2.imwrite('src/surface/photosphere/projection.png', projection)
