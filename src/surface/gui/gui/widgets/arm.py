@@ -75,7 +75,7 @@ class Arm(QWidget):
 
     @pyqtSlot(VehicleState)
     def vehicle_state_callback(self, msg: VehicleState) -> None:
-        if msg.pixhawk_connected:
+        if msg.ardusub_connected:
             if msg.armed:
                 self.arm_button.set_state(WidgetState.ON)
                 self.disarm_button.set_state(WidgetState.NONE)

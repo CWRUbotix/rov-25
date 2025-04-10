@@ -10,7 +10,7 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 
 from rov_msgs.msg import Heartbeat, Manip
-from rov_msgs.msg import VehicleState as VehicleStateMsg
+from rov_msgs.msg import VehicleState
 from rov_msgs.srv import VehicleArming
 
 os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
@@ -124,13 +124,6 @@ CONTROLLER_PROFILES = (
 )
 
 
-@dataclass
-class VehicleState:
-    pi_connected: bool = False
-    ardusub_connected: bool = False
-    armed: bool = False
-
-
 class MavlinkManualControlNode(Node):
     def __init__(self) -> None:
         super().__init__('mavlink_control_node')
@@ -157,7 +150,7 @@ class MavlinkManualControlNode(Node):
         self.mavlink = mavutil.mavlink_connection(MAVLINK_CONNECTION_STRING, source_system=255)
 
         self.state_publisher = self.create_publisher(
-            VehicleStateMsg, 'vehicle_state_event', qos_profile_system_default
+            VehicleState, 'vehicle_state_event', qos_profile_system_default
         )
 
         self.heartbeat_subscription = self.create_subscription(
@@ -178,7 +171,11 @@ class MavlinkManualControlNode(Node):
         )
         self.last_state_subscriber_count: int = 0
 
-        self.vehicle_state = VehicleState()
+        self.vehicle_state = VehicleState(
+            pi_connected=False,
+            ardusub_connected=False,
+            armed=False
+        )
 
         self.timer = self.create_timer(1 / MAVLINK_POLL_RATE, self.poll_mavlink)
 
@@ -308,14 +305,6 @@ class MavlinkManualControlNode(Node):
             # TODO: Message camera manager and gui to swap cameras
             self.invert_controls = True
 
-    def publish_state(self, state: VehicleState) -> None:
-        self.state_publisher.publish(
-            VehicleStateMsg(
-                pi_connected=state.pi_connected,
-                pixhawk_connected=state.ardusub_connected,
-                armed=state.armed,
-            )
-        )
 
     def poll_mavlink(self) -> None:
         new_state = self.poll_mavlink_for_new_state()
@@ -323,7 +312,7 @@ class MavlinkManualControlNode(Node):
         # Check pi timeeout
         if self.vehicle_state.pi_connected and time.time() - self.last_pi_heartbeat > PI_TIMEOUT:
             self.vehicle_state.pi_connected = False
-            self.publish_state(self.vehicle_state)
+            self.state_publisher.publish(self.vehicle_state)
             self.get_logger().warning('Pi disconnected')
 
         # Check ardusub timeeout
@@ -332,12 +321,12 @@ class MavlinkManualControlNode(Node):
             and time.time() - self.last_ardusub_heartbeat > ARDUSUB_TIMEOUT
         ):
             new_state.ardusub_connected = False
-            self.publish_state(self.vehicle_state)
+            self.state_publisher.publish(self.vehicle_state)
             self.get_logger().warning('Ardusub disconnected')
 
         if self.vehicle_state != new_state:
             self.vehicle_state = new_state
-            self.publish_state(new_state)
+            self.state_publisher.publish(new_state)
 
     def poll_mavlink_for_new_state(self) -> VehicleState:
         """Read incoming mavlink messages to determine the state of the vehicle."""
@@ -378,14 +367,14 @@ class MavlinkManualControlNode(Node):
 
         if not self.vehicle_state.pi_connected:
             self.vehicle_state.pi_connected = True
-            self.publish_state(self.vehicle_state)
+            self.state_publisher.publish(self.vehicle_state)
             self.get_logger().info('Pi connected')
 
     def poll_subscribers(self) -> None:
         # Whenever a node subscribes to vehicle state updates, send the current state
         subscriber_count = self.state_publisher.get_subscription_count()
         if subscriber_count > self.last_state_subscriber_count:
-            self.publish_state(self.vehicle_state)
+            self.state_publisher.publish(self.vehicle_state)
 
         self.last_state_subscriber_count = subscriber_count
 

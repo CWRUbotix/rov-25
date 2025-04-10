@@ -1,3 +1,3 @@
 bool pi_connected  # Whether the ROS connection to the pi is alive
-bool pixhawk_connected  # Whether we're receiving mavlink messages
+bool ardusub_connected  # Whether we're receiving mavlink messages
 bool armed  # Whether the flight controller is armed (ready for flight)
