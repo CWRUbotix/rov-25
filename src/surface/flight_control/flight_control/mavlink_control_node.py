@@ -2,9 +2,9 @@ import math
 import os
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 import rclpy
+import rclpy.utilities
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
@@ -12,9 +12,6 @@ from rclpy.qos import qos_profile_system_default
 from rov_msgs.msg import Heartbeat, Manip
 from rov_msgs.msg import VehicleState as VehicleStateMsg
 from rov_msgs.srv import VehicleArming
-
-if TYPE_CHECKING:
-    from collections.abc import MutableSequence
 
 os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
 from pymavlink import mavutil
@@ -141,7 +138,7 @@ class MavlinkManualControlNode(Node):
         profile_param = self.declare_parameter(CONTROLLER_PROFILE_PARAM, value=0)
         self.profile: ControllerProfile = CONTROLLER_PROFILES[profile_param.value]
 
-        self.joysticks: dict[int, pygame.joystick.Joystick] = {}
+        self.joysticks: dict[int, pygame.joystick.JoystickType] = {}
         self.current_joystick_id: int | None = None
         pygame.init()
         pygame.display.init()
@@ -207,8 +204,8 @@ class MavlinkManualControlNode(Node):
         return math.copysign(math.fabs(raw) ** JOY_MAP_STRENGTH, raw) * GLOBAL_THROTTLE
 
     def send_mavlink_control(self, joy_state: JoystickState) -> None:
-        axes: MutableSequence[float] = joy_state.axes
-        buttons: MutableSequence[float] = joy_state.buttons
+        axes = joy_state.axes
+        buttons = joy_state.buttons
 
         inv = -1 if self.invert_controls else 1
 
@@ -234,7 +231,7 @@ class MavlinkManualControlNode(Node):
         )
 
     def manip_callback(self, joy_state: JoystickState) -> None:
-        buttons: MutableSequence[int] = joy_state.buttons
+        buttons = joy_state.buttons
         for button_id, manip_button in self.manip_buttons.items():
             just_pressed = buttons[button_id] == PRESSED
             if manip_button.last_button_state is False and just_pressed:
@@ -291,7 +288,7 @@ class MavlinkManualControlNode(Node):
 
     def process_arming_buttons(self, joy_state: JoystickState) -> None:
         """Set the arming state using the menu and pairing buttons."""
-        buttons: MutableSequence[int] = joy_state.buttons
+        buttons = joy_state.buttons
 
         if buttons[self.profile.disarm_button] == PRESSED:
             self.get_logger().info('Sending disarm command')
@@ -321,7 +318,7 @@ class MavlinkManualControlNode(Node):
         )
 
     def poll_mavlink(self) -> None:
-        new_state = self.poll_mavlink_for_state_updates()
+        new_state = self.poll_mavlink_for_new_state()
 
         # Check pi timeeout
         if self.vehicle_state.pi_connected and time.time() - self.last_pi_heartbeat > PI_TIMEOUT:
@@ -404,8 +401,10 @@ class MavlinkManualControlNode(Node):
             elif event.type == pygame.JOYDEVICEREMOVED:
                 del self.joysticks[event.instance_id]
                 if self.current_joystick_id == event.instance_id:
-                    if self.joysticks.keys():
-                        self.current_joystick_id = self.joysticks.keys()[0]
+                    if self.joysticks:
+                        # Arbitrarily choose a new joystick to become the current joystick
+                        # In practice this is the first element of list(self.joystick.keys())
+                        self.current_joystick_id = next(iter(self.joysticks))
                     else:
                         self.current_joystick_id = None
                 self.get_logger().info(f'Joystick {event.instance_id} disconnected')
@@ -424,11 +423,11 @@ class MavlinkManualControlNode(Node):
             for hat_idx in range(joy.get_numhats()):
                 for hat_axis in joy.get_hat(hat_idx):
                     if hat_axis > 0:
-                        buttons += [0, 1]
+                        buttons += [False, True]
                     elif hat_axis < 0:
-                        buttons += [1, 0]
+                        buttons += [True, False]
                     else:
-                        buttons += [0, 0]
+                        buttons += [False, False]
 
             self.controller_callback(JoystickState(axes=axes, buttons=buttons))
 
@@ -446,7 +445,7 @@ def main() -> None:
     mav_poll_period = 1 / MAVLINK_POLL_RATE
     sub_poll_period = 1 / SUBSCRIBER_POLL_RATE
 
-    while rclpy.ok():
+    while rclpy.utilities.ok():
         loop_start = time.time()
         rclpy.spin_once(manual_control, executor=executor, timeout_sec=0)
 
