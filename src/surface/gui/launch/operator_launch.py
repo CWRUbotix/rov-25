@@ -9,11 +9,7 @@ def generate_launch_description() -> LaunchDescription:
         executable='run_operator',
         parameters=[{'theme': LaunchConfiguration('theme', default='dark')}],
         remappings=[
-            # ('/surface/mavros/cmd/command', '/tether/mavros/cmd/command'),
-            # ('/surface/mavros/param/set', '/tether/mavros/param/set'),
-            # ('/surface/mavros/param/pull', '/tether/mavros/param/pull'),
             ('/surface/temperature', '/tether/temperature'),
-            # ('/surface/mavros/cmd/arming', '/tether/mavros/cmd/arming'),
             ('/surface/ip_address', '/tether/ip_address'),
             ('/surface/flooding', '/tether/flooding'),
         ],

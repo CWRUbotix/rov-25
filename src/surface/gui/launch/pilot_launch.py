@@ -13,7 +13,6 @@ def generate_launch_description() -> LaunchDescription:
             {'gui': LaunchConfiguration('gui', default='pilot')},
         ],
         remappings=[
-            # ('/surface/mavros/cmd/arming', '/tether/mavros/cmd/arming'),
             ('/surface/depth_cam/image_raw', '/tether/depth_cam/image_raw'),
         ],
         emulate_tty=True,
