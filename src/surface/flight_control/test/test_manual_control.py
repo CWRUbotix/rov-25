@@ -1,14 +1,15 @@
 import rclpy
 from flight_control.manual_control_node import ManualControlNode
-from flight_control.multiplexer import (
+from flight_control.manual_control_utils import (
+    JOYSTICK_EXPONENT,
     RANGE_SPEED,
     Z_RANGE_SPEED,
     Z_ZERO_SPEED,
     ZERO_SPEED,
-    to_manual_control,
+    apply_function,
+    joystick_map,
 )
-
-from rov_msgs.msg import PixhawkInstruction
+from mavros_msgs.msg import ManualControl
 
 
 def test_manual_control_instantiation() -> None:
@@ -18,20 +19,21 @@ def test_manual_control_instantiation() -> None:
     rclpy.shutdown()
 
 
-def test_joystick_profiles() -> None:
-    """Unit test for the joystick_profiles function."""
-    instruction = PixhawkInstruction(
+def test_joystick_map() -> None:
+    """Unit test for the joystick_map function."""
+    instruction = ManualControl(
         # Nice boundary values
-        forward=0,
-        vertical=1,
-        lateral=-1,
+        x=0,
+        z=1,
+        y=-1,
         # Not nice possible values
-        pitch=0.34,
-        yaw=-0.6,
-        roll=0.92,
+        s=0.34,
+        r=-0.6,
+        t=0.92,
     )
 
-    msg = to_manual_control(instruction)
+    msg = apply_function(instruction, joystick_map)
+    msg.z = Z_RANGE_SPEED * instruction.z + Z_ZERO_SPEED
 
     assert msg.x == ZERO_SPEED
     assert msg.z == (Z_ZERO_SPEED + Z_RANGE_SPEED)
@@ -39,6 +41,6 @@ def test_joystick_profiles() -> None:
 
     # 1539 1378
 
-    assert msg.s == ZERO_SPEED + RANGE_SPEED * 0.34
-    assert msg.r == ZERO_SPEED + RANGE_SPEED * -0.6
-    assert msg.t == ZERO_SPEED + RANGE_SPEED * 0.92
+    assert msg.s == ZERO_SPEED + RANGE_SPEED * (0.34**JOYSTICK_EXPONENT)
+    assert msg.r == ZERO_SPEED + RANGE_SPEED * (-(0.6**JOYSTICK_EXPONENT))
+    assert msg.t == ZERO_SPEED + RANGE_SPEED * (0.92**JOYSTICK_EXPONENT)
