@@ -183,7 +183,8 @@ class MavlinkManualControlNode(Node):
         self.manip_callback(joy_state)
         self.process_camera_buttons(joy_state)
 
-    def joystick_map(self, raw: float) -> float:
+    @staticmethod
+    def joystick_map(raw: float) -> float:
         """Apply a mapping to a joystick axis before it is used for control.
 
         Parameters
