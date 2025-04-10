@@ -29,9 +29,8 @@ JOY_MAP_STRENGTH = 2
 GLOBAL_THROTTLE = 1.0  # From 0 to 1, lower numbers decrease the thrust in every direction
 PITCH_THROTTLE = 0.5  # From 0 to 1, stacks multiplicatively with GLOBAL_THROTTLE
 
-SUBSCRIBER_POLL_RATE = (
-    2  # How often to check for new subscribers and send them the current state, Hz
-)
+# How often to check for new subscribers and send them the current state, Hz
+SUBSCRIBER_POLL_RATE = 2
 
 # How frequently to check for mavlink heartbeats, Hz, cannot be greater than joystick polling rate
 MAVLINK_POLL_RATE = 20
