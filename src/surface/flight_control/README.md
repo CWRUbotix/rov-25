@@ -6,7 +6,7 @@ This package create a Mavlink connection to a flight computer on the vehicle run
 
 ## Usage
 
-The mavlink manual control node should be launched automatically with the operator gui. To run it separately, you can run 
+The mavlink manual control node should be launched automatically with the operator gui. To run it separately, you can run
 
 ```bash
 ros2 launch flight_control flight_control_launch.py
