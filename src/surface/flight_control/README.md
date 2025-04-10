@@ -2,61 +2,53 @@
 
 ## Overview
 
-This package includes keyboard, PS5 controller, and automatic docking pilot nodes. It abstracts creating motor control messages with `PixhawkInstruction`s.
+This package create a Mavlink connection to a flight computer on the vehicle running Ardusub and sends it control messages. Control messages are derived from the pilot's joystick inputs. This node also read's the vehicles Mavlink heartbeat messages to determine its status and publishes status information to other nodes. All of these functions are contained in the monolithic `mavlink_manual_control` node. Previously, functionality was divided into many small nodes, but consolidating in a single process (and using pygame's joystick library) significantly reduced the control latency compared to our previous solution.
 
 ## Usage
 
-The PS5 controller (`manual_control_node`) and the auto docking controller (`auto_docking_node`) are both run when the pilot is launched.
-You can run them on their own with:
+The mavlink manual control node should be launched automatically with the operator gui. To run it separately, you can run 
 
 ```bash
 ros2 launch flight_control flight_control_launch.py
 ```
 
-The keyboard controller (`keyboard_control_node`) is not run normally.
-You can run it with:
-
-```bash
-ros2 launch flight_control keyboard_control_launch.py
-```
 
 ## Launch files
 
 * **flight_control_launch.py:** launches the PS5 controller and readies the auto docking controller
 
-  * **`controller_mode`** Whether the controller arms or toggles cameras; options are 0 (arming), 1 (cameras). Default: 0.
-
   * **`controller_profile`** Profile controls what buttons do what; value is the profile index. Default: 0.
 
-* **keyboard_control_launch.py:** launches the keyboard controller under the `/surface` namespace
+* **keyboard_control_launch.py:** DEPRECATED! Launches the keyboard controller under the `/surface` namespace
 
 ## Nodes
 
-### manual_control_node
+### mavlink_manual_control
 
-Controls motors, manipulators, and camera switching (if applicable) from the PS5 controller.
+Reads joystick input and communicates with the vehicle
 
 #### Subscribed Topics
 
-* **`/surface/joy`** ([sensor_msgs/msg/Joy])
+* **`/tether/pi_heartbeat`** ([rov_msgs/msg/Heartbeat])
 
-    PS5 controller instructions.
+    Indicates that the ROS connection to the pi is alive.
 
 #### Published Topics
 
-* **`/tether/mavros/rc/override`** ([mavros_msgs/msg/OverrideRcIn])
+* **`/surface/vehicle_state_event`** ([rov_msgs/msg/vehicle_state_event])
 
-    The movement instructions for the Pixhawk.
+    The status of the various vehicle systems.
 
-* **`/tether/manipulator_control`** ([rov_msgs/msg/Manip])
+#### Services
 
-    Manipulator instructions for the Pi.
+* **`/surface/arming`** ([rov_msgs/srv/Arming.srv])
 
-* **`/surface/camera_switch`** ([rov_msgs/msg/CameraControllerSwitch])
+    Arm or disarm the flight computer on the vehicle. Arming the vehicle is necessary to spin thrusters.
 
-    Instructions to change which camera should be active. TODO: Remove this if possible after upgrading to FLIR cams.
 
 ### keyboard_control_node
+
+**Deprecated!**
 
 Controls motors (only) from the keyboard. Not run by general surface launch files. Run this separately with its launch file to use it.
 This node can publish concurrently with manual control/auto docking.
@@ -68,6 +60,8 @@ This node can publish concurrently with manual control/auto docking.
     The movement instructions for the Pixhawk. This node can publish concurrently with manual control.
 
 ### auto_docking_node
+
+**Deprecated!**
 
 Execute an automatic docking sequence. This node must be "activated" with its service before it will publish movement instructions.
 Once activated, it will publish concurrently with manual control/keyboard control nodes.
