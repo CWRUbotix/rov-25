@@ -189,9 +189,7 @@ def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]) -> np.
 
                 # Set the pixel using the alpha
                 fisheye1_pixel = images[0].img[fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
-                fisheye2_pixel = images[1].img[fisheye_normal_coord2[0]][fisheye_normal_coord2[1]] * (
-                    1 - alpha
-                )
+                fisheye2_pixel = images[1].img[fisheye_normal_coord2[0]][fisheye_normal_coord2[1]] * (1 - alpha)
                 row[col_index] = fisheye1_pixel + fisheye2_pixel
     return projection
 
