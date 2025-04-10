@@ -167,6 +167,12 @@ Note `systemctl disable systemd-networkd-wait-online` does not work. The disable
 systemctl mask systemd-networkd-wait-online
 ```
 
+### Blue Navigator
+The flight control software is called [ArduSub](https://www.ardusub.com/).
+
+Currently we have [Vectored ROV w/ Four Vertical Thrusters](https://www.ardusub.com/quick-start/vehicle-frame.html) vehicle frame.
+
+
 ## Nodes
 
 There are no nodes in this package.
