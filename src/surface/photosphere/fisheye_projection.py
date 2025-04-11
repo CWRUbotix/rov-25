@@ -123,20 +123,40 @@ def unit_to_fisheye_coord(
     )
 
 
-def equirectangular_projection(images: tuple[FisheyeImage, FisheyeImage]) -> np.ndarray:
+def equirectangular_projection(fisheye_image1: np.ndarray, fisheye_image2: np.ndarray) -> np.ndarray:
     """
     Create an equirectangular projection based on two fisheye images.
 
     Parameters
     ----------
-    images : tuple[FisheyeImage, FisheyeImage]
-        the fisheye images to use to create the projection
+    fisheye_image1 : np.ndarray
+        the fisheye image for the center of the projection
+    fisheye_image2 : np.ndarray
+        the fisheye image for the edges of the projection
 
     Returns
     -------
     np.ndarray
         the projection image
     """
+    # Create the input fisheye images
+    images = (
+        FisheyeImage(
+            img=fisheye_image1,
+            img_num=0,
+            left=400,
+            top=28,
+            diameter=3052,
+        ),
+        FisheyeImage(
+            img=fisheye_image2,
+            img_num=1,
+            left=404,
+            top=-25,
+            diameter=3040,
+        ),
+    )
+
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
 
@@ -217,21 +237,23 @@ RIGHT_SEAM = (
 
 
 if __name__ == '__main__':
-    fisheye_images = (
-        FisheyeImage(
-            img=cv2.imread('src/surface/photosphere/fisheye1.jpg'),
-            img_num=0,
-            left=400,
-            top=28,
-            diameter=3052,
-        ),
-        FisheyeImage(
-            img=cv2.imread('src/surface/photosphere/fisheye2.jpg'),
-            img_num=1,
-            left=404,
-            top=-25,
-            diameter=3040,
-        ),
-    )
-    projection = equirectangular_projection(fisheye_images)
+    # fisheye_images = (
+    #     FisheyeImage(
+    #         img=cv2.imread('src/surface/photosphere/fisheye1.jpg'),
+    #         img_num=0,
+    #         left=400,
+    #         top=28,
+    #         diameter=3052,
+    #     ),
+    #     FisheyeImage(
+    #         img=cv2.imread('src/surface/photosphere/fisheye2.jpg'),
+    #         img_num=1,
+    #         left=404,
+    #         top=-25,
+    #         diameter=3040,
+    #     ),
+    # )
+    fisheye_image1 = cv2.imread('src/surface/photosphere/fisheye1.jpg')
+    fisheye_image2 = cv2.imread('src/surface/photosphere/fisheye2.jpg')
+    projection = equirectangular_projection(fisheye_image1, fisheye_image2)
     cv2.imwrite('src/surface/photosphere/projection.png', projection)
