@@ -25,19 +25,19 @@ MAX_WIDTH = APERTURE / 2 / math.pi
 
 # The meta data for the fisheye images
 FISHEYE_META_DATA = (
-        FisheyeMetaData(
-            img_num=0,
-            left=400,
-            top=28,
-            diameter=3052,
-        ),
-        FisheyeMetaData(
-            img_num=1,
-            left=404,
-            top=-25,
-            diameter=3040,
-        ),
-    )
+    FisheyeMetaData(
+        img_num=0,
+        left=400,
+        top=28,
+        diameter=3052,
+    ),
+    FisheyeMetaData(
+        img_num=1,
+        left=404,
+        top=-25,
+        diameter=3040,
+    ),
+)
 
 
 def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tuple[float, float]:
@@ -191,7 +191,9 @@ def equirectangular_projection(
                 )
 
                 # set the pixel
-                row[col_index] = images[fisheye_num][fisheye_normal_coord[0]][fisheye_normal_coord[1]]
+                row[col_index] = images[fisheye_num][fisheye_normal_coord[0]][
+                    fisheye_normal_coord[1]
+                ]
 
             # if it is in the overlapping area calculate the blur
             else:
@@ -204,8 +206,12 @@ def equirectangular_projection(
                 )
 
                 # Calculate the normal coordinates for both fisheye images
-                fisheye_normal_coord1 = unit_to_fisheye_coord(fisheye_unit_coord1, FISHEYE_META_DATA[0])
-                fisheye_normal_coord2 = unit_to_fisheye_coord(fisheye_unit_coord2, FISHEYE_META_DATA[1])
+                fisheye_normal_coord1 = unit_to_fisheye_coord(
+                    fisheye_unit_coord1, FISHEYE_META_DATA[0]
+                )
+                fisheye_normal_coord2 = unit_to_fisheye_coord(
+                    fisheye_unit_coord2, FISHEYE_META_DATA[1]
+                )
 
                 # Calculate the alpha for the blur depending on which seam it is in
                 if projection_unit_coord[0] < 0:
@@ -217,9 +223,9 @@ def equirectangular_projection(
                 fisheye1_pixel = (
                     images[0][fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
                 )
-                fisheye2_pixel = images[1][fisheye_normal_coord2[0]][
-                    fisheye_normal_coord2[1]
-                ] * (1 - alpha)
+                fisheye2_pixel = images[1][fisheye_normal_coord2[0]][fisheye_normal_coord2[1]] * (
+                    1 - alpha
+                )
                 row[col_index] = fisheye1_pixel + fisheye2_pixel
     return projection
 
