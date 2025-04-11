@@ -6,8 +6,7 @@ import numpy as np
 
 
 @dataclass
-class FisheyeImage:
-    img: np.ndarray
+class FisheyeMetaData:
     img_num: int
     left: int
     top: int
@@ -23,6 +22,22 @@ APERTURE = 195 * math.pi / 180
 
 # The maximum width a single projection covers in unit coordinates
 MAX_WIDTH = APERTURE / 2 / math.pi
+
+# The meta data for the fisheye images
+FISHEYE_META_DATA = (
+        FisheyeMetaData(
+            img_num=0,
+            left=400,
+            top=28,
+            diameter=3052,
+        ),
+        FisheyeMetaData(
+            img_num=1,
+            left=404,
+            top=-25,
+            diameter=3040,
+        ),
+    )
 
 
 def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tuple[float, float]:
@@ -100,7 +115,7 @@ def unit_to_normal_grid(x: float, width: int) -> int:
 
 
 def unit_to_fisheye_coord(
-    unit_coord: tuple[int, int], fisheye_image: FisheyeImage
+    unit_coord: tuple[int, int], fisheye_image: FisheyeMetaData
 ) -> tuple[int, int]:
     """
     Calculate the normal fisheye coordinate given the unit coordinate and the image.
@@ -109,8 +124,8 @@ def unit_to_fisheye_coord(
     ----------
     unit_coord : tuple[int, int]
         the unit coordinate in [row, column]
-    fisheye_image : FisheyeImage
-        the image to find the coordinates for
+    fisheye_image : FisheyeMetaData
+        the meta data for the image to find the coordinates for
 
     Returns
     -------
@@ -142,22 +157,7 @@ def equirectangular_projection(
         the projection image
     """
     # Create the input fisheye images
-    images = (
-        FisheyeImage(
-            img=fisheye_image1,
-            img_num=0,
-            left=400,
-            top=28,
-            diameter=3052,
-        ),
-        FisheyeImage(
-            img=fisheye_image2,
-            img_num=1,
-            left=404,
-            top=-25,
-            diameter=3040,
-        ),
-    )
+    images = (fisheye_image1, fisheye_image2)
 
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
@@ -187,13 +187,11 @@ def equirectangular_projection(
 
                 # Calculate the normal coordinates for the fisheye
                 fisheye_normal_coord = unit_to_fisheye_coord(
-                    fisheye_unit_coord, images[fisheye_num]
+                    fisheye_unit_coord, FISHEYE_META_DATA[fisheye_num]
                 )
 
                 # set the pixel
-                row[col_index] = images[fisheye_num].img[fisheye_normal_coord[0]][
-                    fisheye_normal_coord[1]
-                ]
+                row[col_index] = images[fisheye_num][fisheye_normal_coord[0]][fisheye_normal_coord[1]]
 
             # if it is in the overlapping area calculate the blur
             else:
@@ -206,8 +204,8 @@ def equirectangular_projection(
                 )
 
                 # Calculate the normal coordinates for both fisheye images
-                fisheye_normal_coord1 = unit_to_fisheye_coord(fisheye_unit_coord1, images[0])
-                fisheye_normal_coord2 = unit_to_fisheye_coord(fisheye_unit_coord2, images[1])
+                fisheye_normal_coord1 = unit_to_fisheye_coord(fisheye_unit_coord1, FISHEYE_META_DATA[0])
+                fisheye_normal_coord2 = unit_to_fisheye_coord(fisheye_unit_coord2, FISHEYE_META_DATA[1])
 
                 # Calculate the alpha for the blur depending on which seam it is in
                 if projection_unit_coord[0] < 0:
@@ -217,9 +215,9 @@ def equirectangular_projection(
 
                 # Set the pixel using the alpha
                 fisheye1_pixel = (
-                    images[0].img[fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
+                    images[0][fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
                 )
-                fisheye2_pixel = images[1].img[fisheye_normal_coord2[0]][
+                fisheye2_pixel = images[1][fisheye_normal_coord2[0]][
                     fisheye_normal_coord2[1]
                 ] * (1 - alpha)
                 row[col_index] = fisheye1_pixel + fisheye2_pixel
@@ -239,22 +237,6 @@ RIGHT_SEAM = (
 
 
 if __name__ == '__main__':
-    # fisheye_images = (
-    #     FisheyeImage(
-    #         img=cv2.imread('src/surface/photosphere/fisheye1.jpg'),
-    #         img_num=0,
-    #         left=400,
-    #         top=28,
-    #         diameter=3052,
-    #     ),
-    #     FisheyeImage(
-    #         img=cv2.imread('src/surface/photosphere/fisheye2.jpg'),
-    #         img_num=1,
-    #         left=404,
-    #         top=-25,
-    #         diameter=3040,
-    #     ),
-    # )
     fisheye_image1 = cv2.imread('src/surface/photosphere/fisheye1.jpg')
     fisheye_image2 = cv2.imread('src/surface/photosphere/fisheye2.jpg')
     projection = equirectangular_projection(fisheye_image1, fisheye_image2)
