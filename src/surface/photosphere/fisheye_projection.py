@@ -123,7 +123,9 @@ def unit_to_fisheye_coord(
     )
 
 
-def equirectangular_projection(fisheye_image1: np.ndarray, fisheye_image2: np.ndarray) -> np.ndarray:
+def equirectangular_projection(
+    fisheye_image1: np.ndarray, fisheye_image2: np.ndarray
+) -> np.ndarray:
     """
     Create an equirectangular projection based on two fisheye images.
 
