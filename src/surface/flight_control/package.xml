@@ -8,17 +8,15 @@
   <license>Apache License 2.0</license>
 
   <depend>rclpy</depend>
-  <depend>sensor_msgs</depend>
+  <depend>rov_msgs</depend>
 
-  <exec_depend>python3-pynput</exec_depend>
-  <exec_depend>rov_msgs</exec_depend>
+  <exec_depend>python-pymavlink</exec_depend>
+  <exec_depend>python3-pygame</exec_depend>
 
   <test_depend>ament_mypy</test_depend>
   <test_depend>python3-pre-commit</test_depend>
   <test_depend>python3-pytest</test_depend>
   <test_depend>launch_testing</test_depend>
-
-  <exec_depend>mavros_msgs</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>
