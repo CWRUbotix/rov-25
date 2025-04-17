@@ -31,8 +31,6 @@ class LuxonisCamDriverNode(Node):
 
         self.get_logger().info('Pipeline created')
 
-
-
     def create_pipeline(self) -> None:
         """Create a depthai pipeline and deploys it to the camera."""
         self.pipeline = depthai.Pipeline()
@@ -75,7 +73,6 @@ class LuxonisCamDriverNode(Node):
         self.disparity_out_node.setStreamName('disparity')
         self.stereo_node.disparity.link(self.disparity_out_node.input)
 
-
         # Deploy pipeline to device
         while True:
             try:
@@ -89,7 +86,6 @@ class LuxonisCamDriverNode(Node):
             self.video_queue = self.device.getOutputQueue('preview', maxSize=1, blocking=False)
 
         self.disparity_queue = self.device.getOutputQueue('disparity', maxSize=1, blocking=False)
-
 
     def get_image_msg(self, image: Matlike, time: Time) -> Image:
         """Convert cv2 image to ROS2 Image with CvBridge.
@@ -134,7 +130,6 @@ class LuxonisCamDriverNode(Node):
 
             if cv2.waitKey(1) == ord('q'):
                 raise KeyboardInterrupt
-
 
     def shutdown(self) -> None:
         """Free the device and any other resources."""
