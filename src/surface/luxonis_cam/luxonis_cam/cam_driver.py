@@ -14,16 +14,19 @@ Matlike = NDArray[generic]
 
 
 class LuxonisCamDriverNode(Node):
-    CAM_TO_STREAM = 'left'  # which cam to stream to ros, 'left' or 'right'
+    # CAM_TO_STREAM = 'left'  # which cam to stream to ros, 'left' or 'right'
 
     def __init__(self) -> None:
         super().__init__('luxonis_cam_driver', parameter_overrides=[])
+
+        self.cam_to_stream_param = self.declare_parameter('cam_to_stream', '')
+        self.cam_to_stream = self.cam_to_stream_param.value
 
         self.bridge = CvBridge()
 
         self.video_publisher = self.create_publisher(
             Image,
-            'luxonis_cam_stream',
+            f'luxonis_cam_stream_{self.cam_to_stream}',
             QoSPresetProfiles.DEFAULT.value,
         )
 
@@ -45,9 +48,12 @@ class LuxonisCamDriverNode(Node):
         self.right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
 
         self.cam_to_stream_node: depthai.node.ColorCamera | None = None
-        if self.CAM_TO_STREAM == 'left':
+        # TODO: Launching 2 copies of this node seems to not work
+        # We could destroy/recreate pipelines whenever we want to change what we're streaming
+        # but Benjamin thinks this might be better: https://docs.luxonis.com/software/depthai/examples/script_change_pipeline_flow
+        if self.cam_to_stream == 'left':
             self.cam_to_stream_node = self.left_cam_node
-        elif self.CAM_TO_STREAM == 'right':
+        elif self.cam_to_stream == 'right':
             self.cam_to_stream_node = self.right_cam_node
 
         if self.cam_to_stream_node:

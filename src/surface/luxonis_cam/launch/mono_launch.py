@@ -1,9 +1,8 @@
 from pathlib import Path
 
-from ament_index_python.packages import get_package_share_directory
-from launch.actions import GroupAction, IncludeLaunchDescription
+from launch.actions import GroupAction
 from launch.launch_description import LaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions.launch_configuration import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
 
 
@@ -20,7 +19,9 @@ def generate_launch_description() -> LaunchDescription:
         exec_name='luxonis_cam',
         emulate_tty=True,
         output='screen',
-        parameters=[],
+        parameters=[
+            {'cam_to_stream': LaunchConfiguration('cam_to_stream', default='left')}
+        ]
     )
 
     namespace_launch = GroupAction(
