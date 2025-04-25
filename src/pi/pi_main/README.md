@@ -8,42 +8,13 @@ This package launches the rest of the Pi packages. It should be run on Pi boot u
 
 ### Flashing
 
-If something ever happens to the Pi follow [this](https://www.jeffgeerling.com/blog/2020/how-flash-raspberry-pi-os-compute-module-4-emmc-usbboot) tutorial on reflashing it. In Raspberry Pi imager, set the following configuration options:
-- username: `rov`
-- password: `rov12345`
-- enable ssh (use password authentication)
+Flashing is the process of installing BlueOS on a Pi. This will overwrite anything currently on the Pi. To do so, download the BlueOS image from BlueRobotics' [website](https://blueos.cloud/docs/stable/usage/installation/). Choose the ARMv8 (64 bit) image.
 
-Connect a monitor and keyboard to the pi (use the compute module IO board if needed). Connect to a router over ethernet (not to a CWRU network switch). Log in as `rov` with password `rov12345`. Run `ip a` and find the IPv4 address under the default ethernet adapter. Connect your laptop to the router via WiFi or Ethernet and run (on your laptop) `ssh rov@<pi's IP address>`.
+We use [Raspberry Pi Imager](https://www.raspberrypi.com/software/) for flashing, though similar tools like Balena Etcher also work. To flash a Pi compute module's internal EMMC storage (rather than an SD card), follow [this](https://www.jeffgeerling.com/blog/2020/how-flash-raspberry-pi-os-compute-module-4-emmc-usbboot) tutorial. In Raspberry Pi Imager, select the custom image downloaded from BlueRobotics. To flash an SD card instead, you can skip the tutorial and use Raspberry Pi Imager to directly flash the custom image to an SD card connected to your computer.
 
-### Install BlueOS
-Follow the [BlueOS manual install instructions](https://blueos.cloud/docs/1.0/usage/installation/). This command should be sufficient:
-`sudo su -c 'curl -fsSL https://raw.githubusercontent.com/bluerobotics/blueos-docker/master/install/install.sh | bash'`
-
-### Configure BlueOS
-- While connceted to the pi via ethernet, visit the BlueOS web dashboard at 192.168.2.2
-- Enable pirate mode by clicking on the skull and crossbones in the top right.
-- Go to the 'Mavlink Endpoints' tab and create a new UDP client endpoint with address 127.0.0.1 and port 14551.
-![Screenshot of endpoint configuration](images/0-blueos-endpoint-config.png)
-- SSH into the pi (rov@192.168.2.2) and edit `/boot/firmware/config.txt`. Add these lines at the end to enable the i2c 4 bus:
-```
-[all]
-dtoverlay=i2c4,pins_6_7,baudrate=1000000
-```
-
-### Setup ad-hoc network between two Ubuntu devices
-**This is no longer necessary with BlueOS**
-
-Do this to get two Ubuntu devices to network over a single ethernet cable.
-
-Run the following commands on both devices:
-
-```bash
-sudo nmcli connection add type ethernet ifname eth0
-sudo nmcli connection modify ethernet-eth0 ipv4.method link-local
-nmcli connection up ethernet-eth0
-```
 
 ### Setup Laptop for Direct Ethernet Access
+BlueOS expects to have an IP address of 192.168.2.2, and it expects the control station laptop to have the address 192.168.2.1. If you directly connect the Pi to your laptop with an ethernet cable, you need to configure your laptop to have the correct IP address. This is NOT required if the Pi is connected through a router.
 
 #### Linux
 
@@ -85,107 +56,47 @@ nmcli connection up ethernet-eth0
 
     ![Screenshot of the ipv4 properties window showing the IP address and subnet mask](images/7-ipv4-properties.png)
 
-## Testing
 
-1. In the terminal, run `ssh rov@192.168.2.2` The password should be `rov12345`.
+### Setting up a Router
+If you're connecting the Pi to your laptop through a router, the router should be configured to assign the expected IP addresses to both the Pi and your laptop. Routers should have some way to configure them to assign a static IP to a particular device, based on its MAC address. You can find a linux device's MAC address via the `ip a` command, or the router should be able to tell you the MAC address of connected devices. You want to assign the Pi the address 192.168.2.2 and the laptop 192.168.2.1. In order to assign an address in the 192.168.2 block, you may need to change the router's subnet mask to 255.255.240.0. After configuring, reboot the router. The Pi and laptop should be assigned the appropriate addresses.
 
-2. You are now connected to the Pi! You should be able to `ping google.com` and see a reply, indicating that the Pi has access to the internet.
 
-## Installation
+### Configure BlueOS
+- Power on the pi and set up the network per one of the two previous sections
+- While connceted to the pi via ethernet, visit the BlueOS web dashboard (via a browser) at http://192.168.2.2
+- There should be a popup for the setup wizard. Otherwise, you can access it in settings (gear icon in the bottom left).
+    - Sometimes I've found that the Pi needs to be rebooted for the setup manager to work
+    - Choose ROV Setup.
+    - Set the name of the vehicle to whatever you think it should be called (just for fun)
+    - Under "Parameter Sets", choose "Heavy BlueROV2"
+    - The wizard should download and install a stable version of ArduSub. Exit the wizard when it's done.
+- Enable pirate mode by clicking on the skull and crossbones in the top right (this shows advanced options).
 
-Start by cloning the repo:
-```bash
-git clone git@github.com:CWRUbotix/rov-25.git
+
+### Install the CWRUbotix Extension
+The CWRUbotix extension runs our custom code in the pi packages (including this one). To install it, navigate to the Extensions tab, click "Installed" on the top, and press the plus button on the lower right. Fill out the options in the create extension form like so:
+- Extension Identifier: Used for internal identification only. I recommend `cwrubotix.ros2` or similar.
+- Extension Name: Human-readable name for the extension. Currently "CWRUbotix ROS" but feel free to change.
+- Docker Image: URI for the docker image. Currently `noahmollerstuen/blueos-cwrubotix-ros2-extension` (hopefully will be moved to a team docker account)
+- Docker Tag: Docker images can have multiple versions (like branches). By default, use `main`.
+- Original settings: The permissions and other metadata for the extension. This is important for the extension to be able to access the network and hardware devices. Paste in this json object:
+```json
+{
+  "NetworkMode": "host",
+  "HostConfig": {
+    "Binds": [
+      "/dev:/dev:rw"
+    ],
+    "Privileged": true,
+    "NetworkMode": "host"
+  }
+}
 ```
 
-Run the script to install ros and dependencies:
-```bash
-sudo bash .vscode/pi_setup.sh
-```
-
-Build the ros project
-```bash
-colcon build
-```
-
-You need to run these commands to get the launch file running on Pi boot:
-
-```bash
-ros2 run pi_main install
-```
-
-```bash
-sudo systemctl daemon-reload && sudo systemctl start pi_main
-```
-
-These commands should be run in the `src` folder after a colcon build in the workspace folder.
-
-WARNING: Python packages must be installed with sudo for startup code to see them.
-
-### Adding udev Rules
-
-This should automatically be done by the prior command `ros2 run pi_main install`. If not, copy all the .rules files from `udev_rules` in this package to the `/etc/udev/rules.d` directory to use USB devices properly.
-
-If you're setting this up to test on a regular laptop, don't run `ros2 run pi_main install` (you don't want the whole ROV environment config). Instead, just copy the udev rules into `/etc/udev/rules.d`.
-
-Use `udevadm info /dev/...` and `udevadm test /dev/...` to test specific devices if `/dev/ttyPixhawk` doesn't show up on reboot. Pixhawk might appear under `/dev/ACM0`. `lsusb` should show it, along with product & vendor IDs (see udev rule ATTRs):
-
-```
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 001 Device 004: ID 26ac:0011 3D Robotics PX4 FMU v2.x
-```
-
-=>
-
-```
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="26ac", ATTRS{idProduct}=="0011", SYMLINK+="ttyPixhawk", MODE="0666"
-```
+Clicking "Create" should download the docker image (this can take a few minutes). The extension will then start up automatically and should run automatically when the pi reboots. When the extension is running, "ROS2" tab should appear in the left sidebar, and clicking it should open a terminal in which ros is running. The extension runs `ros2 launch pi_main pi_launch.py` on startup.
 
 ## Usage
-
-### Testing without Rebooting
-
-Installing & setting up this package creates a startup task called `pi_main`. You can manually start and stop this task. I had the `pi_main.service` located in `/etc/systemd/system/pi_main.service`.
-
-To run the `pi_main` task in the background (happens on Pi startup):
-
-```bash
-sudo systemctl start pi_main.service
-```
-
-To kill the `pi_main` background task (**do this before starting the foreground task**):
-```bash
-sudo systemctl stop pi_main.service
-```
-To run the `pi_main` task in the foreground runs the shell scripst in the pi_main/scripts folder.
-
-```bash
-source pi_main.sh
-```
-
-To get output of task
-
-```bash
-sudo journalctl -f -u pi_main.service
-```
-
-### Slow Boot Times?
-Note: this section is likely not applicable to BlueOS.
-
-This occurs because the below service waits for internet before allowing boot.
-
-Note `systemctl disable systemd-networkd-wait-online` does not work. The disable option is really more of a suggestion than an actual disable.
-
-[![pensivecowboybread](https://cdn3.emoji.gg/emojis/4111-pensivecowboybread.png)](https://emoji.gg/emoji/4111-pensivecowboybread)
-
-```bash
-systemctl mask systemd-networkd-wait-online
-```
-
-### Blue Navigator
-The flight control software is called [ArduSub](https://www.ardusub.com/).
-
-Currently we have [Vectored ROV w/ Four Vertical Thrusters](https://www.ardusub.com/quick-start/vehicle-frame.html) vehicle frame.
+The BlueOS web dashboard contain just about all the tools you need to monitor and control the Pi. The "Vehicle Setup" tab can be used to test the thrusters, assign output pins to motor numbers, and reverse thrusters as needed.
 
 
 ## Nodes
