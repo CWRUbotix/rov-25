@@ -1,15 +1,21 @@
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
-package_name = 'luxonis_cam'
+PACKAGE_NAME = 'luxonis_cam'
 
 setup(
-    name=package_name,
+    name=PACKAGE_NAME,
     version='0.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml']),
+            ['resource/' + PACKAGE_NAME]),
+        ('share/' + PACKAGE_NAME, ['package.xml']),
+        (
+            str(Path('share') / PACKAGE_NAME / 'launch'),
+            [str(path) for path in Path('launch').glob('*launch.[pxy][yma]*')],
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
