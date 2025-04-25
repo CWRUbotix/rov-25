@@ -4,7 +4,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description() -> LaunchDescription:
-    """Asynchronously launches pilot's gui node."""
     pilot_node = Node(
         package='gui',
         executable='run_pilot',
@@ -14,7 +13,6 @@ def generate_launch_description() -> LaunchDescription:
             {'gui': LaunchConfiguration('gui', default='pilot')},
         ],
         remappings=[
-            ('/surface/mavros/cmd/arming', '/tether/mavros/cmd/arming'),
             ('/surface/depth_cam/image_raw', '/tether/depth_cam/image_raw'),
         ],
         emulate_tty=True,

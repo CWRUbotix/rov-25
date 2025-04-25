@@ -14,7 +14,6 @@ disallow_untyped_calls = false
 # For pre-commit CI
 [tool.ruff]
 format.quote-style = 'single'
-exclude = ["src/surface/ros2_video_streamer"]
 
 # Done to sort imports
 line-length = 100

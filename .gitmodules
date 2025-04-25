@@ -1,6 +1,0 @@
-[submodule "src/surface/ros2_video_streamer"]
-	path = src/surface/ros2_video_streamer
-	url = git@github.com:CWRUbotix/ros2_video_streamer.git
-[submodule "src/pi/mavros"]
-	path = src/pi/mavros
-	url = https://github.com/mavlink/mavros.git

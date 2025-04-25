@@ -1,1 +1,5 @@
+# Old Pixhawks
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="5741", SYMLINK+="ttyPixhawk", MODE="0666"
+
+# New Pixhawks
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="26ac", ATTRS{idProduct}=="0011", SYMLINK+="ttyPixhawk", MODE="0666"

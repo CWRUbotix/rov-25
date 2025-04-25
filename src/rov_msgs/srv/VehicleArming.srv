@@ -1,0 +1,5 @@
+# Whether to arm (true) or disarm (false)
+bool arm
+---
+# Whether an mavlink message was sent (NOT whether the vehicle actually armed or disarmed)
+bool message_sent

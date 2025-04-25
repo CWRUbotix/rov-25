@@ -44,11 +44,17 @@ Singleton ROS Node subclass which has helper methods for creating publishers, su
 
 Has two buttons for arming and disarming the pixhawk.
 
+#### Subscribed Topics
+
+* **`/surface/vehicle_state_event`** ([rov_msgs/msg/VehicleState])
+
+    Indicates whether the vehicle is connected and whether it is armed.
+
 #### Services
 
-* **`/mavros/cmd/arming`** ([mavros_msgs/srv/CommandBool])
+* **`/surface/arming`** ([rov_msgs/srv/VehicleArming])
 
-    Sends a request to arm or disarm the pixhawk. Receives a confirmation about the success of the arm or disarm.
+    Sends a request to arm or disarm the flight computer. Receives a confirmation about the success of the arm or disarm.
 
 ### Flood Warning
 
@@ -93,6 +99,5 @@ A widget to display video. There are two subclasses of the video widget: `Pausea
     The video feed from the intel realsense.
 
 [rov_msgs/msg/Flooding]: ../../rov_msgs/msg/Flooding.msg
-[mavros_msgs/srv/CommandBool]: https://github.com/mavlink/mavros/blob/ros2/mavros_msgs/srv/CommandBool.srv
 [rcl_interfaces/msg/Log]: https://github.com/ros2/rcl_interfaces/blob/rolling/rcl_interfaces/msg/Log.msg
 [sensor_msgs/msg/Image]: <http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html>

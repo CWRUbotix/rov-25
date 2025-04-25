@@ -31,13 +31,13 @@ class HeartbeatWidget(QWidget):
         pi_status_layout.addWidget(self.pi_indicator_circle)
         heartbeat_layout.addLayout(pi_status_layout)
 
-        pixhawk_status_layout = QHBoxLayout()
-        self.pixhawk_indicator = QLabel('No Pixhawk Status')
-        self.pixhawk_indicator.setFont(font)
-        pixhawk_status_layout.addWidget(self.pixhawk_indicator)
-        self.pixhawk_indicator_circle = CircleIndicator(radius=10)
-        pixhawk_status_layout.addWidget(self.pixhawk_indicator_circle)
-        heartbeat_layout.addLayout(pixhawk_status_layout)
+        ardusub_status_layout = QHBoxLayout()
+        self.ardusub_indicator = QLabel('No Ardusub Status')
+        self.ardusub_indicator.setFont(font)
+        ardusub_status_layout.addWidget(self.ardusub_indicator)
+        self.ardusub_indicator_circle = CircleIndicator(radius=10)
+        ardusub_status_layout.addWidget(self.ardusub_indicator_circle)
+        heartbeat_layout.addLayout(ardusub_status_layout)
 
         self.setLayout(heartbeat_layout)
 
@@ -50,9 +50,9 @@ class HeartbeatWidget(QWidget):
             self.pi_indicator.setText('Pi Disconnected')
             self.pi_indicator_circle.set_state(WidgetState.OFF)
 
-        if msg.pixhawk_connected:
-            self.pixhawk_indicator.setText('Pixhawk Connected')
-            self.pixhawk_indicator_circle.set_state(WidgetState.ON)
+        if msg.ardusub_connected:
+            self.ardusub_indicator.setText('Ardusub Connected')
+            self.ardusub_indicator_circle.set_state(WidgetState.ON)
         else:
-            self.pixhawk_indicator.setText('Pixhawk Disconnected')
-            self.pixhawk_indicator_circle.set_state(WidgetState.OFF)
+            self.ardusub_indicator.setText('Ardusub Disconnected')
+            self.ardusub_indicator_circle.set_state(WidgetState.OFF)
