@@ -36,17 +36,6 @@ Toggle a manipulator on or off on receiving a msg.
 
     The control message for activating manipulators. Set `manip_id` to anything other than "valve" to control the claw manips.
 
-
-### valve_manipulator
-
-Toggle the servo on or off on receiving a message.
-
-#### Subscribed Topics
-
-* **`/manipulator_control`** ([msg/Manip])
-
-    The control message for activating manipulators. Set `manip_id` to "valve" to control the valve manip.
-
 ### test
 
 Sends on and off signals to the IC2 board to confirm it is working. There is no ROS features being used.

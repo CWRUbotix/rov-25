@@ -1,6 +1,5 @@
 # This config uses industrial_ci (https://github.com/ros-industrial/industrial_ci.git).
 # For troubleshooting, see README (https://github.com/ros-industrial/industrial_ci/blob/master/README.rst)
-
 name: Continuous Integration
 on: # this determines when this workflow is run
   push:
@@ -27,6 +26,8 @@ jobs:
       CCACHE_DIR: "${{ github.workspace }}/.ccache" # directory for ccache (and how we enable ccache in industrial_ci)
     steps:
       - uses: actions/checkout@v4 # clone target repository
+        with:
+          submodules: recursive
       - uses: actions/cache@v4 # fetch/store the directory used by ccache before/after the ci run
         with:
           path: ${{ env.CCACHE_DIR }}

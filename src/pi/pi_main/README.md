@@ -115,7 +115,7 @@ ros2 run pi_main install
 ```
 
 ```bash
-sudo systemctl daemon-reload && sudo systemctl start cwrubotix_pi
+sudo systemctl daemon-reload && sudo systemctl start pi_main
 ```
 
 These commands should be run in the `src` folder after a colcon build in the workspace folder.
@@ -125,6 +125,21 @@ WARNING: Python packages must be installed with sudo for startup code to see the
 ### Adding udev Rules
 
 This should automatically be done by the prior command `ros2 run pi_main install`. If not, copy all the .rules files from `udev_rules` in this package to the `/etc/udev/rules.d` directory to use USB devices properly.
+
+If you're setting this up to test on a regular laptop, don't run `ros2 run pi_main install` (you don't want the whole ROV environment config). Instead, just copy the udev rules into `/etc/udev/rules.d`.
+
+Use `udevadm info /dev/...` and `udevadm test /dev/...` to test specific devices if `/dev/ttyPixhawk` doesn't show up on reboot. Pixhawk might appear under `/dev/ACM0`. `lsusb` should show it, along with product & vendor IDs (see udev rule ATTRs):
+
+```
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 004: ID 26ac:0011 3D Robotics PX4 FMU v2.x
+```
+
+=>
+
+```
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="26ac", ATTRS{idProduct}=="0011", SYMLINK+="ttyPixhawk", MODE="0666"
+```
 
 ## Usage
 

@@ -3,7 +3,7 @@ from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
 from gui.gui_node import GUINode
-from gui.styles.custom_styles import ButtonIndicator
+from gui.styles.custom_styles import ButtonIndicator, WidgetState
 from rov_msgs.msg import VehicleState
 
 
@@ -25,8 +25,8 @@ class Arm(QWidget):
         layout = QHBoxLayout()
         self.setLayout(layout)
 
-        self.arm_button = ButtonIndicator()
-        self.disarm_button = ButtonIndicator()
+        self.arm_button = ButtonIndicator(extra_styles=self.BUTTON_STYLESHEET)
+        self.disarm_button = ButtonIndicator(extra_styles=self.BUTTON_STYLESHEET)
 
         self.arm_button.setText('Arm')
         self.disarm_button.setText('Disarm')
@@ -37,10 +37,8 @@ class Arm(QWidget):
         self.arm_button.setMinimumHeight(self.BUTTON_HEIGHT)
         self.disarm_button.setMinimumHeight(self.BUTTON_HEIGHT)
 
-        self.arm_button.setStyleSheet(self.BUTTON_STYLESHEET)
-        self.disarm_button.setStyleSheet(self.BUTTON_STYLESHEET)
-        self.arm_button.set_inactive()
-        self.disarm_button.set_inactive()
+        self.arm_button.set_state(WidgetState.INACTIVE)
+        self.disarm_button.set_state(WidgetState.INACTIVE)
 
         self.arm_button.clicked.connect(self.arm_clicked)
         self.disarm_button.clicked.connect(self.disarm_clicked)
@@ -79,11 +77,11 @@ class Arm(QWidget):
     def vehicle_state_callback(self, msg: VehicleState) -> None:
         if msg.pixhawk_connected:
             if msg.armed:
-                self.arm_button.set_on()
-                self.disarm_button.remove_state()
+                self.arm_button.set_state(WidgetState.ON)
+                self.disarm_button.set_state(WidgetState.NONE)
             else:
-                self.arm_button.remove_state()
-                self.disarm_button.set_off()
+                self.arm_button.set_state(WidgetState.NONE)
+                self.disarm_button.set_state(WidgetState.OFF)
         else:
-            self.arm_button.set_inactive()
-            self.disarm_button.set_inactive()
+            self.arm_button.set_state(WidgetState.INACTIVE)
+            self.disarm_button.set_state(WidgetState.INACTIVE)
