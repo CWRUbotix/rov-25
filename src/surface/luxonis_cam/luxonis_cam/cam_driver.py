@@ -1,8 +1,11 @@
+from dataclasses import dataclass
+
 import cv2
 import depthai
 import rclpy
 from builtin_interfaces.msg import Time
 from cv_bridge import CvBridge
+from depthai.node import ColorCamera
 from numpy import generic, uint8
 from numpy.typing import NDArray
 from rclpy.executors import MultiThreadedExecutor
@@ -12,6 +15,25 @@ from sensor_msgs.msg import Image
 
 Matlike = NDArray[generic]
 
+@dataclass
+class CamMeta:
+    node: ColorCamera
+    toggle_in_stream_name: str
+    script_toggle_name: str
+    script_input_name: str
+    script_output_name: str
+    out_stream_name: str
+
+
+    @staticmethod
+    def of(node: ColorCamera, cam_name: str) -> 'CamMeta':
+        return CamMeta(node,
+                       toggle_in_stream_name=f'{cam_name}_toggle_in',
+                       script_toggle_name=f'{cam_name}_toggle',
+                       script_input_name=f'{cam_name}_script_in',
+                       script_output_name=f'{cam_name}_script_out',
+                       out_stream_name=f'{cam_name}_out')
+
 
 class LuxonisCamDriverNode(Node):
     # CAM_TO_STREAM = 'left'  # which cam to stream to ros, 'left' or 'right'
@@ -19,14 +41,20 @@ class LuxonisCamDriverNode(Node):
     def __init__(self) -> None:
         super().__init__('luxonis_cam_driver', parameter_overrides=[])
 
-        self.cam_to_stream_param = self.declare_parameter('cam_to_stream', '')
-        self.cam_to_stream = self.cam_to_stream_param.value
+        # self.cam_to_stream_param = self.declare_parameter('cam_to_stream', '')
+        # self.cam_to_stream = self.cam_to_stream_param.value
 
         self.bridge = CvBridge()
 
-        self.video_publisher = self.create_publisher(
+        self.left_video_publisher = self.create_publisher(
             Image,
-            f'luxonis_cam_stream_{self.cam_to_stream}',
+            'luxonis_cam_stream_left',
+            QoSPresetProfiles.DEFAULT.value,
+        )
+
+        self.right_video_publisher = self.create_publisher(
+            Image,
+            'luxonis_cam_stream_right',
             QoSPresetProfiles.DEFAULT.value,
         )
 
@@ -45,39 +73,88 @@ class LuxonisCamDriverNode(Node):
         self.right_cam_node = self.pipeline.createColorCamera()
         self.right_cam_node.setBoardSocket(depthai.CameraBoardSocket.CAM_A)
         self.right_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
-        self.right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
+        # self.right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
 
-        self.cam_to_stream_node: depthai.node.ColorCamera | None = None
+        # self.cam_to_stream_node: depthai.node.ColorCamera | None = None
         # TODO: Launching 2 copies of this node seems to not work
         # We could destroy/recreate pipelines whenever we want to change what we're streaming
         # but Benjamin thinks this might be better: https://docs.luxonis.com/software/depthai/examples/script_change_pipeline_flow
-        if self.cam_to_stream == 'left':
-            self.cam_to_stream_node = self.left_cam_node
-        elif self.cam_to_stream == 'right':
-            self.cam_to_stream_node = self.right_cam_node
+        # if self.cam_to_stream == 'left':
+        #     self.cam_to_stream_node = self.left_cam_node
+        # elif self.cam_to_stream == 'right':
+        #     self.cam_to_stream_node = self.right_cam_node
 
-        if self.cam_to_stream_node:
-            self.cam_to_stream_node.setPreviewSize(640, 400)
-            self.cam_to_stream_node.setInterleaved(False)
-            self.cam_to_stream_node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
+        self.cam_metas = (
+            CamMeta.of(self.left_cam_node, 'left'),
+            CamMeta.of(self.right_cam_node, 'right')
+        )
 
-            self.preview_out_node = self.pipeline.create(depthai.node.XLinkOut)
-            self.preview_out_node.setStreamName('preview')
-            self.preview_out_node.input.setBlocking(False)
-            self.preview_out_node.input.setQueueSize(1)
+        self.script = self.pipeline.createScript()
+        self.script.setScript(
+f"""
+tx_left = False
+tx_right = False
 
-            self.cam_to_stream_node.preview.link(self.preview_out_node.input)
+while True:
+    left_toggle_msg = node.io['{self.cam_metas[0].script_toggle_name}'].tryGet()
+    right_toggle_msg = node.io['{self.cam_metas[1].script_toggle_name}'].tryGet()
+
+    if left_toggle_msg is not None:
+        tx_left = left_toggle_msg.getData()[0]
+    if right_toggle_msg is not None:
+        tx_right = right_toggle_msg.getData()[0]
+
+    left_frame = node.io['{self.cam_metas[0].script_input_name}'].get()
+    right_frame = node.io['{self.cam_metas[1].script_input_name}'].get()
+
+    if tx_left:
+        node.io['{self.cam_metas[0].script_output_name}'].send(left_frame)
+    if tx_right:
+        node.io['{self.cam_metas[1].script_output_name}'].send(right_frame)
+""")
+
+
+        # NOPE! cam_meta.node -> cam_xout(cam_meta.out_stream_name)
+        # cam_meta.node -> script.inputs[cam_meta.toggle_input_name]
+        # toggle_xin(cam_meta.in_stream_name) -> script.inputs[cam_meta.toggle_input_name]
+
+        for cam_meta in self.cam_metas:
+            # Camera frame reader -> script [script_input_name]
+            cam_meta.node.setPreviewSize(640, 400)
+            cam_meta.node.setInterleaved(False)
+            cam_meta.node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
+            cam_meta.node.preview.link(self.script.inputs[cam_meta.script_input_name])
+
+            # Example always streams, but we don't want to
+            # cam_xout = self.pipeline.create(depthai.node.XLinkOut)
+            # cam_xout.setStreamName(cam_meta.out_stream_name)
+            # cam_xout.input.setBlocking(False)
+            # cam_xout.input.setQueueSize(1)
+            # cam_meta.node.preview.link(cam_xout.input)
+
+            # Camera toggler -> script [script_toggle_name]
+            toggle_xin = self.pipeline.create(depthai.node.XLinkIn)
+            toggle_xin.setStreamName(cam_meta.toggle_in_stream_name)
+            toggle_xin.out.link(self.script.inputs[cam_meta.script_toggle_name])
+
+
+            # script [script_output_name] -> cam_xout
+            cam_xout = self.pipeline.create(depthai.node.XLinkOut)
+            cam_xout.setStreamName(cam_meta.out_stream_name)
+            cam_xout.input.setBlocking(False)
+            cam_xout.input.setQueueSize(1)
+            self.script.outputs[cam_meta.script_output_name].link(cam_xout.input)
 
         # Setup stereo pipeline
-        self.stereo_node = self.pipeline.create(depthai.node.StereoDepth)
-        self.stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
+        # self.stereo_node = self.pipeline.create(depthai.node.StereoDepth)
+        # self.stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
 
-        self.left_cam_node.isp.link(self.stereo_node.left)
-        self.right_cam_node.isp.link(self.stereo_node.right)
+        # self.left_cam_node.isp.link(self.stereo_node.left)
+        # self.right_cam_node.isp.link(self.stereo_node.right)
 
-        self.disparity_out_node = self.pipeline.create(depthai.node.XLinkOut)
-        self.disparity_out_node.setStreamName('disparity')
-        self.stereo_node.disparity.link(self.disparity_out_node.input)
+        # self.disparity_out_node = self.pipeline.create(depthai.node.XLinkOut)
+        # self.disparity_out_node.setStreamName('disparity')
+        # self.stereo_node.disparity.link(self.disparity_out_node.input)
 
         # Deploy pipeline to device
         while True:
@@ -88,10 +165,19 @@ class LuxonisCamDriverNode(Node):
                 continue
             break
 
-        if self.cam_to_stream_node:
-            self.video_queue = self.device.getOutputQueue('preview', maxSize=1, blocking=False)
+        # if self.cam_to_stream_node:
+        #     self.video_queue = self.device.getOutputQueue('preview', maxSize=1, blocking=False)
 
-        self.disparity_queue = self.device.getOutputQueue('disparity', maxSize=1, blocking=False)
+        # self.disparity_queue = self.device.getOutputQueue('disparity', maxSize=1, blocking=False)
+
+        self.left_toggle_queue = self.device.getInputQueue(self.cam_metas[0].toggle_in_stream_name)
+        self.right_toggle_queue = self.device.getInputQueue(self.cam_metas[1].toggle_in_stream_name)
+
+        self.left_video_queue = self.device.getOutputQueue(self.cam_metas[0].out_stream_name)
+        self.right_video_queue = self.device.getOutputQueue(self.cam_metas[1].out_stream_name)
+
+        self.tx_left = False
+        self.tx_right = True
 
     def get_image_msg(self, image: Matlike, time: Time) -> Image:
         """Convert cv2 image to ROS2 Image with CvBridge.
@@ -115,27 +201,51 @@ class LuxonisCamDriverNode(Node):
         return img_msg
 
     def spin(self) -> None:
-        if self.cam_to_stream_node:
-            video_frame = self.video_queue.tryGet()
+        video_frame = self.left_video_queue.tryGet()
+        time_msg = self.get_clock().now().to_msg()
 
-            time_msg = self.get_clock().now().to_msg()
+        if video_frame is not None:
+            img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
+            self.left_video_publisher.publish(img_msg)
 
-            if video_frame:
-                img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
-                self.video_publisher.publish(img_msg)
+        buf = depthai.Buffer()
+        buf.setData(self.tx_left)
+        self.left_toggle_queue.send(buf)
 
-        disparity_frame = self.disparity_queue.tryGet()  # blocking call, will wait until a new data has arrived
+        video_frame = self.right_video_queue.tryGet()
+        time_msg = self.get_clock().now().to_msg()
 
-        if disparity_frame:
-            frame = disparity_frame.getFrame()
-            frame = (frame * (255 / self.stereo_node.initialConfig.getMaxDisparity())).astype(uint8)
+        if video_frame is not None:
+            img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
+            self.right_video_publisher.publish(img_msg)
 
-            cv2.imshow('disparity', frame)
-            frame = cv2.applyColorMap(frame, cv2.COLORMAP_JET)
-            cv2.imshow('disparity_color', frame)
+        buf = depthai.Buffer()
+        buf.setData(self.tx_right)
+        self.right_toggle_queue.send(buf)
 
-            if cv2.waitKey(1) == ord('q'):
-                raise KeyboardInterrupt
+        # TODO: right cam publish
+
+        # if self.cam_to_stream_node:
+        #     video_frame = self.video_queue.tryGet()
+
+        #     time_msg = self.get_clock().now().to_msg()
+
+        #     if video_frame:
+        #         img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
+        #         self.video_publisher.publish(img_msg)
+
+        # disparity_frame = self.disparity_queue.tryGet()  # blocking call, will wait until a new data has arrived
+
+        # if disparity_frame:
+        #     frame = disparity_frame.getFrame()
+        #     frame = (frame * (255 / self.stereo_node.initialConfig.getMaxDisparity())).astype(uint8)
+
+        #     cv2.imshow('disparity', frame)
+        #     frame = cv2.applyColorMap(frame, cv2.COLORMAP_JET)
+        #     cv2.imshow('disparity_color', frame)
+
+        #     if cv2.waitKey(1) == ord('q'):
+        #         raise KeyboardInterrupt
 
     def shutdown(self) -> None:
         """Free the device and any other resources."""
