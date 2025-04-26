@@ -6,7 +6,7 @@ def generate_launch_description() -> LaunchDescription:
     # launches photosphere
     reader_node = Node(
         package='photosphere',
-        executable='serial',
+        executable='run_photosphere',
         emulate_tty=True,
         output='screen',
     )
