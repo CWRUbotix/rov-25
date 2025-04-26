@@ -63,7 +63,7 @@ If you're connecting the Pi to your laptop through a router, the router should b
 
 ### Configure BlueOS
 - Power on the pi and set up the network per one of the two previous sections
-- While connceted to the pi via ethernet, visit the BlueOS web dashboard (via a browser) at http://192.168.2.2
+- While connected to the pi via ethernet, visit the BlueOS web dashboard (via a browser) at http://192.168.2.2
 - There should be a popup for the setup wizard. Otherwise, you can access it in settings (gear icon in the bottom left).
     - Sometimes I've found that the Pi needs to be rebooted for the setup manager to work
     - Choose ROV Setup.
@@ -96,7 +96,7 @@ The CWRUbotix extension runs our custom code in the pi packages (including this 
 Clicking "Create" should download the docker image (this can take a few minutes). The extension will then start up automatically and should run automatically when the pi reboots. When the extension is running, "ROS2" tab should appear in the left sidebar, and clicking it should open a terminal in which ros is running. The extension runs `ros2 launch pi_main pi_launch.py` on startup.
 
 ## Usage
-The BlueOS web dashboard contain just about all the tools you need to monitor and control the Pi. The "Vehicle Setup" tab can be used to test the thrusters, assign output pins to motor numbers, and reverse thrusters as needed.
+The BlueOS web dashboard contains just about all the tools you need to monitor and control the Pi. The "Vehicle Setup" tab can be used to test the thrusters, assign output pins to motor numbers, and reverse thrusters as needed.
 
 
 ## Nodes
