@@ -23,7 +23,7 @@ while True:
     client_socket, addr = server_socket.accept()
     print('GOT CONNECTION FROM: ', addr)
     if client_socket:
-        vid = cv2.VideoCapture('/dev/video2')
+        vid = cv2.VideoCapture('/dev/video0')
         vid.set(cv2.CAP_PROP_FOURCC, MJPG)
         vid.set(cv2.CAP_PROP_FRAME_WIDTH, 3840)
         vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 3032)

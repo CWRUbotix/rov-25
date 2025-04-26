@@ -115,7 +115,7 @@ def unit_to_normal_grid(x: float, width: int) -> int:
 
 
 def unit_to_fisheye_coord(
-    unit_coord: tuple[int, int], fisheye_image: FisheyeMetaData
+    unit_coord: tuple[float, float], fisheye_image: FisheyeMetaData
 ) -> tuple[int, int]:
     """
     Calculate the normal fisheye coordinate given the unit coordinate and the image.
