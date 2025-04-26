@@ -3,6 +3,9 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from rclpy.qos import qos_profile_default
 from builtin_interfaces.msg import Time
+from numpy.typing import NDArray
+from numpy import generic, uint8
+from cv_bridge import CvBridge
 import pickle
 import socket
 import struct

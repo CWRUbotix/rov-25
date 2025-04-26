@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import cv2
 import numpy as np
+from numpy import generic
 
 
 @dataclass
@@ -139,8 +140,8 @@ def unit_to_fisheye_coord(
 
 
 def equirectangular_projection(
-    fisheye_image1: np.ndarray, fisheye_image2: np.ndarray
-) -> np.ndarray:
+    fisheye_image1: np.ndarray[generic], fisheye_image2: np.ndarray[generic]
+) -> np.ndarray[generic]:
     """
     Create an equirectangular projection based on two fisheye images.
 
