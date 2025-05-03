@@ -49,8 +49,8 @@ class Photosphere(Node):
         # self.client_socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.client_socket1.connect((HOST_IP, PORT1))
 
-        self.client_socket[0].connect((HOST_IP, PORT1))
-        self.client_socket[1].connect((HOST_IP, PORT2))
+        self.client_sockets[0].connect((HOST_IP, PORT1))
+        self.client_sockets[1].connect((HOST_IP, PORT2))
 
         self.data = b''
         self.payload_size = struct.calcsize('Q')
@@ -59,7 +59,7 @@ class Photosphere(Node):
     def get_frame(self, img_num: int) -> None:
 
         while len(self.data) < self.payload_size:
-            packet = self.client_socket[img_num].recv(4 * 1024) # 4K
+            packet = self.client_sockets[img_num].recv(4 * 1024) # 4K
             if not packet:
                 break
             self.data += packet
@@ -68,7 +68,7 @@ class Photosphere(Node):
         msg_size = struct.unpack('Q', packed_msg_size)[0]
 
         while len(self.data) < msg_size:
-            self.data += self.client_socket[img_num].recv(4 * 1024)
+            self.data += self.client_sockets[img_num].recv(4 * 1024)
         frame_data = self.data[:msg_size]
         self.data  = self.data[msg_size:]
         frame = pickle.loads(frame_data)
@@ -100,8 +100,8 @@ class Photosphere(Node):
         return img_msg
 
     def shutdown(self) -> None:
-        self.client_socket[0].close()
-        self.client_socket[1].close()
+        self.client_sockets[0].close()
+        self.client_sockets[1].close()
         
 
 
