@@ -10,6 +10,7 @@ from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.task_selector import TaskSelector
 from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.timer import InteractiveTimer
+from gui.widgets.tabs.photosphere_tab import PhotosphereTab
 
 
 class OperatorApp(App):
@@ -50,6 +51,7 @@ class OperatorApp(App):
         tabs = QTabWidget()
         tabs.addTab(main_tab, 'Main')
         tabs.addTab(GeneralDebugTab(), 'General Debug')
+        tabs.addTab(PhotosphereTab(), 'Photosphere')
         root_layout.addWidget(tabs)
 
 

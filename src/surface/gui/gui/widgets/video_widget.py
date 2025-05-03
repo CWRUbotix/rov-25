@@ -42,6 +42,7 @@ class CameraType(IntEnum):
     ETHERNET = 2
     DEPTH = 3
     SIMULATION = 4
+    PHOTOSPHERE = 5
 
 
 class CameraDescription(NamedTuple):
