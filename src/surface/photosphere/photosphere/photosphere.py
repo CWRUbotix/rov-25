@@ -16,7 +16,7 @@ import cv2
 
 HOST_IP = '127.0.1.1' # the server ip address
 PORT1 = 9997
-PORT2 = 9997
+PORT2 = 9998
 
 Matlike = NDArray[generic]
 
@@ -52,25 +52,25 @@ class Photosphere(Node):
         self.client_sockets[0].connect((HOST_IP, PORT1))
         self.client_sockets[1].connect((HOST_IP, PORT2))
 
-        self.data = b''
+        self.data = [b'', b'']
         self.payload_size = struct.calcsize('Q')
         self.bridge = CvBridge()
 
     def get_frame(self, img_num: int) -> None:
 
-        while len(self.data) < self.payload_size:
+        while len(self.data[img_num]) < self.payload_size:
             packet = self.client_sockets[img_num].recv(4 * 1024) # 4K
             if not packet:
                 break
-            self.data += packet
-        packed_msg_size = self.data[:self.payload_size]
-        self.data = self.data[self.payload_size:]
+            self.data[img_num] += packet
+        packed_msg_size = self.data[img_num][:self.payload_size]
+        self.data[img_num] = self.data[img_num][self.payload_size:]
         msg_size = struct.unpack('Q', packed_msg_size)[0]
 
-        while len(self.data) < msg_size:
-            self.data += self.client_sockets[img_num].recv(4 * 1024)
-        frame_data = self.data[:msg_size]
-        self.data  = self.data[msg_size:]
+        while len(self.data[img_num]) < msg_size:
+            self.data[img_num] += self.client_sockets[img_num].recv(4 * 1024)
+        frame_data = self.data[img_num][:msg_size]
+        self.data[img_num]  = self.data[img_num][msg_size:]
         frame = pickle.loads(frame_data)
 
         time_msg = self.get_clock().now().to_msg()
@@ -78,7 +78,7 @@ class Photosphere(Node):
 
         self.fisheye_publishers[img_num].publish(img_msg)
 
-        cv2.imshow('RECEIVING VIDEO', frame)
+        # cv2.imshow('RECEIVING VIDEO', frame)
 
     def get_image_msg(self, image: Matlike, time: Time) -> Image:
         """Convert cv2 image to ROS2 Image with CvBridge.

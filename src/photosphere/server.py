@@ -1,6 +1,7 @@
 import pickle
 import socket
 import struct
+import sys
 
 import cv2
 
@@ -9,7 +10,7 @@ server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host_name  = socket.gethostname()
 host_ip = socket.gethostbyname(host_name)
 print('HOST IP: ', host_ip)
-port = 9997
+port = int(sys.argv[1])
 socket_address = (host_ip, port)
 
 server_socket.bind(socket_address)
@@ -23,7 +24,7 @@ while True:
     client_socket, addr = server_socket.accept()
     print('GOT CONNECTION FROM: ', addr)
     if client_socket:
-        vid = cv2.VideoCapture('/dev/video0')
+        vid = cv2.VideoCapture('/dev/video' + sys.argv[2])
         vid.set(cv2.CAP_PROP_FOURCC, MJPG)
         vid.set(cv2.CAP_PROP_FRAME_WIDTH, 3840)
         vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 3032)
@@ -35,7 +36,7 @@ while True:
             message = struct.pack('Q', len(a)) + a
             client_socket.sendall(message)
 
-            cv2.imshow('TRANSMITTING VIDEO', frame)
+            # cv2.imshow('TRANSMITTING VIDEO', frame)
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 client_socket.close()
