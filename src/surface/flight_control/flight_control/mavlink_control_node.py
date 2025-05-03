@@ -229,7 +229,7 @@ class MavlinkManualControlNode(Node):
             0,
             0,
             MANUAL_CONTROL_EXTENSIONS_CODE,
-            int(self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000) * inv,
+            int(-self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000) * inv,
             int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000) * inv,
         )
 
