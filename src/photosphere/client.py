@@ -5,7 +5,7 @@ import struct
 import cv2
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host_ip = '127.0.1.1' # paste your server ip address here
+host_ip = '192.168.1.147' # paste your server ip address here \ changed '127.0.1.1' to '192.168.1.147', our PI address
 port = 9997
 client_socket.connect((host_ip, port))
 data = b''
