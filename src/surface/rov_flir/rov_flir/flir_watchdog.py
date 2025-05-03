@@ -18,7 +18,9 @@ KILL_TIMEOUT_S = 5
 
 
 class Watchdog:
-    def __init__(self, name: str, node: Node, args: list[str], should_be_alive: bool = True) -> None:
+    def __init__(
+        self, name: str, node: Node, args: list[str], should_be_alive: bool = True
+    ) -> None:
         self.name = name
         self.node = node
         self.args = args
@@ -133,12 +135,16 @@ class FlirWatchdogNode(Node):
             ],
         )
 
-        self.cam_manage_service = self.create_service(CameraManage, 'manage_flir', self.manage_cams_callback)
+        self.cam_manage_service = self.create_service(
+            CameraManage, 'manage_flir', self.manage_cams_callback
+        )
 
         atexit.register(self.front_watchdog.kill_process)
         atexit.register(self.bottom_watchdog.kill_process)
 
-    def manage_cams_callback(self, request: CameraManage.Request, response: CameraManage.Response) -> CameraManage.Response:
+    def manage_cams_callback(
+        self, request: CameraManage.Request, response: CameraManage.Response
+    ) -> CameraManage.Response:
         if request.cam == CameraManage.Request.DOWN:
             self.get_logger().info(f'Received down cam {"on" if request.on else "off"} request')
             target_watchdog = self.bottom_watchdog
