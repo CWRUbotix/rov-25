@@ -36,13 +36,8 @@ class CamMeta:
 
 
 class LuxonisCamDriverNode(Node):
-    # CAM_TO_STREAM = 'left'  # which cam to stream to ros, 'left' or 'right'
-
     def __init__(self) -> None:
         super().__init__('luxonis_cam_driver', parameter_overrides=[])
-
-        # self.cam_to_stream_param = self.declare_parameter('cam_to_stream', '')
-        # self.cam_to_stream = self.cam_to_stream_param.value
 
         self.bridge = CvBridge()
 
@@ -74,15 +69,6 @@ class LuxonisCamDriverNode(Node):
         self.right_cam_node.setBoardSocket(depthai.CameraBoardSocket.CAM_A)
         self.right_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
         # self.right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
-
-        # self.cam_to_stream_node: depthai.node.ColorCamera | None = None
-        # TODO: Launching 2 copies of this node seems to not work
-        # We could destroy/recreate pipelines whenever we want to change what we're streaming
-        # but Benjamin thinks this might be better: https://docs.luxonis.com/software/depthai/examples/script_change_pipeline_flow
-        # if self.cam_to_stream == 'left':
-        #     self.cam_to_stream_node = self.left_cam_node
-        # elif self.cam_to_stream == 'right':
-        #     self.cam_to_stream_node = self.right_cam_node
 
         self.cam_metas = (
             CamMeta.of(self.left_cam_node, 'left'),
@@ -124,13 +110,6 @@ while True:
             cam_meta.node.setInterleaved(False)
             cam_meta.node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
             cam_meta.node.preview.link(self.script.inputs[cam_meta.script_input_name])
-
-            # Example always streams, but we don't want to
-            # cam_xout = self.pipeline.create(depthai.node.XLinkOut)
-            # cam_xout.setStreamName(cam_meta.out_stream_name)
-            # cam_xout.input.setBlocking(False)
-            # cam_xout.input.setQueueSize(1)
-            # cam_meta.node.preview.link(cam_xout.input)
 
             # Camera toggler -> script [script_toggle_name]
             toggle_xin = self.pipeline.create(depthai.node.XLinkIn)
