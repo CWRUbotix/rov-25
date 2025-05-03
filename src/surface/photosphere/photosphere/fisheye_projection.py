@@ -3,8 +3,10 @@ from dataclasses import dataclass
 
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 from numpy import generic
 
+Matlike = NDArray[generic]
 
 @dataclass
 class FisheyeMetaData:
@@ -28,15 +30,15 @@ MAX_WIDTH = APERTURE / 2 / math.pi
 FISHEYE_META_DATA = (
     FisheyeMetaData(
         img_num=0,
-        left=400,
-        top=28,
-        diameter=3052,
+        left=420,
+        top=37,
+        diameter=3020,
     ),
     FisheyeMetaData(
         img_num=1,
-        left=404,
+        left=390,
         top=-25,
-        diameter=3040,
+        diameter=3050,
     ),
 )
 
@@ -140,21 +142,21 @@ def unit_to_fisheye_coord(
 
 
 def equirectangular_projection(
-    fisheye_image1: np.ndarray[generic], fisheye_image2: np.ndarray[generic]
-) -> np.ndarray[generic]:
+    fisheye_image1: Matlike, fisheye_image2: Matlike
+) -> Matlike:
     """
     Create an equirectangular projection based on two fisheye images.
 
     Parameters
     ----------
-    fisheye_image1 : np.ndarray
+    fisheye_image1 : Matlike
         the fisheye image for the center of the projection
-    fisheye_image2 : np.ndarray
+    fisheye_image2 : Matlike
         the fisheye image for the edges of the projection
 
     Returns
     -------
-    np.ndarray
+    Matlike
         the projection image
     """
     # Create the input fisheye images
@@ -244,7 +246,7 @@ RIGHT_SEAM = (
 
 
 if __name__ == '__main__':
-    fisheye_image1 = cv2.imread('src/surface/photosphere/fisheye1.jpg')
-    fisheye_image2 = cv2.imread('src/surface/photosphere/fisheye2.jpg')
+    fisheye_image1 = cv2.imread('src/surface/photosphere/photosphere/fisheye1.jpg')
+    fisheye_image2 = cv2.imread('src/surface/photosphere/photosphere/fisheye2.jpg')
     projection = equirectangular_projection(fisheye_image1, fisheye_image2)
-    cv2.imwrite('src/surface/photosphere/projection.png', projection)
+    cv2.imwrite('src/surface/photosphere/photosphere/projection.png', projection)

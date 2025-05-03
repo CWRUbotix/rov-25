@@ -15,7 +15,8 @@ from rclpy.executors import MultiThreadedExecutor
 import cv2
 
 HOST_IP = '127.0.1.1' # the server ip address
-PORT = 9997
+PORT1 = 9997
+PORT2 = 9997
 
 Matlike = NDArray[generic]
 
@@ -23,20 +24,42 @@ class Photosphere(Node):
     def __init__(self) -> None:
         super().__init__('photosphere')
 
-        self.fisheye1_publisher = self.create_publisher(
-            Image, 'fisheye1_image', qos_profile_default
+        # self.fisheye1_publisher = self.create_publisher(
+        #     Image, 'fisheye1_image', qos_profile_default
+        # )
+
+        # self.fisheye2_publisher = self.create_publisher(
+        #     Image, 'fisheye2_image', qos_profile_default
+        # )
+
+        self.fisheye_publishers = (
+            self.create_publisher(
+                Image, 'fisheye1_image', qos_profile_default
+            ),
+            self.create_publisher(
+                Image, 'fisheye2_image', qos_profile_default
+            )
         )
 
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect((HOST_IP, PORT))
+        self.client_sockets = (
+            socket.socket(socket.AF_INET, socket.SOCK_STREAM),
+            socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        )
+
+        # self.client_socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.client_socket1.connect((HOST_IP, PORT1))
+
+        self.client_socket[0].connect((HOST_IP, PORT1))
+        self.client_socket[1].connect((HOST_IP, PORT2))
+
         self.data = b''
         self.payload_size = struct.calcsize('Q')
         self.bridge = CvBridge()
 
-    def get_frame(self) -> None:
+    def get_frame(self, img_num: int) -> None:
 
         while len(self.data) < self.payload_size:
-            packet = self.client_socket.recv(4 * 1024) # 4K
+            packet = self.client_socket[img_num].recv(4 * 1024) # 4K
             if not packet:
                 break
             self.data += packet
@@ -45,7 +68,7 @@ class Photosphere(Node):
         msg_size = struct.unpack('Q', packed_msg_size)[0]
 
         while len(self.data) < msg_size:
-            self.data += self.client_socket.recv(4 * 1024)
+            self.data += self.client_socket[img_num].recv(4 * 1024)
         frame_data = self.data[:msg_size]
         self.data  = self.data[msg_size:]
         frame = pickle.loads(frame_data)
@@ -53,7 +76,7 @@ class Photosphere(Node):
         time_msg = self.get_clock().now().to_msg()
         img_msg = self.get_image_msg(frame, time_msg)
 
-        self.fisheye1_publisher.publish(img_msg)
+        self.fisheye_publishers[img_num].publish(img_msg)
 
         cv2.imshow('RECEIVING VIDEO', frame)
 
@@ -77,7 +100,8 @@ class Photosphere(Node):
         return img_msg
 
     def shutdown(self) -> None:
-        self.client_socket.close()
+        self.client_socket[0].close()
+        self.client_socket[1].close()
         
 
 
@@ -92,7 +116,8 @@ def main() -> None:
     try:
         while True:
             rclpy.spin_once(photosphere, executor = executor, timeout_sec=0)
-            photosphere.get_frame()
+            photosphere.get_frame(0)
+            photosphere.get_frame(1)
     finally:
         photosphere.shutdown()
 
