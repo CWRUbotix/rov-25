@@ -80,7 +80,7 @@ class Watchdog:
         self.should_be_alive = False
         # Alternative killing (doesn't work): self.process.kill()
         self.process.send_signal(SIGINT)
-        self.node.get_logger().info('DIE')
+        self.node.get_logger().info(f'Killing FLIR ${self.name} cam')
         try:
             self.process.wait(timeout=KILL_TIMEOUT_S)
             return not self.is_alive()
