@@ -13,6 +13,8 @@ from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 from sensor_msgs.msg import Image
 
+from rov_msgs.srv import CameraManage
+
 Matlike = NDArray[generic]
 
 @dataclass
@@ -53,9 +55,29 @@ class LuxonisCamDriverNode(Node):
             QoSPresetProfiles.DEFAULT.value,
         )
 
+        self.cam_manage_service = self.create_service(
+            CameraManage, 'manage_luxonis', self.cam_manage_callback
+        )
+
         self.create_pipeline()
 
         self.get_logger().info('Pipeline created')
+
+    def cam_manage_callback(
+        self, request: CameraManage.Request, response: CameraManage.Response
+    ) -> CameraManage.Response:
+        response.success = True
+
+        if request.cam == CameraManage.Request.LUX_LEFT:
+            self.tx_left = request.on
+        elif request.cam == CameraManage.Request.LUX_RIGHT:
+            self.tx_right = request.on
+        else:
+            response.success = False
+
+        self.get_logger().info(f'TXing: ({self.tx_left}, {self.tx_right})')
+
+        return response
 
     def create_pipeline(self) -> None:
         """Create a depthai pipeline and deploys it to the camera."""

@@ -1,6 +1,8 @@
-uint8 FRONT = 0
-uint8 DOWN = 1
-uint8 DUAL = 2
+uint8 FLIR_FRONT = 0
+uint8 FLIR_DOWN = 1
+
+uint8 LUX_LEFT = 2
+uint8 LUX_RIGHT = 3
 
 bool on
 uint8 cam
