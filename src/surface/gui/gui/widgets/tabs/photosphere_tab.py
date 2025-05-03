@@ -8,8 +8,8 @@ from gui.widgets.logger import Logger
 from gui.widgets.thruster_tester import ThrusterTester
 from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
 
-FISHEYE1_TOPIC = 'fisheye1_image'
-FISHEYE2_TOPIC = 'fisheye2_image'
+FISHEYE1_TOPIC = '/fisheye1_image'
+FISHEYE2_TOPIC = '/fisheye2_image'
 
 class PhotosphereTab(QWidget):
     def __init__(self) -> None:
