@@ -18,7 +18,7 @@ KILL_TIMEOUT_S = 5
 
 
 class Watchdog:
-    def __init__(self, name: str, node: Node, args: list[str], should_be_alive: bool = True) -> None:
+    def __init__(self, name: str, node: Node, args: list[str], *, should_be_alive: bool = True) -> None:
         self.name = name
         self.node = node
         self.args = args
@@ -30,6 +30,14 @@ class Watchdog:
             self._start_process()
 
     def _start_process(self) -> None:
+        """
+        Start the process and set should_be_alive.
+
+        Raises
+        ------
+        RuntimeError
+            if the started process does not have stdout
+        """
         self.process = Popen(self.args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         self.should_be_alive = True
@@ -40,6 +48,14 @@ class Watchdog:
         os.set_blocking(self.process.stdout.fileno(), False)
 
     def start_process(self) -> bool:
+        """
+        Start the process if it isn't running.
+
+        Returns
+        -------
+        bool
+            True if the process is now alive; False otherwise
+        """
         if self.is_alive():
             return True
 
@@ -51,38 +67,67 @@ class Watchdog:
         return True
 
     def kill_process(self) -> bool:
+        """
+        Kill the process and unset should_be_alive.
+
+        Returns
+        -------
+        bool
+            True if the process is now dead; False otherwise
+        """
         self.should_be_alive = False
-        # self.process.kill()
+        # Alternative killing (doesn't work): self.process.kill()
         self.process.send_signal(SIGINT)
         self.node.get_logger().info('DIE')
         try:
             self.process.wait(timeout=KILL_TIMEOUT_S)
-            # TODO: doesn't return right value on success
-            print(self.is_alive())
-            return self.is_alive()
+            return not self.is_alive()
         except TimeoutExpired:
             return False
 
-    def read_stdout(self) -> bytes:
+    def _read_stdout(self) -> bytes:
+        """
+        Read a line of stdout from the process.
+
+        Returns
+        -------
+        bytes
+            the bytes read
+
+        Raises
+        ------
+        RuntimeError
+            if the process does not have stdout
+        """
         if self.process.stdout is None:
             raise RuntimeError('Child process has no stdout')
 
         return self.process.stdout.readline()
 
     def poll(self) -> None:
+        """Actively keep the process alive if should_be_alive is set."""
         if self.should_be_alive:
             self.keep_alive()
 
     def is_alive(self) -> bool:
+        """
+        Check if the process is alive.
+
+        Returns
+        -------
+        bool
+            True if the process is alive; False otherwise
+        """
         return self.process.poll() is None
 
     def keep_alive(self) -> None:
+        """Restart the process if it crashed."""
         if not self.is_alive():
             self.node.get_logger().warning(f'{self.name} has crashed, restarting...')
             self._start_process()
             return
 
-        line = self.read_stdout()
+        line = self._read_stdout()
         while line:
             match = re.search(r'rate \[Hz] in +([\d\.]+) out', line.decode().strip())
             if match:
@@ -97,7 +142,7 @@ class Watchdog:
                     self.process.send_signal(SIGINT)
                     return
 
-            line = self.read_stdout()
+            line = self._read_stdout()
 
 
 class FlirWatchdogNode(Node):
@@ -139,6 +184,21 @@ class FlirWatchdogNode(Node):
         atexit.register(self.bottom_watchdog.kill_process)
 
     def manage_cams_callback(self, request: CameraManage.Request, response: CameraManage.Response) -> CameraManage.Response:
+        """
+        Handle CameraManage message by changing camera process states.
+
+        Parameters
+        ----------
+        request : CameraManage.Request
+            the incoming service request
+        response : CameraManage.Response
+            a template for the outgoing service response
+
+        Returns
+        -------
+        CameraManage.Response
+            the completed service response
+        """
         if request.cam == CameraManage.Request.DOWN:
             self.get_logger().info(f'Received down cam {"on" if request.on else "off"} request')
             target_watchdog = self.bottom_watchdog
