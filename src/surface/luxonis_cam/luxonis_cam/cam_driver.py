@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import StrEnum
 
 import cv2
 import depthai
@@ -9,57 +10,106 @@ from depthai.node import ColorCamera
 from numpy import generic, uint8
 from numpy.typing import NDArray
 from rclpy.executors import MultiThreadedExecutor
-from rclpy.node import Node
+from rclpy.node import Node, Publisher
 from rclpy.qos import QoSPresetProfiles
 from sensor_msgs.msg import Image
 
 from rov_msgs.srv import CameraManage
 
+"""
+Cam -> topic plan:
+ - unrectified_left -> cam0
+ - unrectified_right -> cam1
+ - rectified_left -> cam0
+ - rectified_right -> cam1
+ - disparity -> disparity
+ - depth -> depth
+"""
+
 Matlike = NDArray[generic]
 
+class StreamTopic(StrEnum):
+    CAM0 = 'cam0_stream'
+    CAM1 = 'cam1_stream'
+    DISPARITY = 'disparity_stream'
+    DEPTH = 'depth_stream'
+
 @dataclass
-class CamMeta:
-    node: ColorCamera
+class StreamMeta:
+    topic: StreamTopic
     toggle_in_stream_name: str
     script_toggle_name: str
     script_input_name: str
     script_output_name: str
     out_stream_name: str
 
-
     @staticmethod
-    def of(node: ColorCamera, cam_name: str) -> 'CamMeta':
-        return CamMeta(node,
-                       toggle_in_stream_name=f'{cam_name}_toggle_in',
-                       script_toggle_name=f'{cam_name}_toggle',
-                       script_input_name=f'{cam_name}_script_in',
-                       script_output_name=f'{cam_name}_script_out',
-                       out_stream_name=f'{cam_name}_out')
+    def of(stream_name: str, topic: StreamTopic) -> 'StreamMeta':
+        return StreamMeta(topic=topic,
+                          toggle_in_stream_name=f'{stream_name}_toggle_in',
+                          script_toggle_name=f'{stream_name}_toggle',
+                          script_input_name=f'{stream_name}_script_in',
+                          script_output_name=f'{stream_name}_script_out',
+                          out_stream_name=f'{stream_name}_out')
 
+@dataclass
+class CamMeta:
+    node: ColorCamera
+    stream_meta: StreamMeta
+
+class FramePublishers:
+    def __init__(self, node: Node) -> None:
+        self.node = node
+        self.publishers = {topic: self.make_frame_publisher(topic) for topic in StreamTopic}
+        self.bridge = CvBridge()
+
+    def make_frame_publisher(self, topic: StreamTopic) -> Publisher:
+        return self.node.create_publisher(Image, topic.value, QoSPresetProfiles.DEFAULT.value)
+
+    def try_get_publish(self, topic: StreamTopic, queue: depthai.DataOutputQueue) -> None:
+        video_frame = queue.tryGet()
+        time_msg = self.node.get_clock().now().to_msg()
+
+        if video_frame is not None:
+            img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
+            if topic in self.publishers:
+                self.publishers[topic].publish(img_msg)
+            else:
+                self.node.get_logger().warning(f'Invalid camera publisher topic "{topic.value}", '
+                                               'not publishing')
+
+    def get_image_msg(self, image: Matlike, time: Time) -> Image:
+        """Convert cv2 image to ROS2 Image with CvBridge.
+
+        Parameters
+        ----------
+        image : Matlike
+            The image to convert
+        time : Time
+            The timestamp for the ros message
+
+        Returns
+        -------
+        Image
+            The ROS2 image message
+        """
+        inverted_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img_msg: Image = self.bridge.cv2_to_imgmsg(inverted_image)
+        img_msg.encoding = 'rgb8'
+        img_msg.header.stamp = time
+        return img_msg
 
 class LuxonisCamDriverNode(Node):
     def __init__(self) -> None:
         super().__init__('luxonis_cam_driver', parameter_overrides=[])
-
-        self.bridge = CvBridge()
-
-        self.left_video_publisher = self.create_publisher(
-            Image,
-            'luxonis_cam_stream_left',
-            QoSPresetProfiles.DEFAULT.value,
-        )
-
-        self.right_video_publisher = self.create_publisher(
-            Image,
-            'luxonis_cam_stream_right',
-            QoSPresetProfiles.DEFAULT.value,
-        )
 
         self.cam_manage_service = self.create_service(
             CameraManage, 'manage_luxonis', self.cam_manage_callback
         )
 
         self.create_pipeline()
+
+        self.frame_publishers = FramePublishers(self)
 
         self.get_logger().info('Pipeline created')
 
@@ -92,9 +142,15 @@ class LuxonisCamDriverNode(Node):
         self.right_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
         # self.right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
 
+        self.stream_metas = (
+            StreamMeta.of('left', StreamTopic.CAM0),
+            StreamMeta.of('right', StreamTopic.CAM1),
+            StreamMeta.of('disparity', StreamTopic.DISPARITY)
+        )
+
         self.cam_metas = (
-            CamMeta.of(self.left_cam_node, 'left'),
-            CamMeta.of(self.right_cam_node, 'right')
+            CamMeta(self.left_cam_node, self.stream_metas[0]),
+            CamMeta(self.right_cam_node, self.stream_metas[1])
         )
 
         self.script = self.pipeline.createScript()
@@ -104,21 +160,21 @@ tx_left = False
 tx_right = False
 
 while True:
-    left_toggle_msg = node.io['{self.cam_metas[0].script_toggle_name}'].tryGet()
-    right_toggle_msg = node.io['{self.cam_metas[1].script_toggle_name}'].tryGet()
+    left_toggle_msg = node.io['{self.cam_metas[0].stream_meta.script_toggle_name}'].tryGet()
+    right_toggle_msg = node.io['{self.cam_metas[1].stream_meta.script_toggle_name}'].tryGet()
 
     if left_toggle_msg is not None:
         tx_left = left_toggle_msg.getData()[0]
     if right_toggle_msg is not None:
         tx_right = right_toggle_msg.getData()[0]
 
-    left_frame = node.io['{self.cam_metas[0].script_input_name}'].get()
-    right_frame = node.io['{self.cam_metas[1].script_input_name}'].get()
+    left_frame = node.io['{self.cam_metas[0].stream_meta.script_input_name}'].get()
+    right_frame = node.io['{self.cam_metas[1].stream_meta.script_input_name}'].get()
 
     if tx_left:
-        node.io['{self.cam_metas[0].script_output_name}'].send(left_frame)
+        node.io['{self.cam_metas[0].stream_meta.script_output_name}'].send(left_frame)
     if tx_right:
-        node.io['{self.cam_metas[1].script_output_name}'].send(right_frame)
+        node.io['{self.cam_metas[1].stream_meta.script_output_name}'].send(right_frame)
 """)
 
 
@@ -131,20 +187,19 @@ while True:
             cam_meta.node.setPreviewSize(640, 400)
             cam_meta.node.setInterleaved(False)
             cam_meta.node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
-            cam_meta.node.preview.link(self.script.inputs[cam_meta.script_input_name])
+            cam_meta.node.preview.link(self.script.inputs[cam_meta.stream_meta.script_input_name])
 
             # Camera toggler -> script [script_toggle_name]
             toggle_xin = self.pipeline.create(depthai.node.XLinkIn)
-            toggle_xin.setStreamName(cam_meta.toggle_in_stream_name)
-            toggle_xin.out.link(self.script.inputs[cam_meta.script_toggle_name])
-
+            toggle_xin.setStreamName(cam_meta.stream_meta.toggle_in_stream_name)
+            toggle_xin.out.link(self.script.inputs[cam_meta.stream_meta.script_toggle_name])
 
             # script [script_output_name] -> cam_xout
             cam_xout = self.pipeline.create(depthai.node.XLinkOut)
-            cam_xout.setStreamName(cam_meta.out_stream_name)
+            cam_xout.setStreamName(cam_meta.stream_meta.out_stream_name)
             cam_xout.input.setBlocking(False)
             cam_xout.input.setQueueSize(1)
-            self.script.outputs[cam_meta.script_output_name].link(cam_xout.input)
+            self.script.outputs[cam_meta.stream_meta.script_output_name].link(cam_xout.input)
 
         # Setup stereo pipeline
         # self.stereo_node = self.pipeline.create(depthai.node.StereoDepth)
@@ -154,7 +209,7 @@ while True:
         # self.right_cam_node.isp.link(self.stereo_node.right)
 
         # self.disparity_out_node = self.pipeline.create(depthai.node.XLinkOut)
-        # self.disparity_out_node.setStreamName('disparity')
+        # self.disparity_out_node.setStreamName('disparity_out')
         # self.stereo_node.disparity.link(self.disparity_out_node.input)
 
         # Deploy pipeline to device
@@ -171,69 +226,26 @@ while True:
 
         # self.disparity_queue = self.device.getOutputQueue('disparity', maxSize=1, blocking=False)
 
-        self.left_toggle_queue = self.device.getInputQueue(self.cam_metas[0].toggle_in_stream_name)
-        self.right_toggle_queue = self.device.getInputQueue(self.cam_metas[1].toggle_in_stream_name)
+        self.left_toggle_queue = self.device.getInputQueue(self.cam_metas[0].stream_meta.toggle_in_stream_name)
+        self.right_toggle_queue = self.device.getInputQueue(self.cam_metas[1].stream_meta.toggle_in_stream_name)
 
-        self.left_video_queue = self.device.getOutputQueue(self.cam_metas[0].out_stream_name)
-        self.right_video_queue = self.device.getOutputQueue(self.cam_metas[1].out_stream_name)
+        self.output_video_queues = [(self.device.getOutputQueue(stream.out_stream_name), stream.topic)
+                                    for stream in self.stream_metas]
 
         self.tx_left = False
         self.tx_right = True
 
-    def get_image_msg(self, image: Matlike, time: Time) -> Image:
-        """Convert cv2 image to ROS2 Image with CvBridge.
-
-        Parameters
-        ----------
-        image : Matlike
-            The image to convert
-        time : Time
-            The timestamp for the ros message
-
-        Returns
-        -------
-        Image
-            The ROS2 image message
-        """
-        inverted_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        img_msg: Image = self.bridge.cv2_to_imgmsg(inverted_image)
-        img_msg.encoding = 'rgb8'
-        img_msg.header.stamp = time
-        return img_msg
-
     def spin(self) -> None:
-        video_frame = self.left_video_queue.tryGet()
-        time_msg = self.get_clock().now().to_msg()
-
-        if video_frame is not None:
-            img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
-            self.left_video_publisher.publish(img_msg)
+        for queue, topic in self.output_video_queues:
+            self.frame_publishers.try_get_publish(topic, queue)
 
         buf = depthai.Buffer()
         buf.setData(self.tx_left)
         self.left_toggle_queue.send(buf)
 
-        video_frame = self.right_video_queue.tryGet()
-        time_msg = self.get_clock().now().to_msg()
-
-        if video_frame is not None:
-            img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
-            self.right_video_publisher.publish(img_msg)
-
         buf = depthai.Buffer()
         buf.setData(self.tx_right)
         self.right_toggle_queue.send(buf)
-
-        # TODO: right cam publish
-
-        # if self.cam_to_stream_node:
-        #     video_frame = self.video_queue.tryGet()
-
-        #     time_msg = self.get_clock().now().to_msg()
-
-        #     if video_frame:
-        #         img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
-        #         self.video_publisher.publish(img_msg)
 
         # disparity_frame = self.disparity_queue.tryGet()  # blocking call, will wait until a new data has arrived
 
