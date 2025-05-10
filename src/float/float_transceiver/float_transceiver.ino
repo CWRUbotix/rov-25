@@ -5,7 +5,7 @@
 // REQUIRED LIBRARIES:
 // RadioHead v1.122.1 by Mike McCauley
 // Blue Robotics MS5837 Library v1.1.1 by BlueRobotics
-// PicoEncoder v1.0.9 by Paulo Marques
+// PicoEncoder v1.1.1 by Paulo Marques
 
 #include <RHSoftwareSPI.h>
 #include <RH_RF95.h>
@@ -53,12 +53,22 @@ uint32_t stageTimeLimit;
 uint32_t pressureReadTime;
 uint32_t packetSendTime;
 
+// Distance from the pressure sensor to the bottom of the float (m)
+const float MBAR_TO_METER_OF_HEAD = 0.010199773339984;
+
+const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0.635;
+const int AVERAGE_PRESSURE_LEN = 5;
+float surfacePressures[AVERAGE_PRESSURE_LEN];
+float surfaceAverage = 0;
+int surfacePressureIndex = 0;
+
 RHSoftwareSPI softwareSPI;
 
 // Encoder initialization
 PicoEncoder encoder;
 const uint8_t ENCODER_PIN = 4;
 const int STEP_TOL = 10000;
+int EMPTY_POS = 0; // TODO: Find empty encoder pos
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
@@ -70,7 +80,8 @@ byte packets[2][PKT_LEN];
 int packetIndex = PKT_HEADER_LEN;
 
 enum class StageType {
-  Deploy,
+  DeploySuck,
+  DeployPump,
   WaitDeploying,
   WaitTransmitting,
   Suck,
@@ -82,7 +93,7 @@ enum class StageType {
 enum class OverrideState { NoOverride, Stop, Suck, Pump };
 enum class MotorState { Stop, Suck, Pump, Error };
 
-StageType stage = StageType::Deploy;
+StageType stage = StageType::DeploySuck;
 OverrideState overrideState = OverrideState::NoOverride;
 MotorState motorState = MotorState::Error;
 
@@ -90,6 +101,7 @@ uint8_t profileNum = 0;
 uint8_t profileHalf = 0;
 
 void setup() {
+  delay(2000);
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
   while (!Serial) {}
@@ -145,13 +157,24 @@ void loop() {
   * stage = [next stage]
   */
   switch (stage) {
-    case StageType::Deploy:
+    case StageType::DeploySuck:
       // Deploy code
+      stageTimeLimit = millis() + SUCK_MAX;
+      suck();
+      // Await override or exit condition
+      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
+             digitalRead(LIMIT_FULL)) {
+        receiveCommand();
+      }
+      if (overrideState != OverrideState::NoOverride) break;
+      encoder.resetPosition(); // Set zero position
+      stage = StageType::DeployPump;
+    case StageType::DeployPump:
       stageTimeLimit = millis() + PUMP_MAX;
       pump();
       // Await override or exit condition
       while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
-             digitalRead(LIMIT_EMPTY)) {
+             !isEmpty()) {
         receiveCommand();
       }
       if (overrideState != OverrideState::NoOverride) break;
@@ -161,7 +184,8 @@ void loop() {
       stageTimeLimit = millis() + RELEASE_MAX;
       stop();
       // Await override, submerge command, or exit condition
-      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
+      while (overrideState == OverrideState::NoOverride && 
+             // millis() < stageTimeLimit && 
              !receiveCommand()) {
         // Send tiny packet for judges while deploying
         if (millis() >= pressureReadTime) {
@@ -182,53 +206,50 @@ void loop() {
           rf95.waitPacketSent();
 
           pressureReadTime += PRESSURE_READ_INTERVAL;
+
+          // Keep track of surface average in circular array
+          surfacePressures[surfacePressureIndex%AVERAGE_PRESSURE_LEN] = pressure;
+          surfacePressureIndex++;
+
+          // Update surface average
+          surfaceAverage = 0;
+          int totalReadings = min(AVERAGE_PRESSURE_LEN, surfacePressureIndex);
+          for (int i = 0; i < totalReadings; i++)
+            surfaceAverage += surfacePressures[i];
+          surfaceAverage /= totalReadings;
         }
       }
       if (overrideState != OverrideState::NoOverride) break;
-      stage = StageType::Suck;
-    case StageType::Suck:
-      // Suck code
-      stageTimeLimit = millis() + SUCK_MAX;
-      suck();
-      // Await override or exit condition
-      if (profileAndWait(LIMIT_FULL)) break;
       stage = StageType::Descending;
     case StageType::Descending:
       // Descending code
-      stageTimeLimit = millis() + DESCEND_TIME;
-      stop();
+      stageTimeLimit = millis() + DESCEND_TIME + HOLD_TIME;
+      // TODO: Cool PID stuff
       // Await override or exit condition
-      if (profileAndWait(-1)) break;
-      stage = StageType::HoldDepth;
-    case StageType::HoldDepth:
-      // HoldDepth code
-      stageTimeLimit = millis() + HOLD_TIME;
-      // TODO: Magical encoder stuff to stay hovering
-      // Await override or exit condition
-      if (profileAndWait(-1)) break;
+      if (profileAndWait(countValidPackets() < 10)) break;
       stage = StageType::Pump;
     case StageType::Pump:
       // Pump code
       stageTimeLimit = millis() + PUMP_MAX;
+      pump();
       // Await override or exit condition
-      if (profileAndWait(LIMIT_EMPTY)) break;
+      if (profileAndWait(!isEmpty())) break;
       stage = StageType::Ascending;
     case StageType::Ascending:
       // Ascending code
       stageTimeLimit = millis() + ASCEND_TIME;
       stop();
       // Await override or exit condition
-      if (profileAndWait(-1)) break;
+      if (profileAndWait(true)) break;
       stage = StageType::WaitTransmitting;
     case StageType::WaitTransmitting:
       // WaitTransmitting code
       // Await override or exit condition
-      while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit) {
+      while (overrideState == OverrideState::NoOverride && !receiveCommand()) {
         if (millis() >= packetSendTime) {
           transmitPressurePacket();
           packetSendTime = millis() + PACKET_SEND_INTERVAL;
         }
-        receiveCommand();
       }
       if (overrideState != OverrideState::NoOverride) break;
       stage = StageType::Descending;
@@ -248,7 +269,7 @@ void loopOverride() {
     }
   }
   else if (overrideState == OverrideState::Pump) {
-    if (digitalRead(LIMIT_EMPTY) == HIGH) {
+    if (!isEmpty()) {
       pump();
     }
     else {
@@ -259,6 +280,7 @@ void loopOverride() {
   else if (overrideState == OverrideState::Stop) {
     stop();
   }
+  receiveCommand();
 }
 
 /******* Control Methods *******/
@@ -367,7 +389,19 @@ void profilePressure() {
   pressureSensor.read();
   float pressure = pressureSensor.pressure();
   serialPrintf("Reading pressure: %f\n", pressure);
-  memcpy(packets[profileHalf] + packetIndex, &pressure, sizeof(float));
+  // memcpy(packets[profileHalf] + packetIndex, &pressure, sizeof(float));
+  // packetIndex += sizeof(float);
+  
+  float depth;
+  if (surfaceAverage == 0) {
+    depth = pressureSensor.depth();
+  }
+  else {
+    depth = (pressure-surfaceAverage) * MBAR_TO_METER_OF_HEAD + PRESSURE_SENSOR_VERTICAL_OFFSET;
+  }
+  serialPrintf("Calculated depth: %f\n", depth);
+
+  memcpy(packets[profileHalf] + packetIndex, &depth, sizeof(float));
   packetIndex += sizeof(float);
 
   if (profileHalf == 0 && packetIndex >= PKT_LEN) {
@@ -376,6 +410,24 @@ void profilePressure() {
   }
 
   pressureReadTime += PRESSURE_READ_INTERVAL;
+}
+
+int countValidPackets() {
+  float depths[2*(int)((PKT_LEN-PKT_HEADER_LEN)/(sizeof(float)+sizeof(uint32_t)))];
+  int totalPackets = 0;
+  for (int half = 0; half < 2; half++) {
+    for (int p = PKT_HEADER_LEN + sizeof(uint32_t); p < PKT_LEN; p += sizeof(float) + sizeof(uint32_t)) {
+      memcpy(&depths[totalPackets], packets[half] + p, sizeof(float));
+      totalPackets++;
+    }
+  }
+  int validPackets = 0;
+  for (int i = 0; i < totalPackets; i++) {
+    if (2 < depths[i] && depths[i] < 3) {
+      validPackets++;
+    }
+  }
+  return validPackets;
 }
 
 void transmitPressurePacket() {
@@ -401,11 +453,11 @@ void clearPacketPayloads() {
   }
 }
 
-// Default state exit condition/basic limit pin condition
-// Pass in -1 for no limit pin
-bool profileAndWait(int limitPin) {
+// Default state exit condition/basic wait for condition
+// Pass in true for no additional condition
+bool profileAndWait(bool condition) {
   while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
-         (limitPin < 0 || digitalRead(limitPin))) {
+         condition) {
     if (millis() >= pressureReadTime && packetIndex < PKT_LEN) {
       profilePressure();
     }
@@ -416,30 +468,42 @@ bool profileAndWait(int limitPin) {
 
 // Instruct the motor to travel to a position
 // TODO: convert 'position' to an actual meaningful value
-bool travelTo(int pos) {
+// bool travelTo(int pos) {
+//   encoder.update();
+//   if (pos < (int)encoder.position - STEP_TOL) {
+//     // Forward
+//     digitalWrite(IN1, HIGH);
+//     digitalWrite(IN2, LOW);
+//     return false;
+//   }
+//   else if (pos > (int)encoder.position + STEP_TOL) {
+//     // Backward
+//     digitalWrite(IN1, LOW);
+//     digitalWrite(IN2, HIGH);
+//     return false;
+//   }
+//   else {
+//     // Off
+//     digitalWrite(IN1, LOW);
+//     digitalWrite(IN2, LOW);
+//     return true;
+//   }
+// }
+
+// Check if pump has finished
+bool isEmpty() {
   encoder.update();
-  if (pos < (int)encoder.step - STEP_TOL) {
-    digitalWrite(IN1, HIGH);
-    digitalWrite(IN2, LOW);
-    return false;
-  }
-  else if (pos > (int)encoder.step + STEP_TOL) {
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    return false;
-  }
-  else {
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, LOW);
+  if (encoder.position < EMPTY_POS) {
     return true;
   }
+  return false;
 }
 
 /******* Setup Methods *******/
 
 void initRadio() {
   softwareSPI.setPins(8, 15, 14);
-
+  
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
@@ -470,7 +534,8 @@ void initRadio() {
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
 
-  serialPrintf("RFM95 radio @%d MHz\n", static_cast<int>(RF95_FREQ));
+  Serial.print("RFM95 radio @ MHz: ");
+  Serial.println(RF95_FREQ);
 }
 
 void initPressureSensor() {
@@ -480,4 +545,5 @@ void initPressureSensor() {
   pressureSensor.setFluidDensity(997);  // kg/m^3
 
   serialPrintf("PRESSURE: %f\n", pressureSensor.pressure());
+  pressureSensor.depth();
 }

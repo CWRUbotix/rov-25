@@ -46,9 +46,9 @@ const uint8_t RFM95_INT = 31;  // "C"
 const uint8_t RFM95_RST = 7;   // "A"
 
 #else  // Custom RP2040 setup
-const uint8_t RFM95_CS = 19;
+const uint8_t RFM95_CS = 16;
 const uint8_t RFM95_INT = 22;
-const uint8_t RFM95_RST = 18;
+const uint8_t RFM95_RST = 17;
 
 #endif
 
