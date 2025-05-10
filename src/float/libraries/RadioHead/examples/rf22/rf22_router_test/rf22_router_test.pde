@@ -18,7 +18,7 @@ RH_RF22 driver;
 // Class to manage message delivery and receipt, using the driver declared above
 RHRouter manager(driver, CLIENT_ADDRESS);
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   if (!manager.init())
@@ -37,7 +37,7 @@ void test_routes()
   e = manager.getRouteTo(0);
   if (e) // Should fail
     Serial.println("getRouteTo 0 failed");
-    
+
   e = manager.getRouteTo(1);
   if (!e)
     Serial.println("getRouteTo 1 failed");
@@ -47,7 +47,7 @@ void test_routes()
     Serial.println("getRouteTo 3 failed");
   if (e->state != RHRouter::Valid)
     Serial.println("getRouteTo 4 failed");
-    
+
   e = manager.getRouteTo(2);
   if (!e)
     Serial.println("getRouteTo 5 failed");
@@ -57,14 +57,14 @@ void test_routes()
     Serial.println("getRouteTo 7 failed");
   if (e->state != RHRouter::Valid)
     Serial.println("getRouteTo 8 failed");
-    
+
   if (!manager.deleteRouteTo(1))
       Serial.println("deleteRouteTo 1 failed");
   // Route to 1 should now be gone
   e = manager.getRouteTo(1);
   if (e)
     Serial.println("deleteRouteTo 2 failed");
-    
+
   Serial.println("-------------------");
 
 //  manager.printRoutingTable();
@@ -85,7 +85,7 @@ void test_tx()
     Serial.println("sendtoWait 1 failed");
   errorcode = manager.sendtoWait(data, 255, 10); // Should fail too big
   if (errorcode != RH_ROUTER_ERROR_INVALID_LENGTH)
-    Serial.println("sendtoWait 2 failed");   
+    Serial.println("sendtoWait 2 failed");
   errorcode = manager.sendtoWait(data, sizeof(data), SERVER_ADDRESS); // Should fail after timeouts to 110
   if (errorcode != RH_ROUTER_ERROR_UNABLE_TO_DELIVER)
     Serial.println("sendtoWait 3 failed");

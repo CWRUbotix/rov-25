@@ -1,23 +1,23 @@
 #!/usr/bin/perl
 #
 # createGPX.pl
-# Takes the dumps from rf95_client2 and rf95_server2, determines which messages 
+# Takes the dumps from rf95_client2 and rf95_server2, determines which messages
 # were received on both ends and produces 3 tracks that can be load as gpx-files
 # into google maps. This can be used to determine the range between client and
-# server or visualize where communication between server and client was possible.  
+# server or visualize where communication between server and client was possible.
 # The server gps data is not used, i.e. it is assumed that the server is stationary.
 #
-# 1) Track containing all points that were sent by rf95_client2, received by 
-#    rf95_server2 +  the response of rf95_server2 was received by rf95_client2  
-# 2) Track containng all points that were sent by rf95_client2, received by  
-#    rf95_server2, but the response of rf95_server2 was NOT recevied by 
+# 1) Track containing all points that were sent by rf95_client2, received by
+#    rf95_server2 +  the response of rf95_server2 was received by rf95_client2
+# 2) Track containng all points that were sent by rf95_client2, received by
+#    rf95_server2, but the response of rf95_server2 was NOT recevied by
 #    rf95_client2
-# 3) Track containg all points that were sent by rf95_client2, but not 
-#    received by rf95_server2. Consequently rf95_server did not sent a 
+# 3) Track containg all points that were sent by rf95_client2, but not
+#    received by rf95_server2. Consequently rf95_server did not sent a
 #    response.
 #
 # To dump the output, the programs can be started as follows:
-#  On server: rf95_server2 > dump_file_server 
+#  On server: rf95_server2 > dump_file_server
 #  On client: rf95_client2 > dump_file_client
 
 use Geo::Gpx;
@@ -35,7 +35,7 @@ my $serverFile;
 my $clientFile;
 my $resultFilePrefix;
 
-my @options = 
+my @options =
     (
      'h'     => \$help,                # Help, show usage
      's=s'   => \$serverFile,          # file containing dump of server
@@ -72,7 +72,7 @@ if ($resultFilePrefix ne "")
 
  close SENTONLYFILE;
  close RECEIVEDONLYFILE;
- close ACKNOWLEDGEFILE; 
+ close ACKNOWLEDGEFILE;
 }
 
 sub usage
@@ -83,21 +83,21 @@ sub usage
 
 
 ###################################################################################
-# classifyData  
+# classifyData
 #
 # Using the sequence number and the timpstamp of the client data, the messages
 # are classified in 3 groups:
 # (1) full contact, i.e. message and its reply was received on both ends
-# (2) received only, i.e. message was received by server, but reply to client 
+# (2) received only, i.e. message was received by server, but reply to client
 #     got lost
-# (3) no contact, i.e. message was sent, but not received by server 
+# (3) no contact, i.e. message was sent, but not received by server
 #
 ###################################################################################
 sub classifyData
 {
   my $item;
   my $seqNr;
-  my $timestamp; 
+  my $timestamp;
   my $longitude;
   my $latitude;
   my $reply;
@@ -115,19 +115,19 @@ sub classifyData
       if ($latitude =~ /(\d\d)(\d\d\.\d\d\d\d)/)
       {
          #print $latitude;
-         $latitude = $1 +  $2/60; 
+         $latitude = $1 +  $2/60;
          #print "Latitude  " . $latitude . "\n";
       }
       if ($longitude =~ /(\d\d\d)(\d\d\.\d\d\d\d)/)
       {
          #print $longitude;
-         $longitude = $1 +  $2/60; 
+         $longitude = $1 +  $2/60;
          #print "Longitude  " . $longitude . "\n";
       }
 
       if ($serverMessages{$item})
       {
-         # this item was received by the server 
+         # this item was received by the server
          # print "$item => $clientMessages{$item}\n";
          # print "$item => $serverMessages{$item}\n";
          # print "\n\n";
@@ -148,11 +148,11 @@ sub classifyData
          }
          else
          {
-          # client message received by server, client received acknowledge message sent by server 
+          # client message received by server, client received acknowledge message sent by server
           # print "ACKNOWLEDGED; $item => $clientMessages{$item}\n\n\n";
 
           # sanity check: the reply string should be identical
-          if ($reply ne $serverReply) 
+          if ($reply ne $serverReply)
           {
             print "WARNING: Sent and received messages not identical (Sent=$reply/Received=$serverReply)...\n";
           }
@@ -206,7 +206,7 @@ sub classifyData
 ###################################################################################
 # readServerFile
 #
-# read data in format created by rf95_server2. To create file, standard output of 
+# read data in format created by rf95_server2. To create file, standard output of
 # rf95_server2 needs to be redirected into a file, i.e. rf95_server2 > file.log
 ###################################################################################
 sub readServerFile
@@ -216,7 +216,7 @@ sub readServerFile
     {
         while (<SERVERFILE>)
         {
-           # format: got request: "(00004):163213.000,4846.8686N,00912.2478E" 
+           # format: got request: "(00004):163213.000,4846.8686N,00912.2478E"
            #         RSSI: -82
            #         Sent a reply: "R:(00004):20191220163216RM,4846.8303N,00912.27"
            if (/^got request:\ \"\((\d{5})\):([\d|\.]+),([\d|\.]+)([N|S]),([\d|\.]+)([E|W])\"/)
@@ -229,8 +229,8 @@ sub readServerFile
                 my $reply;
                 $longitude = (-1) * $longitude if ($6 eq "W");
 		$latitude = (-1) * $latitude if ($4 eq "S");
-               
-                # get RSSI 
+
+                # get RSSI
                 my $line = <SERVERFILE>;
                 if ($line =~ /RSSI:\ ([-|+|\d]+)/)
                 {
@@ -238,15 +238,15 @@ sub readServerFile
                 }
 
                 # get reply
-                $line = <SERVERFILE>; 
+                $line = <SERVERFILE>;
                 if ($line =~ /Sent a reply:\ \"(.+)\"/)
                 {
                    $reply=$1;
-                   if ($reply =~ /R:\((\d{5})\)/) 
+                   if ($reply =~ /R:\((\d{5})\)/)
                    {
                       if ($1 ne $seqNr)
                       {
-                        print "WARNING: File structure seems to be broken. No matching reply for sequence numer '$seqNr'.";     
+                        print "WARNING: File structure seems to be broken. No matching reply for sequence numer '$seqNr'.";
                         print "File name: $serverFile\n";
                       }
                    }
@@ -263,11 +263,11 @@ sub readServerFile
         exit;
     }
 }
- 
+
 ###################################################################################
 # readClientFile
 #
-# read data in format created by rf95_client2. To create file, standard output of 
+# read data in format created by rf95_client2. To create file, standard output of
 # rf95_client2 needs to be redirected into a file, i.e. rf95_client2 > file.log
 ###################################################################################
 sub readClientFile
@@ -292,17 +292,17 @@ sub readClientFile
                 my $reply;
                 $longitude = (-1) * $longitude if ($6 eq "W");
 		$latitude = (-1) * $latitude if ($4 eq "S");
-               
+
                 # get reply
-                my $line = <CLIENTFILE>; 
+                my $line = <CLIENTFILE>;
                 if ($line =~ /got reply:\ \"(.+)\"/)
                 {
                    $reply=$1;
-                   if ($reply =~ /R:\((\d{5})\)/) 
+                   if ($reply =~ /R:\((\d{5})\)/)
                    {
                       if ($1 ne $seqNr)
                       {
-                        print "WARNING: File structure seems to be broken. No matching reply for sequence numer '$seqNr'.";     
+                        print "WARNING: File structure seems to be broken. No matching reply for sequence numer '$seqNr'.";
                         print "File name: $clientFile\n";
                       }
                    }
@@ -330,7 +330,7 @@ sub readClientFile
 #
 # Once the data file of rf95_server2 is successfully read, it can be dumped with
 # this routine. This routine is intended for debugging
-# 
+#
 ###################################################################################
 sub dumpServerData()
 {
@@ -347,7 +347,7 @@ sub dumpServerData()
 #
 # Once the data file of rf95_client2 is successfully read, it can be dumped with
 # this routine. This routine is intended for debugging
-# 
+#
 ###################################################################################
 sub dumpClientData()
 {

@@ -1,4 +1,4 @@
-// LoRa Simple Hello World Client with encrypted communications 
+// LoRa Simple Hello World Client with encrypted communications
 // In order for this to compile you MUST uncomment the #define RH_ENABLE_ENCRYPTION_MODULE line
 // at the bottom of RadioHead.h, AND you MUST have installed the Crypto directory from arduinolibs:
 // http://rweather.github.io/arduinolibs/index.html
@@ -13,7 +13,7 @@ RH_RF95 rf95;     // Instanciate a LoRa driver
 Speck myCipher;   // Instanciate a Speck block ciphering
 RHEncryptedDriver myDriver(rf95, myCipher); // Instantiate the driver with those two
 
-float frequency = 868.0; // Change the frequency here. 
+float frequency = 868.0; // Change the frequency here.
 unsigned char encryptkey[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}; // The very secret key
 char HWMessage[] = "Hello World ! I'm happy if you can read me";
 uint8_t HWMessageLen;

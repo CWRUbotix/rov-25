@@ -22,12 +22,12 @@ RH_NRF51 driver;
 // Class to manage message delivery and receipt, using the driver declared above
 RHReliableDatagram manager(driver, SERVER_ADDRESS);
 
-void setup() 
+void setup()
 {
   delay(1000); // Wait for serial port etc to be ready
   Serial.begin(9600);
-  while (!Serial) 
-    ; // wait for serial port to connect. 
+  while (!Serial)
+    ; // wait for serial port to connect.
 
   if (!manager.init())
     Serial.println("init failed");

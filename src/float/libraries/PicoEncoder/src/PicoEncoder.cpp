@@ -8,11 +8,10 @@
 
 #ifdef ARDUINO_ARCH_RP2040
 
-#include <pico_encoder.pio.h>
-#include <hardware/clocks.h>
-#include <hardware/gpio.h>
-#include <hardware/sync.h>
-
+  #include <hardware/clocks.h>
+  #include <hardware/gpio.h>
+  #include <hardware/sync.h>
+  #include <pico_encoder.pio.h>
 
 // global configuration: after this number of samples with no step change,
 // consider the encoder stopped
@@ -22,90 +21,84 @@ static const int idle_stop_samples = 3;
 static int encoder_count;
 static PIO pio_used[2];
 
-
 // low level PIO interface
 
 // initialize the PIO state and the substep_state_t structure that keeps track
 // of the encoder state
-static inline void pico_encoder_program_init(PIO pio, uint sm, uint pin_A)
-{
-	uint pin_state, position, ints;
+static inline void pico_encoder_program_init(PIO pio, uint sm, uint pin_A) {
+  uint pin_state, position, ints;
 
   pio_gpio_init(pio, pin_A);
   pio_gpio_init(pio, pin_A + 1);
 
-	pio_sm_set_consecutive_pindirs(pio, sm, pin_A, 2, false);
+  pio_sm_set_consecutive_pindirs(pio, sm, pin_A, 2, false);
 
-	pio_sm_config c = pico_encoder_program_get_default_config(0);
-	sm_config_set_in_pins(&c, pin_A); // for WAIT, IN
-	// shift to left, auto-push at 32 bits
-	sm_config_set_in_shift(&c, false, true, 32);
-	sm_config_set_out_shift(&c, true, false, 32);
-	// don't join FIFO's
-	sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_NONE);
+  pio_sm_config c = pico_encoder_program_get_default_config(0);
+  sm_config_set_in_pins(&c, pin_A);  // for WAIT, IN
+  // shift to left, auto-push at 32 bits
+  sm_config_set_in_shift(&c, false, true, 32);
+  sm_config_set_out_shift(&c, true, false, 32);
+  // don't join FIFO's
+  sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_NONE);
 
-	// always run at sysclk, to have the maximum possible time resolution
-	sm_config_set_clkdiv(&c, 1.0);
+  // always run at sysclk, to have the maximum possible time resolution
+  sm_config_set_clkdiv(&c, 1.0);
 
-	pio_sm_init(pio, sm, 0, &c);
+  pio_sm_init(pio, sm, 0, &c);
 
-	// set up status to be rx_fifo < 1
-	pio->sm[sm].execctrl = ((pio->sm[sm].execctrl & 0xFFFFFF80) | 0x12);
+  // set up status to be rx_fifo < 1
+  pio->sm[sm].execctrl = ((pio->sm[sm].execctrl & 0xFFFFFF80) | 0x12);
 
-	// init the state machine according to the current phase. Since we are
-	// setting the state running PIO instructions from C state, the encoder may
-	// step during this initialization. This should not be a problem though,
-	// because as long as it is just one step, the state machine will update
-	// correctly when it starts. We disable interrupts anyway, to be safe
-	ints = save_and_disable_interrupts();
+  // init the state machine according to the current phase. Since we are
+  // setting the state running PIO instructions from C state, the encoder may
+  // step during this initialization. This should not be a problem though,
+  // because as long as it is just one step, the state machine will update
+  // correctly when it starts. We disable interrupts anyway, to be safe
+  ints = save_and_disable_interrupts();
 
-	pin_state = (gpio_get_all() >> pin_A) & 3;
+  pin_state = (gpio_get_all() >> pin_A) & 3;
 
-	// to setup the state machine, we need to set the lower 2 bits of OSR to be
-	// the negated pin state
-	pio_sm_exec(pio, sm, pio_encode_set(pio_y, ~pin_state));
-	pio_sm_exec(pio, sm, pio_encode_mov(pio_osr, pio_y));
+  // to setup the state machine, we need to set the lower 2 bits of OSR to be
+  // the negated pin state
+  pio_sm_exec(pio, sm, pio_encode_set(pio_y, ~pin_state));
+  pio_sm_exec(pio, sm, pio_encode_mov(pio_osr, pio_y));
 
-	// also set the Y (current step) so that the lower 2 bits of Y have a 1:1
-	// mapping to the current phase (input pin state). That simplifies the code
-	// to compensate for differences in encoder phase sizes:
-	switch (pin_state) {
-		case 0: position = 0; break;
-		case 1: position = 3; break;
-		case 2: position = 1; break;
-		case 3: position = 2; break;
-	}
-	pio_sm_exec(pio, sm, pio_encode_set(pio_y, position));
+  // also set the Y (current step) so that the lower 2 bits of Y have a 1:1
+  // mapping to the current phase (input pin state). That simplifies the code
+  // to compensate for differences in encoder phase sizes:
+  switch (pin_state) {
+    case 0: position = 0; break;
+    case 1: position = 3; break;
+    case 2: position = 1; break;
+    case 3: position = 2; break;
+  }
+  pio_sm_exec(pio, sm, pio_encode_set(pio_y, position));
 
-	pio_sm_set_enabled(pio, sm, true);
+  pio_sm_set_enabled(pio, sm, true);
 
-	restore_interrupts(ints);
+  restore_interrupts(ints);
 }
 
-static inline void pico_encoder_get_counts(PIO pio, uint sm, uint *step, int *cycles, uint *us)
-{
-	int i, pairs;
-	uint ints;
+static inline void pico_encoder_get_counts(PIO pio, uint sm, uint* step, int* cycles, uint* us) {
+  int i, pairs;
+  uint ints;
 
-	pairs = pio_sm_get_rx_fifo_level(pio, sm) >> 1;
+  pairs = pio_sm_get_rx_fifo_level(pio, sm) >> 1;
 
-	// read all data with interrupts disabled, so that there can not be a
-	// big time gap between reading the PIO data and the current us
-	ints = save_and_disable_interrupts();
-	for (i = 0; i < pairs + 1; i++) {
-		*cycles = pio_sm_get_blocking(pio, sm);
-		*step = pio_sm_get_blocking(pio, sm);
-	}
-	*us = time_us_32();
-	restore_interrupts(ints);
+  // read all data with interrupts disabled, so that there can not be a
+  // big time gap between reading the PIO data and the current us
+  ints = save_and_disable_interrupts();
+  for (i = 0; i < pairs + 1; i++) {
+    *cycles = pio_sm_get_blocking(pio, sm);
+    *step = pio_sm_get_blocking(pio, sm);
+  }
+  *us = time_us_32();
+  restore_interrupts(ints);
 }
-
-
 
 // PicoEncoder class definition
 
-PicoEncoder::PicoEncoder()
-{
+PicoEncoder::PicoEncoder() {
   // we set the default phase sizes here, so that if the user sets the phase
   // sizes before calling begin, those will override the default and it will
   // just work
@@ -120,26 +113,21 @@ PicoEncoder::PicoEncoder()
   resetAutoCalibration();
 }
 
-void PicoEncoder::setPhases(int phases)
-{
+void PicoEncoder::setPhases(int phases) {
   calibration_data[0] = 0;
   calibration_data[1] = (phases & 0xFF);
   calibration_data[2] = calibration_data[1] + ((phases >> 8) & 0xFF);
   calibration_data[3] = calibration_data[2] + ((phases >> 16) & 0xFF);
 }
 
-int PicoEncoder::getPhases(void)
-{
-  return calibration_data[1] |
-    ((calibration_data[2] - calibration_data[1]) << 8) |
-    ((calibration_data[3] - calibration_data[2]) << 16);
+int PicoEncoder::getPhases(void) {
+  return calibration_data[1] | ((calibration_data[2] - calibration_data[1]) << 8) |
+         ((calibration_data[3] - calibration_data[2]) << 16);
 }
-
 
 // internal helper functions
 
-void PicoEncoder::read_pio_data(uint *step, uint *step_us, uint *transition_us, int *forward)
-{
+void PicoEncoder::read_pio_data(uint* step, uint* step_us, uint* transition_us, int* forward) {
   int cycles;
 
   // get the raw data from the PIO state machine
@@ -150,27 +138,25 @@ void PicoEncoder::read_pio_data(uint *step, uint *step_us, uint *transition_us, 
   // decrementing it on each 13 clock loop. We can use this information to get
   // the time and direction of the last transition
   if (cycles < 0) {
-      cycles = -cycles;
-      *forward = 1;
-  } else {
-      cycles = 0x80000000 - cycles;
-      *forward = 0;
+    cycles = -cycles;
+    *forward = 1;
+  }
+  else {
+    cycles = 0x80000000 - cycles;
+    *forward = 0;
   }
   *transition_us = *step_us - ((cycles * 13) / clocks_per_us);
 }
 
 // get the sub-step position of the start of a step
-uint PicoEncoder::get_step_start_transition_pos(uint step)
-{
+uint PicoEncoder::get_step_start_transition_pos(uint step) {
   return ((step << 6) & 0xFFFFFF00) | calibration_data[step & 3];
 }
-
 
 // incrementally update the phase measure, so that the substep estimation takes
 // phase sizes into account. The function is not allowed to block for more than
 // "period_us" microseconds
-void PicoEncoder::autoCalibratePhases(void)
-{
+void PicoEncoder::autoCalibratePhases(void) {
   uint cur_us, step_us, step, delta;
   int forward, steps, need_rescale, i, total;
 
@@ -179,8 +165,7 @@ void PicoEncoder::autoCalibratePhases(void)
   read_pio_data(&step, &step_us, &cur_us, &forward);
 
   // if we are still on the same step as before, there is nothing to see
-  if (step == calib_last_step)
-    return;
+  if (step == calib_last_step) return;
 
   // if calib_last_us is zero, that means we haven't started yet, so don't try
   // to use a delta to nothing
@@ -208,8 +193,7 @@ void PicoEncoder::autoCalibratePhases(void)
     calib_data[(step + 1) & 3] = delta;
 
   // if we don't have a measure of all the steps yet, just continue
-  if (calib_data[0] == 0 || calib_data[1] == 0 || calib_data[2] == 0 || calib_data[3] == 0)
-    return;
+  if (calib_data[0] == 0 || calib_data[1] == 0 || calib_data[2] == 0 || calib_data[3] == 0) return;
 
   // otherwise, use the measurement. Sum the just acquired 4 step sizes to the
   // step size total accumulator. Check if the values in the accumulator are
@@ -218,22 +202,19 @@ void PicoEncoder::autoCalibratePhases(void)
   for (i = 0; i < 4; i++) {
     calib_sum[i] += calib_data[i];
     calib_data[i] = 0;
-    if (calib_sum[i] > 2500000)
-      need_rescale = 1;
+    if (calib_sum[i] > 2500000) need_rescale = 1;
   }
 
   total = 0;
   for (i = 0; i < 4; i++) {
-    if (need_rescale)
-      calib_sum[i] >>= 1;
+    if (need_rescale) calib_sum[i] >>= 1;
     total += calib_sum[i];
   }
   calib_count++;
 
   // if we don't have at least 32 full measurements, don't use them yet, as
   // we may still have a big bias (this is just an heuristic)
-  if (calib_count < 32)
-    return;
+  if (calib_count < 32) return;
 
   // scale the sizes to a total of 256 to be used as sub-steps
   calibration_data[0] = 0;
@@ -242,41 +223,35 @@ void PicoEncoder::autoCalibratePhases(void)
   calibration_data[3] = ((calib_sum[0] + calib_sum[1] + calib_sum[2]) * 256 + total / 2) / total;
 }
 
-void PicoEncoder::resetAutoCalibration(void)
-{
+void PicoEncoder::resetAutoCalibration(void) {
   memset(calib_sum, 0, sizeof(calib_sum));
   calib_count = 0;
   calib_last_us = 0;
 }
 
-
-// some Arduino mbed Pico boards have non trivial pin mappings and require a
-// function to translate
-#if defined(ARDUINO_ARCH_MBED)
-#include <pinDefinitions.h>
+  // some Arduino mbed Pico boards have non trivial pin mappings and require a
+  // function to translate
+  #if defined(ARDUINO_ARCH_MBED)
+    #include <pinDefinitions.h>
 static int translate_pin(int pin) { return digitalPinToPinName(pin); }
-#else
+  #else
 static int translate_pin(int pin) { return pin; }
-#endif
+  #endif
 
 // try to claim all SM's and load the program to PIO 'pio'. Return true on
 // success, false on failure
-static bool pico_encoder_claim_pio(PIO pio)
-{
+static bool pico_encoder_claim_pio(PIO pio) {
   // check that we can load the program on this PIO
-  if (!pio_can_add_program(pio, &pico_encoder_program))
-    return false;
+  if (!pio_can_add_program(pio, &pico_encoder_program)) return false;
 
   // check that all SM's are free. Some libraries claim an SM and later load the
   // PIO code and that would not interact well with code that uses the entire
   // PIO code space. So just make sure we can claim all the SM's to prevent this
   for (int i = 0; i < 4; i++)
-    if (pio_sm_is_claimed(pio, i))
-      return false;
+    if (pio_sm_is_claimed(pio, i)) return false;
 
   // claim all SM's
-  for (int i = 0; i < 4; i++)
-    pio_sm_claim(pio, i);
+  for (int i = 0; i < 4; i++) pio_sm_claim(pio, i);
 
   // load the code into the PIO
   pio_add_program(pio, &pico_encoder_program);
@@ -284,8 +259,7 @@ static bool pico_encoder_claim_pio(PIO pio)
   return true;
 }
 
-int PicoEncoder::begin(int firstPin, bool pullUp)
-{
+int PicoEncoder::begin(int firstPin, bool pullUp) {
   int forward, gpio_pin;
 
   // the first encoder needs to load a PIO with the PIO code
@@ -294,17 +268,16 @@ int PicoEncoder::begin(int firstPin, bool pullUp)
     if (pico_encoder_claim_pio(pio0))
       pio_used[0] = pio0;
     else if (pico_encoder_claim_pio(pio1))
-      pio_used[0] = pio1; // or pio1
+      pio_used[0] = pio1;  // or pio1
     else
-      return -1; // or give up
-
-  } else if (encoder_count == 4) {
+      return -1;  // or give up
+  }
+  else if (encoder_count == 4) {
     // the 5th encoder needs to try to use the other PIO
     pio_used[1] = (pio_used[0] == pio0) ? pio1 : pio0;
-    if (!pico_encoder_claim_pio(pio_used[1]))
-      return -1;
-
-  } else if (encoder_count >= 8) {
+    if (!pico_encoder_claim_pio(pio_used[1])) return -1;
+  }
+  else if (encoder_count >= 8) {
     // we don't support more than 8 encoders
     return -2;
   }
@@ -349,17 +322,14 @@ int PicoEncoder::begin(int firstPin, bool pullUp)
   return 0;
 }
 
-
 // compute speed in "sub-steps per 2^20 us" from a delta substep position and
 // delta time in microseconds
-static int substep_calc_speed(int delta_substep, int delta_us)
-{
-  return ((int64_t) delta_substep << 20) / delta_us;
+static int substep_calc_speed(int delta_substep, int delta_us) {
+  return ((int64_t)delta_substep << 20) / delta_us;
 }
 
 // read the PIO data and update the speed / position estimate
-void PicoEncoder::update(void)
-{
+void PicoEncoder::update(void) {
   uint new_step, step_us, transition_us, transition_pos, low, high;
   int forward, speed_high, speed_low;
 
@@ -392,7 +362,8 @@ void PicoEncoder::update(void)
     // if we are not stopped, that means there is valid previous transition
     // we can use to estimate the current speed
     if (!stopped)
-      speed_2_20 = substep_calc_speed(transition_pos - prev_trans_pos, transition_us - prev_trans_us);
+      speed_2_20 =
+        substep_calc_speed(transition_pos - prev_trans_pos, transition_us - prev_trans_us);
 
     // if we have a transition, we are not stopped now
     stopped = 0;
@@ -420,21 +391,21 @@ void PicoEncoder::update(void)
     // transition is closer to now than the previous sample time, we should
     // use the slopes from the last sample to the transition as these will
     // have less numerical issues
-    if (prev_trans_us > prev_step_us &&
-        (int)(prev_trans_us - prev_step_us) > (int)(step_us - prev_trans_us)) {
+    if (
+      prev_trans_us > prev_step_us &&
+      (int)(prev_trans_us - prev_step_us) > (int)(step_us - prev_trans_us)) {
       speed_high = substep_calc_speed(prev_trans_pos - prev_low, prev_trans_us - prev_step_us);
       speed_low = substep_calc_speed(prev_trans_pos - prev_high, prev_trans_us - prev_step_us);
-    } else {
+    }
+    else {
       // otherwise use the slopes from the last transition to now
       speed_high = substep_calc_speed(high - prev_trans_pos, step_us - prev_trans_us);
       speed_low = substep_calc_speed(low - prev_trans_pos, step_us - prev_trans_us);
     }
     // make sure the current speed estimate is between the maximum and
     // minimum values obtained from the step slopes
-    if (speed_2_20 > speed_high)
-      speed_2_20 = speed_high;
-    if (speed_2_20 < speed_low)
-      speed_2_20 = speed_low;
+    if (speed_2_20 > speed_high) speed_2_20 = speed_high;
+    if (speed_2_20 < speed_low) speed_2_20 = speed_low;
 
     // convert the speed units from "sub-steps per 2^20 us" to "sub-steps
     // per second"
@@ -462,13 +433,11 @@ void PicoEncoder::update(void)
   prev_step_us = step_us;
 }
 
-void PicoEncoder::resetPosition(void)
-{
+void PicoEncoder::resetPosition(void) {
   position_reset = internal_position;
   position = 0;
 }
 
-
-#else // ARCH
-#error PicoEncoder library requires a PIO peripheral and only works on the RP2040 architecture
+#else  // ARCH
+  #error PicoEncoder library requires a PIO peripheral and only works on the RP2040 architecture
 #endif

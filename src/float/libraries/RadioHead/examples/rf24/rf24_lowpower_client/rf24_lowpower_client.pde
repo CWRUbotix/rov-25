@@ -29,7 +29,7 @@ void sleep()
   sleep_mode(); // Sleep here and wake on WDT interrupt every 8 secs
 }
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   if (!rf24.init())
@@ -60,7 +60,7 @@ void setup()
 void loop()
 {
   Serial.println("Sending to rf24_server");
-  
+
   // Send a message to rf24_server
   uint8_t data[] = "Hello World!";
   rf24.send(data, sizeof(data));
@@ -74,7 +74,7 @@ void loop()
   // radio is 1.58mA while sleeping (in STANDBY state but the antenna switch seems to take some power too)
   // 2mA when in Ready state
   rf24.sleep();
-  
+
   // Sleep inside here until next WDT in 8 secs
   sleep();
 }

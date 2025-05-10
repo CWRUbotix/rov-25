@@ -14,12 +14,12 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95;
 //RH_RF95 rf95(5, 2); // Rocket Scream Mini Ultra Pro with the RFM95W
-//RH_RF95 rf95(8, 3); // Adafruit Feather M0 with RFM95 
+//RH_RF95 rf95(8, 3); // Adafruit Feather M0 with RFM95
 
 // Need this on Arduino Zero with SerialUSB port (eg RocketScream Mini Ultra Pro)
 //#define Serial SerialUSB
 
-void setup() 
+void setup()
 {
   // Rocket Scream Mini Ultra Pro with the RFM95W only:
   // Ensure serial flash is not interfering with radio communication on SPI bus
@@ -34,14 +34,14 @@ void setup()
 
   // You can change the modulation parameters with eg
   // rf95.setModemConfig(RH_RF95::Bw500Cr45Sf128);
-  
+
   // The default transmitter power is 13dBm, using PA_BOOST.
-  // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then 
+  // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
   // you can set transmitter powers from 2 to 20 dBm:
 //  rf95.setTxPower(20, false);
   // If you are using Modtronix inAir4 or inAir9, or any other module which uses the
   // transmitter RFO pins and not the PA_BOOST pins
-  // then you can configure the power transmitter power for 0 to 15 dBm and with useRFO true. 
+  // then you can configure the power transmitter power for 0 to 15 dBm and with useRFO true.
   // Failure to do that will result in extremely low transmit powers.
 //  rf95.setTxPower(14, true);
 }
@@ -52,21 +52,21 @@ void loop()
   // Send a message to rf95_server
   uint8_t data[] = "Hello World!";
   rf95.send(data, sizeof(data));
-  
+
   rf95.waitPacketSent();
   // Now wait for a reply
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
   if (rf95.waitAvailableTimeout(3000))
-  { 
-    // Should be a reply message for us now   
+  {
+    // Should be a reply message for us now
     if (rf95.recv(buf, &len))
    {
       Serial.print("got reply: ");
       Serial.println((char*)buf);
 //      Serial.print("RSSI: ");
-//      Serial.println(rf95.lastRssi(), DEC);    
+//      Serial.println(rf95.lastRssi(), DEC);
     }
     else
     {

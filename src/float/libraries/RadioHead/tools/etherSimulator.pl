@@ -2,7 +2,7 @@
 #
 # etherSimulator.pl
 # Simulates the luminiferous ether for RH_Simulator.
-# Connects multiple instances of RH_Simulator clients together and passes 
+# Connects multiple instances of RH_Simulator clients together and passes
 # simulated messages between them.
 
 use Getopt::Long;
@@ -26,7 +26,7 @@ use warnings;
 use POE qw(Component::Server::TCP Filter::Block);
 use strict;
 
-my @options = 
+my @options =
     (
      'h'     => \$help,                # Help, show usage
      'c=s'   => \$config,              # Config file
@@ -124,7 +124,7 @@ sub willDeliverFromTo
     my ($from, $to) = @_;
 
     my $prob = probabilityOfSuccessfulDelivery($from, $to);
-    return 1 
+    return 1
 	if rand() < $prob;
     return 0;
 }
@@ -135,7 +135,7 @@ sub deliverMessages
     while (($key, $value) = each(%clients))
     {
 	next unless defined $$value{'packet'}; # No packet waiting for delivery
-	# Find how long since the message was transmitted and see it its time to 
+	# Find how long since the message was transmitted and see it its time to
 	# deliver it to the client.
 	# We are waiting here for the transmission time of the message to elapse
 	# given the message length and the bits per second
@@ -195,7 +195,7 @@ POE::Component::Server::TCP->new(
 		# Check the network config and see if delivery to this node is possible
 		next unless willDeliverFromTo($clients{$client}{'thisaddress'}, $$value{thisaddress});
 
-		# The packet reached this destination, see if it collided with 
+		# The packet reached this destination, see if it collided with
 		# another packet
 		if (defined $$value{'packet'})
 		{
@@ -217,7 +217,7 @@ POE::Component::Server::TCP->new(
 	my $client = $_[HEAP]{client};
 	delete $clients{$client};
     },
-    ClientFilter => $filter, # Handles prepended lengths to 
+    ClientFilter => $filter, # Handles prepended lengths to
     );
 
 POE::Kernel->run;

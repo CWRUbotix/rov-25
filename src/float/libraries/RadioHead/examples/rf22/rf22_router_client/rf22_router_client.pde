@@ -23,15 +23,15 @@ RH_RF22 driver;
 // Class to manage message delivery and receipt, using the driver declared above
 RHRouter manager(driver, CLIENT_ADDRESS);
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   if (!manager.init())
     Serial.println("init failed");
   // Defaults after init are 434.0MHz, 0.05MHz AFC pull-in, modulation FSK_Rb2_4Fd36
-  
+
   // Manually define the routes for this network
-  manager.addRouteTo(SERVER1_ADDRESS, SERVER1_ADDRESS);  
+  manager.addRouteTo(SERVER1_ADDRESS, SERVER1_ADDRESS);
   manager.addRouteTo(SERVER2_ADDRESS, SERVER2_ADDRESS);
   manager.addRouteTo(SERVER3_ADDRESS, SERVER3_ADDRESS);
 }
@@ -43,7 +43,7 @@ uint8_t buf[RH_ROUTER_MAX_MESSAGE_LEN];
 void loop()
 {
   Serial.println("Sending to rf22_router_server3");
-    
+
   // Send a message to a rf22_router_server
   // It will be routed by the intermediate
   // nodes to the destination node, accorinding to the
@@ -53,7 +53,7 @@ void loop()
     // It has been reliably delivered to the next node.
     // Now wait for a reply from the ultimate server
     uint8_t len = sizeof(buf);
-    uint8_t from;    
+    uint8_t from;
     if (manager.recvfromAckTimeout(buf, &len, 3000, &from))
     {
       Serial.print("got reply from : 0x");

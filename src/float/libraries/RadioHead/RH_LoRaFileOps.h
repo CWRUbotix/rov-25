@@ -31,77 +31,77 @@
 // See https://github.com/starnight/LoRa/tree/file-ops
 #if (RH_PLATFORM == RH_PLATFORM_UNIX) || defined(DOXYGEN)
 
-// Driver constant definitions
-// These are copied from LoRa file-ops branch pull request #16
-// See the instructions in the RH_LoRaFileOps documentation for getting that version from github
-// which is absolutely necessary if you want to support RadioHead messages with CRC enabled,
-// which we strongly recommend.
-// since they are not necessarily available in the compile host file
-// system.
-// CAUTION: these must be kept in sync with LoRa-file-ops if it changes
-/* I/O control by each command. */
-#include <sys/ioctl.h>
-#define LORA_IOC_MAGIC '\x74'
+  // Driver constant definitions
+  // These are copied from LoRa file-ops branch pull request #16
+  // See the instructions in the RH_LoRaFileOps documentation for getting that version from github
+  // which is absolutely necessary if you want to support RadioHead messages with CRC enabled,
+  // which we strongly recommend.
+  // since they are not necessarily available in the compile host file
+  // system.
+  // CAUTION: these must be kept in sync with LoRa-file-ops if it changes
+  /* I/O control by each command. */
+  #include <sys/ioctl.h>
+  #define LORA_IOC_MAGIC '\x74'
 
-#define LORA_SET_STATE		(_IOW(LORA_IOC_MAGIC,  0, int))
-#define LORA_GET_STATE		(_IOR(LORA_IOC_MAGIC,  1, int))
-#define LORA_SET_FREQUENCY	(_IOW(LORA_IOC_MAGIC,  2, int))
-#define LORA_GET_FREQUENCY	(_IOR(LORA_IOC_MAGIC,  3, int))
-#define LORA_SET_POWER		(_IOW(LORA_IOC_MAGIC,  4, int))
-#define LORA_GET_POWER		(_IOR(LORA_IOC_MAGIC,  5, int))
-#define LORA_SET_LNA		(_IOW(LORA_IOC_MAGIC,  6, int))
-#define LORA_GET_LNA		(_IOR(LORA_IOC_MAGIC,  7, int))
-#define LORA_SET_LNAAGC		(_IOR(LORA_IOC_MAGIC,  8, int))
-#define LORA_SET_SPRFACTOR	(_IOW(LORA_IOC_MAGIC,  9, int))
-#define LORA_GET_SPRFACTOR	(_IOR(LORA_IOC_MAGIC, 10, int))
-#define LORA_SET_BANDWIDTH	(_IOW(LORA_IOC_MAGIC, 11, int))
-#define LORA_GET_BANDWIDTH	(_IOR(LORA_IOC_MAGIC, 12, int))
-#define LORA_GET_RSSI		(_IOR(LORA_IOC_MAGIC, 13, int))
-#define LORA_GET_SNR		(_IOR(LORA_IOC_MAGIC, 14, int))
-/* Mikem added 2021-04-19 fro pull request 16: */
-#define LORA_SET_CRC		(_IOW(LORA_IOC_MAGIC, 15, int))
-#define LORA_SET_CODINGRATE	(_IOW(LORA_IOC_MAGIC, 16, int))
-#define LORA_GET_CODINGRATE	(_IOR(LORA_IOC_MAGIC, 17, int))
-#define LORA_SET_IMPLICIT	(_IOW(LORA_IOC_MAGIC, 18, int))
-#define LORA_SET_LDRO		(_IOW(LORA_IOC_MAGIC, 19, int))
-#define LORA_SET_PREAMBLE	(_IOW(LORA_IOC_MAGIC, 20, int))
-#define LORA_GET_PREAMBLE	(_IOR(LORA_IOC_MAGIC, 21, int))
-#define LORA_SET_PARAMP		(_IOW(LORA_IOC_MAGIC, 22, int))
-#define LORA_GET_PARAMP		(_IOR(LORA_IOC_MAGIC, 23, int))
-#define LORA_SET_OCPIMAX	(_IOW(LORA_IOC_MAGIC, 24, int))
-#define LORA_GET_OCPIMAX	(_IOR(LORA_IOC_MAGIC, 25, int))
-#define LORA_SET_LNABOOSTHF	(_IOW(LORA_IOC_MAGIC, 26, int))
-#define LORA_SET_PMAX20DBM	(_IOW(LORA_IOC_MAGIC, 27, int))
+  #define LORA_SET_STATE     (_IOW(LORA_IOC_MAGIC, 0, int))
+  #define LORA_GET_STATE     (_IOR(LORA_IOC_MAGIC, 1, int))
+  #define LORA_SET_FREQUENCY (_IOW(LORA_IOC_MAGIC, 2, int))
+  #define LORA_GET_FREQUENCY (_IOR(LORA_IOC_MAGIC, 3, int))
+  #define LORA_SET_POWER     (_IOW(LORA_IOC_MAGIC, 4, int))
+  #define LORA_GET_POWER     (_IOR(LORA_IOC_MAGIC, 5, int))
+  #define LORA_SET_LNA       (_IOW(LORA_IOC_MAGIC, 6, int))
+  #define LORA_GET_LNA       (_IOR(LORA_IOC_MAGIC, 7, int))
+  #define LORA_SET_LNAAGC    (_IOR(LORA_IOC_MAGIC, 8, int))
+  #define LORA_SET_SPRFACTOR (_IOW(LORA_IOC_MAGIC, 9, int))
+  #define LORA_GET_SPRFACTOR (_IOR(LORA_IOC_MAGIC, 10, int))
+  #define LORA_SET_BANDWIDTH (_IOW(LORA_IOC_MAGIC, 11, int))
+  #define LORA_GET_BANDWIDTH (_IOR(LORA_IOC_MAGIC, 12, int))
+  #define LORA_GET_RSSI      (_IOR(LORA_IOC_MAGIC, 13, int))
+  #define LORA_GET_SNR       (_IOR(LORA_IOC_MAGIC, 14, int))
+  /* Mikem added 2021-04-19 fro pull request 16: */
+  #define LORA_SET_CRC        (_IOW(LORA_IOC_MAGIC, 15, int))
+  #define LORA_SET_CODINGRATE (_IOW(LORA_IOC_MAGIC, 16, int))
+  #define LORA_GET_CODINGRATE (_IOR(LORA_IOC_MAGIC, 17, int))
+  #define LORA_SET_IMPLICIT   (_IOW(LORA_IOC_MAGIC, 18, int))
+  #define LORA_SET_LDRO       (_IOW(LORA_IOC_MAGIC, 19, int))
+  #define LORA_SET_PREAMBLE   (_IOW(LORA_IOC_MAGIC, 20, int))
+  #define LORA_GET_PREAMBLE   (_IOR(LORA_IOC_MAGIC, 21, int))
+  #define LORA_SET_PARAMP     (_IOW(LORA_IOC_MAGIC, 22, int))
+  #define LORA_GET_PARAMP     (_IOR(LORA_IOC_MAGIC, 23, int))
+  #define LORA_SET_OCPIMAX    (_IOW(LORA_IOC_MAGIC, 24, int))
+  #define LORA_GET_OCPIMAX    (_IOR(LORA_IOC_MAGIC, 25, int))
+  #define LORA_SET_LNABOOSTHF (_IOW(LORA_IOC_MAGIC, 26, int))
+  #define LORA_SET_PMAX20DBM  (_IOW(LORA_IOC_MAGIC, 27, int))
 
-  
-/* List the state of the LoRa device. */
-#define LORA_STATE_SLEEP	0
-#define LORA_STATE_STANDBY	1
-#define LORA_STATE_TX		2
-#define LORA_STATE_RX		3
-#define LORA_STATE_CAD		4
+  /* List the state of the LoRa device. */
+  #define LORA_STATE_SLEEP   0
+  #define LORA_STATE_STANDBY 1
+  #define LORA_STATE_TX      2
+  #define LORA_STATE_RX      3
+  #define LORA_STATE_CAD     4
 
-// Max number of octets the SX1278 LORA Rx/Tx FIFO can hold
-#define RH_LORAFILEOPS_FIFO_SIZE 255
+  // Max number of octets the SX1278 LORA Rx/Tx FIFO can hold
+  #define RH_LORAFILEOPS_FIFO_SIZE 255
 
-// This is the maximum number of bytes that can be carried by the LORA.
-// We use some for headers, keeping fewer for RadioHead messages
-#define RH_LORAFILEOPS_MAX_PAYLOAD_LEN RH_LORAFILEOPS_FIFO_SIZE
+  // This is the maximum number of bytes that can be carried by the LORA.
+  // We use some for headers, keeping fewer for RadioHead messages
+  #define RH_LORAFILEOPS_MAX_PAYLOAD_LEN RH_LORAFILEOPS_FIFO_SIZE
 
-// The length of the headers we add.
-// The headers are inside the LORA's payload
-#define RH_LORAFILEOPS_HEADER_LEN 4
+  // The length of the headers we add.
+  // The headers are inside the LORA's payload
+  #define RH_LORAFILEOPS_HEADER_LEN 4
 
-// This is the maximum message length that can be supported by this driver. 
-// Can be pre-defined to a smaller size (to save SRAM) prior to including this header
-// Here we allow for 1 byte message length, 4 bytes headers, user data and 2 bytes of FCS
-#ifndef RH_LORAFILEOPS_MAX_MESSAGE_LEN
-#define RH_LORAFILEOPS_MAX_MESSAGE_LEN (RH_LORAFILEOPS_MAX_PAYLOAD_LEN - RH_LORAFILEOPS_HEADER_LEN)
-#endif
+  // This is the maximum message length that can be supported by this driver.
+  // Can be pre-defined to a smaller size (to save SRAM) prior to including this header
+  // Here we allow for 1 byte message length, 4 bytes headers, user data and 2 bytes of FCS
+  #ifndef RH_LORAFILEOPS_MAX_MESSAGE_LEN
+    #define RH_LORAFILEOPS_MAX_MESSAGE_LEN \
+      (RH_LORAFILEOPS_MAX_PAYLOAD_LEN - RH_LORAFILEOPS_HEADER_LEN)
+  #endif
 
 /////////////////////////////////////////////////////////////////////
 /// \class RH_LoRaFileOps RH_LoRaFileOps.h <RH_LoRaFileOps.h>
-/// \brief Driver to send and receive unaddressed, unreliable datagrams via a LoRa 
+/// \brief Driver to send and receive unaddressed, unreliable datagrams via a LoRa
 /// capable radio transceiver on a Linux platform (possibly Raspberry Pi), using the
 /// lora-file-ops driver by Jian-Hong Pan (starnight):
 /// https://github.com/starnight/LoRa/tree/file-ops
@@ -118,13 +118,13 @@
 ///
 /// \par Overview
 ///
-/// This class provides basic functions for sending and receiving unaddressed, 
+/// This class provides basic functions for sending and receiving unaddressed,
 /// unreliable datagrams of arbitrary length up to 251 octets per packet.
 ///
-/// Manager classes may use this class to implement reliable, addressed datagrams and streams, 
+/// Manager classes may use this class to implement reliable, addressed datagrams and streams,
 /// mesh routers, repeaters, translators etc.
 ///
-/// Naturally, for any 2 radios to communicate that must be configured to use the same frequency and 
+/// Naturally, for any 2 radios to communicate that must be configured to use the same frequency and
 /// modulation scheme.
 ///
 /// This RadioHead Driver provides an object-oriented interface for sending and receiving
@@ -162,7 +162,7 @@
 /// - 8 symbol PREAMBLE
 /// - Explicit header with header CRC (default CCITT, handled internally by the radio)
 /// - 4 octets HEADER: (TO, FROM, ID, FLAGS)
-/// - 0 to 251 octets DATA 
+/// - 0 to 251 octets DATA
 /// - CRC (default CCITT, handled internally by the radio)
 ///
 /// This format is compatible with the one used by RH_RF95 by default.
@@ -217,152 +217,150 @@
 ///
 /// Note: it may be the case in the future that pull request 16 is merged into the master of LoRa-File-Ops
 /// in which case 2 steps are not needed above
-class RH_LoRaFileOps : public RHGenericDriver
-{
+class RH_LoRaFileOps : public RHGenericDriver {
 public:
-    /// Constructor. You can have multiple instances each connected to a different LoRa port
-    /// \param[in] port Name of the lora-file-ops port, typically something like /dev/loraSPI0.0
-    RH_LoRaFileOps(const char* port);
-  
-    /// Initialise the Driver transport hardware and software.
-    /// Opens the LorFileOps driver port and initalises the radio to default settings
-    /// Leaves the radio in receive mode,
-    /// with default configuration of: 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 2048chips/symbol, CRC on
-    /// which is compatible with RH_RF95::Bw125Cr45Sf2048
-    /// \return true if initialisation succeeded.
-    virtual bool    init();
-  
-    /// Tests whether a new message is available from the lora-file-ops Linux driver. 
-    /// This can be called multiple times in a timeout loop
-    /// \return true if a new, complete, error-free uncollected message is available to be retreived by recv()
-    virtual bool    available();
+  /// Constructor. You can have multiple instances each connected to a different LoRa port
+  /// \param[in] port Name of the lora-file-ops port, typically something like /dev/loraSPI0.0
+  RH_LoRaFileOps(const char* port);
 
-    // Sigh, its not possible to implement waitAvailable and waitAvailableTimout in terms
-    // of select(), since the LoRa-file-ops driver does not detect any interrupts, and
-    // therefore select will not return when a packet is received by the radio.
-    // So we have to live with the RHGenericDriver implementations that call available() to poll the port.
-    // waitAvailableTimeout() supports an optional delay between each poll
-    // of available() so that on Linux at least another process can get the CPU.
-  
-    /// If there is a valid message available and it is for this node, copy it to buf and return true
-    /// else return false.
-    /// If a message is copied, *len is set to the length (Caution, 0 length messages are permitted).
-    /// You should be sure to call this function frequently enough to not miss any messages
-    /// or call it aafter available(), waitAvailable() or waitAvailableTimeout()
-    /// indicate that a message is avalable
-    /// It is recommended that you call it in your main loop.
-    /// \param[in] buf Location to copy the received message
-    /// \param[in,out] len Pointer to available space in buf. Set to the actual number of octets copied.
-    /// \return true if a valid message addressed to this node was copied to buf
-    virtual bool    recv(uint8_t* buf, uint8_t* len);
+  /// Initialise the Driver transport hardware and software.
+  /// Opens the LorFileOps driver port and initalises the radio to default settings
+  /// Leaves the radio in receive mode,
+  /// with default configuration of: 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 2048chips/symbol, CRC on
+  /// which is compatible with RH_RF95::Bw125Cr45Sf2048
+  /// \return true if initialisation succeeded.
+  virtual bool init();
 
-    /// Loads a message into the transmitter and starts the transmitter. Note that a message length
-    /// of 0 is permitted. CAD is not supported yet.
-    /// The lora-file-ops driver waits for the entire message to be transmitted before resuming operations.
-    /// \param[in] data Array of data to be sent
-    /// \param[in] len Number of bytes of data to send
-    /// \return true if the message length was valid and it was correctly transmitted.
-    virtual bool    send(const uint8_t* data, uint8_t len);
+  /// Tests whether a new message is available from the lora-file-ops Linux driver.
+  /// This can be called multiple times in a timeout loop
+  /// \return true if a new, complete, error-free uncollected message is available to be retreived by recv()
+  virtual bool available();
 
-    /// Returns the maximum message length 
-    /// available in this Driver.
-    /// \return The maximum legal message length
-    virtual uint8_t maxMessageLength();
-    
-    /// Sets the transmitter and receiver 
-    /// centre (carrier) frequency.
-    /// \param[in] centre Frequency in Hz. 137000000 to 1020000000. Caution: SX1276/77/78/79 comes in several
-    /// different frequency ranges, and setting a frequency outside that range of your radio will probably not work
-    /// correctly becasue the antenna coupling or antenna wont work outside their designed frequency range
-    /// \return true if the selected frequency centre is within range
-    bool           setFrequency(uint32_t centre);
+  // Sigh, its not possible to implement waitAvailable and waitAvailableTimout in terms
+  // of select(), since the LoRa-file-ops driver does not detect any interrupts, and
+  // therefore select will not return when a packet is received by the radio.
+  // So we have to live with the RHGenericDriver implementations that call available() to poll the port.
+  // waitAvailableTimeout() supports an optional delay between each poll
+  // of available() so that on Linux at least another process can get the CPU.
 
-    /// Returns the current transmitter and receiver 
-    /// centre frequency.
-    /// \return Centre frequency in Hz.
-    uint32_t       getFrequency();
-    
-    /// Returns the Signal-to-noise ratio (SNR) of the last received message, as measured
-    /// by the receiver.
-    /// \return SNR of the last received message in dB
-    int lastSNR();
+  /// If there is a valid message available and it is for this node, copy it to buf and return true
+  /// else return false.
+  /// If a message is copied, *len is set to the length (Caution, 0 length messages are permitted).
+  /// You should be sure to call this function frequently enough to not miss any messages
+  /// or call it aafter available(), waitAvailable() or waitAvailableTimeout()
+  /// indicate that a message is avalable
+  /// It is recommended that you call it in your main loop.
+  /// \param[in] buf Location to copy the received message
+  /// \param[in,out] len Pointer to available space in buf. Set to the actual number of octets copied.
+  /// \return true if a valid message addressed to this node was copied to buf
+  virtual bool recv(uint8_t* buf, uint8_t* len);
 
-    /// Sets the transmitter power output level
-    /// Be a good neighbour and set the lowest power level you need.
-    /// Caution: legal power limits may apply in certain countries.
-    /// After init(), the power will be set to 13dBm
-    /// \param[in] power Transmitter power level in dBm. Max 20dBm.
-    void           setTxPower(int32_t power);
+  /// Loads a message into the transmitter and starts the transmitter. Note that a message length
+  /// of 0 is permitted. CAD is not supported yet.
+  /// The lora-file-ops driver waits for the entire message to be transmitted before resuming operations.
+  /// \param[in] data Array of data to be sent
+  /// \param[in] len Number of bytes of data to send
+  /// \return true if the message length was valid and it was correctly transmitted.
+  virtual bool send(const uint8_t* data, uint8_t len);
 
-    /// Gets the currently set transmitter power output level
-    /// \return Current poer level in dbM
-    int32_t        getTxPower();
+  /// Returns the maximum message length
+  /// available in this Driver.
+  /// \return The maximum legal message length
+  virtual uint8_t maxMessageLength();
 
-    /// Set the LoRa Spreading Factor
-    /// \param[in] sf The spreading factor. Valid values are 64, 128, 256, 512, 1024, 2048, 4096.
-    void           setSpreadingFactor(int32_t sf);
+  /// Sets the transmitter and receiver
+  /// centre (carrier) frequency.
+  /// \param[in] centre Frequency in Hz. 137000000 to 1020000000. Caution: SX1276/77/78/79 comes in several
+  /// different frequency ranges, and setting a frequency outside that range of your radio will probably not work
+  /// correctly becasue the antenna coupling or antenna wont work outside their designed frequency range
+  /// \return true if the selected frequency centre is within range
+  bool setFrequency(uint32_t centre);
 
-    /// Get the LoRa Spreading Factor
-    /// \return The current Spreading Factor
-    int32_t        getSpreadingFactor();
+  /// Returns the current transmitter and receiver
+  /// centre frequency.
+  /// \return Centre frequency in Hz.
+  uint32_t getFrequency();
 
-    /// Gets the RSSI of the last received packet
-    /// \return RSSI of the last received packet
-    int32_t        getRSSI();
+  /// Returns the Signal-to-noise ratio (SNR) of the last received message, as measured
+  /// by the receiver.
+  /// \return SNR of the last received message in dB
+  int lastSNR();
 
-    /// Gets the Signal To Noise (SNR) of the last received packet
-    /// \return SNR of the last received packet
-    int32_t        getSNR();
+  /// Sets the transmitter power output level
+  /// Be a good neighbour and set the lowest power level you need.
+  /// Caution: legal power limits may apply in certain countries.
+  /// After init(), the power will be set to 13dBm
+  /// \param[in] power Transmitter power level in dBm. Max 20dBm.
+  void setTxPower(int32_t power);
 
-    /// Set the receiver Low Noise Amplifier (LNA) gain
-    /// \param[in] lna LNA gain in dBm
-    void           setLNA(int32_t lna);
+  /// Gets the currently set transmitter power output level
+  /// \return Current poer level in dbM
+  int32_t getTxPower();
 
-    /// Get the current LNA gain
-    /// \return The current LNA gain in dBm
-    int32_t        getLNA();
+  /// Set the LoRa Spreading Factor
+  /// \param[in] sf The spreading factor. Valid values are 64, 128, 256, 512, 1024, 2048, 4096.
+  void setSpreadingFactor(int32_t sf);
 
-    /// Set the LNA Automatic Gain Control (AGC) enabled
-    /// \param[in] lnaagc 1 to enable LNA AGC, 0 to disable it
-    void           setLNAAGC(int32_t lnaagc);
+  /// Get the LoRa Spreading Factor
+  /// \return The current Spreading Factor
+  int32_t getSpreadingFactor();
 
-    /// Set the transmitter and receiver modulation bandwidth
-    /// \param[in] bw Modulation bandwidth in Hz. Valid values are 7800, 10400, 15600, 20800,
-    /// 312500, 41700, 62500, 125000, 250000, 500000.
-    void           setBW(int32_t bw);
+  /// Gets the RSSI of the last received packet
+  /// \return RSSI of the last received packet
+  int32_t getRSSI();
 
-    /// Get the transmitter and receiver modulation bandwidth
-    /// \return Modulation bandwidth in Hz
-    int32_t        getBW();
+  /// Gets the Signal To Noise (SNR) of the last received packet
+  /// \return SNR of the last received packet
+  int32_t getSNR();
 
-    /// Enable Cyclic Redundancy Check (CRC) in the transmitter and receiver. If enabled,
-    /// the transmitter will always appenda CRC to every packet, and the receiver will
-    /// always check the CRC on received packets, ignoring packets with incorrect CRC
-    /// \param[in] crc 1 to enable CRC generation and detection, 0 to disable it
-    void           setCRC(uint32_t crc);
+  /// Set the receiver Low Noise Amplifier (LNA) gain
+  /// \param[in] lna LNA gain in dBm
+  void setLNA(int32_t lna);
 
+  /// Get the current LNA gain
+  /// \return The current LNA gain in dBm
+  int32_t getLNA();
+
+  /// Set the LNA Automatic Gain Control (AGC) enabled
+  /// \param[in] lnaagc 1 to enable LNA AGC, 0 to disable it
+  void setLNAAGC(int32_t lnaagc);
+
+  /// Set the transmitter and receiver modulation bandwidth
+  /// \param[in] bw Modulation bandwidth in Hz. Valid values are 7800, 10400, 15600, 20800,
+  /// 312500, 41700, 62500, 125000, 250000, 500000.
+  void setBW(int32_t bw);
+
+  /// Get the transmitter and receiver modulation bandwidth
+  /// \return Modulation bandwidth in Hz
+  int32_t getBW();
+
+  /// Enable Cyclic Redundancy Check (CRC) in the transmitter and receiver. If enabled,
+  /// the transmitter will always appenda CRC to every packet, and the receiver will
+  /// always check the CRC on received packets, ignoring packets with incorrect CRC
+  /// \param[in] crc 1 to enable CRC generation and detection, 0 to disable it
+  void setCRC(uint32_t crc);
 
 protected:
-    /// Set the current radio state, one of LORA_STATE_*
-    void           setState(uint32_t state);
+  /// Set the current radio state, one of LORA_STATE_*
+  void setState(uint32_t state);
 
-    /// Get the current radio state
-    uint32_t       getState();
-    
+  /// Get the current radio state
+  uint32_t getState();
+
 private:
-    // The name of the Unix filesystm port for the Lora SX1278 compatible radio
-    // typically /dev/loraSPI0.0 or similar
-    const char*   _port;
+  // The name of the Unix filesystm port for the Lora SX1278 compatible radio
+  // typically /dev/loraSPI0.0 or similar
+  const char* _port;
 
-    /// Unix file system device number of the LoRa device port. -1 if not open
-    int            _fd;
+  /// Unix file system device number of the LoRa device port. -1 if not open
+  int _fd;
 
-    /// Last measured SNR, dB
-    int8_t         _lastSNR;
+  /// Last measured SNR, dB
+  int8_t _lastSNR;
 };
 
-/// @example lorafileops_client.cpp
-/// @example lorafileops_server.cpp
+  /// @example lorafileops_client.cpp
+  /// @example lorafileops_server.cpp
 
 #endif
 #endif

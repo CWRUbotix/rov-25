@@ -6,7 +6,7 @@
 ; pico_encoder: reads a quadrature encoder with no CPU
 ; intervention and provides the current position on request.
 ;
-; the "substep" version uses not only the step counts, but also the timing of 
+; the "substep" version uses not only the step counts, but also the timing of
 ; the steps to compute the current speed. This is especially useful at low
 ; counts per sample, where the jitter of the counts is very noisy.
 ; For instance, an encoder doing 230 steps per second sampled at 100Hz would
@@ -112,7 +112,7 @@ invalid:
 	; this instruction should be usually reached by the "MOV PC, ~STATUS"
 	; instruction above when the status is zero, which means that the fifo
 	; has data and we don't want to push more data. This can also be reached
-	; on an invalid state transition, which should not happen. Even if it 
+	; on an invalid state transition, which should not happen. Even if it
 	; happens, it should be a transient state and the only side effect is
 	; that we'll call update_state twice in a row
 	JMP update_state	[1]

@@ -14,10 +14,10 @@
 // Singleton instance of the radio driver
 RH_NRF905 nrf905;
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
-  while (!Serial) 
+  while (!Serial)
     ; // wait for serial port to connect. Needed for Leonardo only
   if (!nrf905.init())
     Serial.println("init failed");
@@ -31,15 +31,15 @@ void loop()
   // Send a message to nrf905_server
   uint8_t data[] = "Hello World!";
   nrf905.send(data, sizeof(data));
-  
+
   nrf905.waitPacketSent();
   // Now wait for a reply
   uint8_t buf[RH_NRF905_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
   if (nrf905.waitAvailableTimeout(500))
-  { 
-    // Should be a reply message for us now   
+  {
+    // Should be a reply message for us now
     if (nrf905.recv(buf, &len))
     {
       Serial.print("got reply: ");

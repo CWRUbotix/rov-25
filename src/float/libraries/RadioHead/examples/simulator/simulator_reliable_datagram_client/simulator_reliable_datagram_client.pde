@@ -5,7 +5,7 @@
 // It is designed to work with the other example simulator_reliable_datagram_server
 // Tested on Linux
 // Build with
-// cd whatever/RadioHead 
+// cd whatever/RadioHead
 // tools/simBuild examples/simulator/simulator_reliable_datagram_client/simulator_reliable_datagram_client.pde
 // Run with ./simulator_reliable_datagram_client
 // Make sure you also have the 'Luminiferous Ether' simulator tools/etherSimulator.pl running
@@ -22,7 +22,7 @@ RH_TCP driver;
 // Class to manage message delivery and receipt, using the driver declared above
 RHReliableDatagram manager(driver, CLIENT_ADDRESS);
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   if (!manager.init())
@@ -41,13 +41,13 @@ uint8_t buf[RH_TCP_MAX_MESSAGE_LEN];
 void loop()
 {
   Serial.println("Sending to simulator_reliable_datagram_server");
-    
+
   // Send a message to manager_server
   if (manager.sendtoWait(data, sizeof(data), SERVER_ADDRESS))
   {
     // Now wait for a reply from the server
     uint8_t len = sizeof(buf);
-    uint8_t from;   
+    uint8_t from;
     if (manager.recvfromAckTimeout(buf, &len, 2000, &from))
     {
       Serial.print("got reply from : 0x");

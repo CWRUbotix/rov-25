@@ -6,7 +6,7 @@
 CROSSCOMPILER=$(shell if [ -z `which 'arm-linux-gnueabihf-g++'` ]; then echo "no"; else echo "yes"; fi)
 ifeq ($(CROSSCOMPILER),yes)
 CC            = arm-linux-gnueabihf-g++
-CFLAGS        = -DRASPBERRY_PI -DRH_USE_MUTEX -pthread 
+CFLAGS        = -DRASPBERRY_PI -DRH_USE_MUTEX -pthread
 RADIOHEADBASE = ../../../..
 PIGPIOBASE    = ../../../../../pigpio/
 SHARED        = ../shared/
@@ -42,11 +42,11 @@ RasPi.o: $(RADIOHEADBASE)/RHutil_pigpio/RasPi.cpp
 
 help_functions.o: $(SHARED)/help_functions.cpp
 	$(CC) $(CFLAGS) -c $(INCLUDE) $<
-	
-rf95_client1.o: rf95_client1.cpp 
+
+rf95_client1.o: rf95_client1.cpp
 	$(CC) $(CFLAGS) -c $(INCLUDE) $<
-	
-rf95_client2.o: rf95_client2.cpp 
+
+rf95_client2.o: rf95_client2.cpp
 	$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RH_RF95.o: $(RADIOHEADBASE)/RH_RF95.cpp
@@ -66,7 +66,7 @@ RHGenericDriver.o: $(RADIOHEADBASE)/RHGenericDriver.cpp
 
 RHGenericSPI.o: $(RADIOHEADBASE)/RHGenericSPI.cpp
 	$(CC) $(CFLAGS) -c $(INCLUDE) $<
-	
+
 gpsMT3339.o: $(SHARED)/gpsMT3339.cpp
 	$(CC) $(CFLAGS) -c $(INCLUDE) $<
 

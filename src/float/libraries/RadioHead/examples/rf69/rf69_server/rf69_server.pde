@@ -20,10 +20,10 @@ RH_RF69 rf69;
 //RH_RF69 rf69(4, 2); // For MoteinoMEGA https://lowpowerlab.com/shop/moteinomega
 //RH_RF69 rf69(8, 7); // Adafruit Feather 32u4
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
-  while (!Serial) 
+  while (!Serial)
     ;
   if (!rf69.init())
     Serial.println("init failed");
@@ -40,7 +40,7 @@ void setup()
   uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
   rf69.setEncryptionKey(key);
-  
+
 #if 0
   // For compat with RFM69 Struct_send
   rf69.setModemConfig(RH_RF69::GFSK_Rb250Fd250);
@@ -55,7 +55,7 @@ void loop()
 {
   if (rf69.available())
   {
-    // Should be a message for us now   
+    // Should be a message for us now
     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
     if (rf69.recv(buf, &len))
@@ -65,7 +65,7 @@ void loop()
       Serial.println((char*)buf);
 //      Serial.print("RSSI: ");
 //      Serial.println(rf69.lastRssi(), DEC);
-      
+
       // Send a reply
       uint8_t data[] = "And hello back to you";
       rf69.send(data, sizeof(data));

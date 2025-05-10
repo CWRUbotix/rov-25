@@ -13,7 +13,7 @@
 // Singleton instance of the radio driver
 RH_CC110 cc110;
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   while (!Serial)
@@ -43,21 +43,21 @@ void loop()
   // Send a message to cc110_server
   uint8_t data[] = "Hello World!";
   cc110.send(data, sizeof(data));
-  
+
   cc110.waitPacketSent();
   // Now wait for a reply
   uint8_t buf[RH_CC110_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
   if (cc110.waitAvailableTimeout(3000))
-  { 
-    // Should be a reply message for us now   
+  {
+    // Should be a reply message for us now
     if (cc110.recv(buf, &len))
    {
       Serial.print("got reply: ");
       Serial.println((char*)buf);
 //      Serial.print("RSSI: ");
-//      Serial.println(cc110.lastRssi(), DEC);    
+//      Serial.println(cc110.lastRssi(), DEC);
     }
     else
     {

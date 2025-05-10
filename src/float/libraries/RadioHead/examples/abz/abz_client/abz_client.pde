@@ -20,18 +20,18 @@ RH_ABZ abz;
 #define RED_LED 11
 
 
-void setup() 
+void setup()
 {
   pinMode(GREEN_LED, OUTPUT);
   pinMode(YELLOW_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
-  
+
   Serial.begin(9600);
-  // Wait for serial port to be available 
+  // Wait for serial port to be available
   // If you do this, it will block here until a USB serial connection is made.
   // If not, it will continue without a Serial connection, but DFU mode will not be available
   // to the host without resetting the CPU with the Boot button
-//  while (!Serial) ; 
+//  while (!Serial) ;
 
   // You must be sure that the TCXO settings are appropriate for your board and radio.
   // See the RH_ABZ documentation for more information.
@@ -49,7 +49,7 @@ void setup()
   // You can change the modulation speed etc from the default
   //abz.setModemConfig(RH_RF95::Bw125Cr45Sf128);
   //abz.setModemConfig(RH_RF95::Bw125Cr45Sf2048);
-  
+
   // The default transmitter power is 13dBm, using PA_BOOST.
   // You can set transmitter powers from 2 to 20 dBm:
   //abz.setTxPower(20); // Max power
@@ -60,33 +60,33 @@ void loop()
   digitalWrite(YELLOW_LED, 1);
   digitalWrite(GREEN_LED, 0);
   digitalWrite(RED_LED, 0);
-  
+
   Serial.println("Sending to abz_server");
   // Send a message to abz_server
   uint8_t data[] = "Hello World!";
   abz.send(data, sizeof(data));
   abz.waitPacketSent();
-  
+
   // Now wait for a reply
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
 // You might need a longer timeout for slow modulatiuon schemes and/or long messages
   if (abz.waitAvailableTimeout(3000))
-  { 
-    // Should be a reply message for us now   
+  {
+    // Should be a reply message for us now
     if (abz.recv(buf, &len))
    {
       Serial.print("got reply: ");
       Serial.println((char*)buf);
 //      Serial.print("RSSI: ");
-//      Serial.println(abz.lastRssi(), DEC);    
+//      Serial.println(abz.lastRssi(), DEC);
       digitalWrite(GREEN_LED, 1);
 
     }
     else
     {
-      Serial.println("recv failed");  
+      Serial.println("recv failed");
       digitalWrite(RED_LED, 1);
 
     }

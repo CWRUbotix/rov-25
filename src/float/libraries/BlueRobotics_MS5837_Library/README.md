@@ -21,7 +21,7 @@ bool init();
  */
 void setModel(uint8_t model);
 
-/** Provide the density of the working fluid in kg/m^3. Default is for 
+/** Provide the density of the working fluid in kg/m^3. Default is for
  * seawater. Should be 997 for freshwater.
  */
 void setFluidDensity(float density);

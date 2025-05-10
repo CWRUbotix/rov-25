@@ -153,9 +153,7 @@ class SerialReaderPacketHandler:
             time_data_list.append(int(time_reading) * MILLISECONDS_TO_SECONDS * SECONDS_TO_MINUTES)
 
             # Starts out as float
-            depth_data_list.append(
-                float(depth_reading)
-            )
+            depth_data_list.append(float(depth_reading))
 
         msg.time_data = time_data_list
         msg.depth_data = depth_data_list

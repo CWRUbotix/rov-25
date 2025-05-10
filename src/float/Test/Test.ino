@@ -1,9 +1,9 @@
+#include <RHSoftwareSPI.h>
 #include <RH_RF95.h>
 #include <SPI.h>
-#include <RHSoftwareSPI.h>
-#include "PicoEncoder.h"
 
 #include "MS5837.h"
+#include "PicoEncoder.h"
 #include "Wire.h"
 
 // #if defined(__AVR_ATmega32U4__)  // Feather 32u4 w/Radio
@@ -84,9 +84,9 @@ MS5837 pressureSensor;
 void setup() {
   delay(2000);
   Serial.begin(115200);
-  Wire.begin(); // Initialize I2C communication
+  Wire.begin();  // Initialize I2C communication
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial){}
+  while (!Serial) {}
 
   Serial.println("Float Transceiver");
   Serial.println();
@@ -134,7 +134,7 @@ void loop() {
   // encoder.update();
   // Serial.println((int)encoder.step);
   // digitalWrite(MOTOR_PWM_2, LOW);
-  
+
   // for (int i = 60; i <= 255; i += 10) {
   //   Serial.print("Motoring at ");
   //   Serial.println(i);
@@ -158,7 +158,7 @@ void loop() {
 
 // Instruct the motor to travel to a position
 bool travelTo(int pos) {
-  pos = pos*1920/360;
+  pos = pos * 1920 / 360;
   encoder.update();
   // Serial.println((int)encoder.step);
   if (pos < (int)encoder.step - TOLERANCE) {
@@ -180,7 +180,7 @@ bool travelTo(int pos) {
 
 void initRadio() {
   softwareSPI.setPins(8, 15, 14);
-  
+
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 

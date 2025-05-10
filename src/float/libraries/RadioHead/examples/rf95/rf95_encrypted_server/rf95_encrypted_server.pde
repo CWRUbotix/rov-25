@@ -1,4 +1,4 @@
-//  LoRa simple server with encrypted communications 
+//  LoRa simple server with encrypted communications
 // In order for this to compile you MUST uncomment the #define RH_ENABLE_ENCRYPTION_MODULE line
 // at the bottom of RadioHead.h, AND you MUST have installed the Crypto directory from arduinolibs:
 // http://rweather.github.io/arduinolibs/index.html
@@ -13,8 +13,8 @@ RH_RF95 rf95;     // Instanciate a LoRa driver
 Speck myCipher;   // Instanciate a Speck block ciphering
 RHEncryptedDriver myDriver(rf95, myCipher); // Instantiate the driver with those two
 
-float frequency = 868.0; // Change the frequency here. 
-unsigned char encryptkey[16]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}; // The very secret key 
+float frequency = 868.0; // Change the frequency here.
+unsigned char encryptkey[16]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}; // The very secret key
 
 void setup() {
   Serial.begin(9600);
@@ -33,7 +33,7 @@ void setup() {
 
 void loop() {
   if (myDriver.available()) {
-    // Should be a message for us now   
+    // Should be a message for us now
     uint8_t buf[myDriver.maxMessageLength()];
     uint8_t len = sizeof(buf);
     if (myDriver.recv(buf, &len)) {

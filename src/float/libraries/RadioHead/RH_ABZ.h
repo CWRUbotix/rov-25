@@ -11,7 +11,7 @@
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2020 Mike McCauley
 // $Id: RH_ABZ.h,v 1.1 2020/06/15 23:39:39 mikem Exp $
-// 
+//
 #ifndef RH_ABZ_h
 #define RH_ABZ_h
 
@@ -19,7 +19,7 @@
 
 /////////////////////////////////////////////////////////////////////
 /// \class RH_ABZ RH_ABZ.h <RH_ABZ.h>
-/// \brief Driver to send and receive unaddressed, unreliable datagrams via 
+/// \brief Driver to send and receive unaddressed, unreliable datagrams via
 /// radio transceiver in a muRata cmwx1zzabz module, which includes an STM32L0 processor,
 /// a SX1276 LoRa radio and an antenna switch.
 ///
@@ -28,7 +28,7 @@
 /// Works with EcoNode SmartTrap, Tlera Grasshopper and family. Almost any board equipped with a muRata cmwx1zzabz module
 /// should work. Tested with EcoNode SmartTrap, Arduino 1.8.9, GrumpyOldPizza Arduino Core for STM32L0.
 /// When building for EcoNode SmartTrap in Arduino IDE, select board type Grasshopper-L082CZ.
-/// This chip and GrumpyOldPizza Arduino Core for STM32L0 are now supported by PlatformIO: 
+/// This chip and GrumpyOldPizza Arduino Core for STM32L0 are now supported by PlatformIO:
 /// https://docs.platformio.org/en/latest/platforms/ststm32.html#arduino-stm32l0-configuration-system
 ///
 /// \par Overview
@@ -60,7 +60,7 @@
 /// the TCXO is powered off.
 /// You will almost certainly need to call
 /// \code
-/// SX1276SetBoardTcxo(true); 
+/// SX1276SetBoardTcxo(true);
 /// \endcode
 /// in your setup() or at other times when you want the radio to operate.
 ///
@@ -125,9 +125,9 @@
 ///     13                          12.5
 ///     15                          14.5
 ///     16                          15.5
-///     17                          16.5 
-///     18                          17.2 
-///     19                          17.6 
+///     17                          16.5
+///     18                          17.2
+///     19                          17.6
 ///     20                          18.2
 ///
 /// useRFO==true (ie no PA_BOOST)
@@ -150,46 +150,44 @@
 /// If the Radio in your boards has its TCXO connected to a programmable power pin,
 /// and if you enable TCXO on the radio (by default it is on these boards)
 /// then this function needs to be called to enable the TCXO before the radio will work.
-extern "C" void SX1276SetBoardTcxo( bool state ); 
+extern "C" void SX1276SetBoardTcxo(bool state);
 
-class RH_ABZ : public RH_RF95
-{
+class RH_ABZ : public RH_RF95 {
 public:
-    /// Constructor
-    RH_ABZ();
+  /// Constructor
+  RH_ABZ();
 
-    /// Initialise the Driver transport hardware and software. Leaves the radio in idle mode,
-    /// with default configuration of: 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-    /// \return true if initialisation succeeded.
-    virtual bool    init();
+  /// Initialise the Driver transport hardware and software. Leaves the radio in idle mode,
+  /// with default configuration of: 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
+  /// \return true if initialisation succeeded.
+  virtual bool init();
 
-    /// Deinitialise the interrupt handler, allowing the radio to be temporarily used by another stack.
-    /// If you wish to use the radio again after this call, you wil need to call init() again.
-    /// \return true if deinitialisation succeeded.
-    bool deinit();
-    
+  /// Deinitialise the interrupt handler, allowing the radio to be temporarily used by another stack.
+  /// If you wish to use the radio again after this call, you wil need to call init() again.
+  /// \return true if deinitialisation succeeded.
+  bool deinit();
+
 protected:
-    /// Called by RH_RF95 when the radio mode is about to change to a new setting.
-    /// Configures the antenna switch to connect to the right radio pin.
-    /// \param[in] mode RHMode the new mode about to take effect
-    /// \return true if the subclasses changes successful
-    virtual bool modeWillChange(RHMode mode);
+  /// Called by RH_RF95 when the radio mode is about to change to a new setting.
+  /// Configures the antenna switch to connect to the right radio pin.
+  /// \param[in] mode RHMode the new mode about to take effect
+  /// \return true if the subclasses changes successful
+  virtual bool modeWillChange(RHMode mode);
 
-    /// Called by RHSPIDriver when the SPI is about to talk to the radio.
-    /// Uses native spi32l0 calls to enable the radio NSS pin
-    virtual void selectSlave();
-    
-    /// Called by RHSPIDriver when the SPI is finished talking to the radio.
-    /// Uses native spi32l0 calls to disable the radio NSS pin
-    virtual void deselectSlave();
+  /// Called by RHSPIDriver when the SPI is about to talk to the radio.
+  /// Uses native spi32l0 calls to enable the radio NSS pin
+  virtual void selectSlave();
+
+  /// Called by RHSPIDriver when the SPI is finished talking to the radio.
+  /// Uses native spi32l0 calls to disable the radio NSS pin
+  virtual void deselectSlave();
 
 private:
-    /// Glue code between the DIO0 interrupt the interrupt handler in RH_RF95
-    static void RH_INTERRUPT_ATTR isr();
+  /// Glue code between the DIO0 interrupt the interrupt handler in RH_RF95
+  static void RH_INTERRUPT_ATTR isr();
 
-    /// Pointer to the one and only instance permitted, for interrupt linkage
-    static RH_ABZ* _thisDevice;
-
+  /// Pointer to the one and only instance permitted, for interrupt linkage
+  static RH_ABZ* _thisDevice;
 };
 
 /// @example abz_client.pde

@@ -7,7 +7,6 @@
 PicoEncoder encoder;
 PicoEncoder non_calibrated_encoder;
 
-
 // this section is an optional DC motor control code to help test an encoder
 // attached to a DC motor (and calibrate phase sizes)
 
@@ -21,20 +20,18 @@ const int encoder_pinB = p6;
 // keep track of current time
 uint period_start_us;
 
-static void set_pwm(float value)
-{
+static void set_pwm(float value) {
   if (value < 0) {
     digitalWrite(dir_pin, 1);
     analogWrite(pwm_pin, 255 * value + 255);
-  } else {
+  }
+  else {
     digitalWrite(dir_pin, 0);
     analogWrite(pwm_pin, 255 * value);
   }
 }
 
-
-void setup()
-{
+void setup() {
   Serial.begin(115200);
 
   pinMode(dir_pin, OUTPUT);
@@ -50,8 +47,7 @@ void setup()
   period_start_us = time_us_32();
 }
 
-void loop()
-{
+void loop() {
   static int count;
 
   count++;
@@ -66,8 +62,7 @@ void loop()
   // to measure the phase sizes dynamically. If we had two encoders (to
   // read two motors, for instance), we could call both autoCalibratePhases
   // methods here, to calibrate both encoders simultaneously
-  while ((int)(time_us_32() - period_start_us) < 10000)
-    encoder.autoCalibratePhases();
+  while ((int)(time_us_32() - period_start_us) < 10000) encoder.autoCalibratePhases();
   period_start_us += 10000;
 
   encoder.update();

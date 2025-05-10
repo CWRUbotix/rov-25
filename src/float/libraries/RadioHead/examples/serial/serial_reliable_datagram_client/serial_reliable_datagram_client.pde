@@ -11,7 +11,7 @@
 // Tested with Arduino Mega, Teensy 3.1, Moteino, Arduino Due
 // Also works on Linux and OSX. Build and test with:
 //  tools/simBuild examples/serial/serial_reliable_datagram_client/serial_reliable_datagram_client.pde
-//  RH_HARDWARESERIAL_DEVICE_NAME=/dev/ttyUSB1 ./serial_reliable_datagram_client 
+//  RH_HARDWARESERIAL_DEVICE_NAME=/dev/ttyUSB1 ./serial_reliable_datagram_client
 
 #include <RHReliableDatagram.h>
 #include <RH_Serial.h>
@@ -19,7 +19,7 @@
 #define CLIENT_ADDRESS 1
 #define SERVER_ADDRESS 2
 
-#if (RH_PLATFORM == RH_PLATFORM_UNIX) 
+#if (RH_PLATFORM == RH_PLATFORM_UNIX)
  #include <RHutil/HardwareSerial.h>
  // On Unix we connect to a physical serial port
  // You can override this with RH_HARDWARESERIAL_DEVICE_NAME environment variable
@@ -40,7 +40,7 @@
 // Class to manage message delivery and receipt, using the driver declared above
 RHReliableDatagram manager(driver, CLIENT_ADDRESS);
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   // Configure the port RH_Serial will use:
@@ -57,13 +57,13 @@ uint8_t buf[RH_SERIAL_MAX_MESSAGE_LEN];
 void loop()
 {
   Serial.println("Sending to serial_reliable_datagram_server");
-    
+
   // Send a message to manager_server
   if (manager.sendtoWait(data, sizeof(data), SERVER_ADDRESS))
   {
     // Now wait for a reply from the server
     uint8_t len = sizeof(buf);
-    uint8_t from;   
+    uint8_t from;
     if (manager.recvfromAckTimeout(buf, &len, 6000, &from))
     {
       Serial.print("got reply from : 0x");

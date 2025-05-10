@@ -11,7 +11,7 @@
 // Tested with Arduino Mega, Teensy 3.1, Moteino, Arduino Due
 // Also works on Linux an OSX. Build and test with:
 //  tools/simBuild examples/serial/serial_reliable_datagram_server/serial_reliable_datagram_server.pde
-//  RH_HARDWARESERIAL_DEVICE_NAME=/dev/ttyUSB0 ./serial_reliable_datagram_server 
+//  RH_HARDWARESERIAL_DEVICE_NAME=/dev/ttyUSB0 ./serial_reliable_datagram_server
 
 #include <RHReliableDatagram.h>
 #include <RH_Serial.h>
@@ -39,7 +39,7 @@
 // Class to manage message delivery and receipt, using the driver declared above
 RHReliableDatagram manager(driver, SERVER_ADDRESS);
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   // Configure the port RH_Serial will use:
@@ -58,7 +58,7 @@ void loop()
 
   // Wait for a message addressed to us from the client
   manager.waitAvailable();
-      
+
   uint8_t len = sizeof(buf);
   uint8_t from;
   if (manager.recvfromAck(buf, &len, &from))

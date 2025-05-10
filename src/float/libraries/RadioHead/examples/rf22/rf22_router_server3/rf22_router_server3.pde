@@ -23,15 +23,15 @@ RH_RF22 driver;
 // Class to manage message delivery and receipt, using the driver declared above
 RHRouter manager(driver, SERVER3_ADDRESS);
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   if (!manager.init())
     Serial.println("init failed");
   // Defaults after init are 434.0MHz, 0.05MHz AFC pull-in, modulation FSK_Rb2_4Fd36
-  
+
   // Manually define the routes for this network
-  manager.addRouteTo(CLIENT_ADDRESS, CLIENT_ADDRESS);  
+  manager.addRouteTo(CLIENT_ADDRESS, CLIENT_ADDRESS);
   manager.addRouteTo(SERVER2_ADDRESS, SERVER2_ADDRESS);
   manager.addRouteTo(SERVER3_ADDRESS, SERVER2_ADDRESS);
 }

@@ -3,7 +3,7 @@
 // Example sketch showing how to create a simple addressed, routed reliable messaging client
 // with the RHMesh class.
 // It is designed to work with the other examples rf22_mesh_server*
-// Hint: you can simulate other network topologies by setting the 
+// Hint: you can simulate other network topologies by setting the
 // RH_TEST_NETWORK define in RHRouter.h
 
 // Mesh has much greater memory requirements, and you may need to limit the
@@ -26,7 +26,7 @@ RH_RF22 driver;
 // Class to manage message delivery and receipt, using the driver declared above
 RHMesh manager(driver, CLIENT_ADDRESS);
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   if (!manager.init())
@@ -41,7 +41,7 @@ uint8_t buf[RH_MESH_MAX_MESSAGE_LEN];
 void loop()
 {
   Serial.println("Sending to manager_mesh_server3");
-    
+
   // Send a message to a rf22_mesh_server
   // A route to the destination will be automatically discovered.
   if (manager.sendtoWait(data, sizeof(data), SERVER3_ADDRESS) == RH_ROUTER_ERROR_NONE)
@@ -49,7 +49,7 @@ void loop()
     // It has been reliably delivered to the next node.
     // Now wait for a reply from the ultimate server
     uint8_t len = sizeof(buf);
-    uint8_t from;    
+    uint8_t from;
     if (manager.recvfromAckTimeout(buf, &len, 3000, &from))
     {
       Serial.print("got reply from : 0x");

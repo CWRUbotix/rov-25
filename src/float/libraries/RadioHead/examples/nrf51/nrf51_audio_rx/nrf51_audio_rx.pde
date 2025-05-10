@@ -1,7 +1,7 @@
 // nrf51_audio_rx.pde
 // Sample sketch for nRF51822 and RadioHead
 //
-// Plays audio samples received in the radio receiver 
+// Plays audio samples received in the radio receiver
 // through a MCP4725 DAC such as on a SparkFun I2C DAC Breakout - MCP4725 (BOB-12918)
 // works with matching transmitter (see nrf51_audio_tx.pde)
 // Works with RedBear nRF51822 board.
@@ -25,12 +25,12 @@
 // Singleton instance of the radio driver
 RH_NRF51 driver;
 
-void setup() 
+void setup()
 {
   delay(1000);
   Serial.begin(9600);
-  while (!Serial) 
-    ; // wait for serial port to connect. 
+  while (!Serial)
+    ; // wait for serial port to connect.
 
   if (!driver.init())
     Serial.println("init failed");
@@ -40,7 +40,7 @@ void setup()
   // Use TIMER0
   // Timer freq before prescaling is 16MHz (VARIANT_MCK)
   // We set up a 32 bit timer that restarts every 100us and outputs a new sample
-  NRF_TIMER0->PRESCALER = 0 << TIMER_PRESCALER_PRESCALER_Pos; 
+  NRF_TIMER0->PRESCALER = 0 << TIMER_PRESCALER_PRESCALER_Pos;
   NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer << TIMER_BITMODE_BITMODE_Pos;
   NRF_TIMER0->BITMODE = TIMER_BITMODE_BITMODE_32Bit << TIMER_BITMODE_BITMODE_Pos;
   NRF_TIMER0->CC[0] = VARIANT_MCK / SAMPLE_RATE; // Counts per cycle
@@ -49,11 +49,11 @@ void setup()
   NRF_TIMER0->TASKS_START = 1;
   // Enable an interrupt when timer completes
   NRF_TIMER0->INTENSET = TIMER_INTENSET_COMPARE0_Msk;
-  
-  // Enable the TIMER0 interrupt, and set the priority 
+
+  // Enable the TIMER0 interrupt, and set the priority
   // TIMER0_IRQHandler() will be called after each sample is available
   NVIC_SetPriority(TIMER0_IRQn, 1);
-  NVIC_EnableIRQ(TIMER0_IRQn); 
+  NVIC_EnableIRQ(TIMER0_IRQn);
 
   // Initialise comms with the I2C DAC as fast as we can
   // Shame the 51822 does not suport the high speed I2C mode that the DAC does
@@ -73,8 +73,8 @@ void analog_out(uint8_t val)
   // is the limiting factor for our sample rate of 5kHz
   // Writes to MCP4725 DAC over I2C using the Wire library
   Wire.beginTransmission(0x60); // 7 bit addressing
-  Wire.write((val >> 4) & 0x0f); 
-  Wire.write((val << 4) & 0xf0);  
+  Wire.write((val >> 4) & 0x0f);
+  Wire.write((val << 4) & 0xf0);
   Wire.endTransmission();
 }
 
@@ -88,7 +88,7 @@ void output_next_sample()
   }
 }
 
-void loop() 
+void loop()
 {
   // Look for a new packet of samples
   if (driver.available())

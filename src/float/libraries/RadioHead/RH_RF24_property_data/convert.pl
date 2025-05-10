@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 #
-# Convert a RH_RFM24 dump of a desired modulation made with printRegisters into an entry suitable for 
+# Convert a RH_RFM24 dump of a desired modulation made with printRegisters into an entry suitable for
 # inclusion in RH_RF24::ModemConfig MODEM_CONFIG_TABLE
 
 use strict;
 
 # List of the properties that are relevant to modulation schemes and speeds
-my @wanted_properties = ( 
+my @wanted_properties = (
     0x2000,
     0x2003,
     0x2004,

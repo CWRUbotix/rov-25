@@ -3,7 +3,7 @@
 // Example sketch showing how to create a simple addressed, routed reliable messaging server
 // with the RHMesh class.
 // It is designed to work with the other examples rf22_mesh_*
-// Hint: you can simulate other network topologies by setting the 
+// Hint: you can simulate other network topologies by setting the
 // RH_TEST_NETWORK define in RHRouter.h
 
 // Mesh has much greater memory requirements, and you may need to limit the
@@ -26,7 +26,7 @@ RH_RF22 driver;
 // Class to manage message delivery and receipt, using the driver declared above
 RHMesh manager(driver, SERVER3_ADDRESS);
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
   if (!manager.init())

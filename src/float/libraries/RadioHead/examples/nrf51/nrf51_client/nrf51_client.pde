@@ -15,20 +15,20 @@
 // Singleton instance of the radio driver
 RH_NRF51 nrf51;
 
-void setup() 
+void setup()
 {
   delay(1000); // Wait for serial port etc to be ready
   Serial.begin(9600);
-  while (!Serial) 
-    ; // wait for serial port to connect. 
+  while (!Serial)
+    ; // wait for serial port to connect.
   if (!nrf51.init())
     Serial.println("init failed");
   // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
   if (!nrf51.setChannel(1))
     Serial.println("setChannel failed");
   if (!nrf51.setRF(RH_NRF51::DataRate2Mbps, RH_NRF51::TransmitPower0dBm))
-    Serial.println("setRF failed"); 
-  
+    Serial.println("setRF failed");
+
   // AES encryption can be enabled by setting the same key in the sender and receiver
 //  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 //                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
@@ -51,8 +51,8 @@ void loop()
   uint8_t len = sizeof(buf);
 
   if (nrf51.waitAvailableTimeout(500))
-  { 
-    // Should be a reply message for us now   
+  {
+    // Should be a reply message for us now
     if (nrf51.recv(buf, &len))
     {
       Serial.print("got reply: ");

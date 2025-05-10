@@ -127,7 +127,7 @@ RadioHead/examples/nrf905/nrf905_reliable_datagram_server/nrf905_reliable_datagr
 RadioHead/examples/nrf905/nrf905_server/nrf905_server.pde
 RadioHead/examples/serial/serial_reliable_datagram_client/serial_reliable_datagram_client.pde
 RadioHead/examples/serial/serial_reliable_datagram_server/serial_reliable_datagram_server.pde
-RadioHead/examples/serial/serial_gateway/serial_gateway.pde 
+RadioHead/examples/serial/serial_gateway/serial_gateway.pde
 RadioHead/examples/simulator/simulator_reliable_datagram_client/simulator_reliable_datagram_client.pde
 RadioHead/examples/simulator/simulator_reliable_datagram_server/simulator_reliable_datagram_server.pde
 RadioHead/examples/raspi/RasPiRH.cpp

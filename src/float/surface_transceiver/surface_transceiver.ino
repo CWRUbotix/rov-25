@@ -121,7 +121,7 @@ bool receivePacket() {
     byteBuffer[len] = '\0';
     char* charBuffer = reinterpret_cast<char*>(byteBuffer);
     // If this is a "single" judge/calibration packet
-    if (strncmp((char *)byteBuffer, "ROS:SINGLE:", 11) == 0) {
+    if (strncmp((char*)byteBuffer, "ROS:SINGLE:", 11) == 0) {
       Serial.println(charBuffer);
     }
     else {
@@ -132,8 +132,8 @@ bool receivePacket() {
       Serial.println();
     }
 
-    bool isACK = (strncmp((char *)byteBuffer, "ACK", 3) == 0);
-    bool isNACK = (strncmp((char *)byteBuffer, "NACK", 4) == 0);
+    bool isACK = (strncmp((char*)byteBuffer, "ACK", 3) == 0);
+    bool isNACK = (strncmp((char*)byteBuffer, "NACK", 4) == 0);
 
     return isACK || isNACK;
   }

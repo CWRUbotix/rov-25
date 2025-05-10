@@ -5,7 +5,7 @@
 // reliability, so you should only use RH_RF69  if you do not need the higher
 // level messaging abilities.
 // It is designed to work with the other example rf69_server.
-// Demonstrates the use of AES encryption, setting the frequency and modem 
+// Demonstrates the use of AES encryption, setting the frequency and modem
 // configuration
 // Tested on Moteino with RFM69 http://lowpowerlab.com/moteino/
 // Tested on miniWireless with RFM69 www.anarduino.com/miniwireless
@@ -20,10 +20,10 @@ RH_RF69 rf69;
 //RH_RF69 rf69(4, 2); // For MoteinoMEGA https://lowpowerlab.com/shop/moteinomega
 //RH_RF69 rf69(8, 7); // Adafruit Feather 32u4
 
-void setup() 
+void setup()
 {
   Serial.begin(9600);
-  while (!Serial) 
+  while (!Serial)
     ;
   if (!rf69.init())
     Serial.println("init failed");
@@ -49,15 +49,15 @@ void loop()
   // Send a message to rf69_server
   uint8_t data[] = "Hello World!";
   rf69.send(data, sizeof(data));
-  
+
   rf69.waitPacketSent();
   // Now wait for a reply
   uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
   if (rf69.waitAvailableTimeout(500))
-  { 
-    // Should be a reply message for us now   
+  {
+    // Should be a reply message for us now
     if (rf69.recv(buf, &len))
     {
       Serial.print("got reply: ");

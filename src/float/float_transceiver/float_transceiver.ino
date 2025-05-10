@@ -68,7 +68,7 @@ RHSoftwareSPI softwareSPI;
 PicoEncoder encoder;
 const uint8_t ENCODER_PIN = 4;
 const int STEP_TOL = 10000;
-int EMPTY_POS = 0; // TODO: Find empty encoder pos
+int EMPTY_POS = 0;  // TODO: Find empty encoder pos
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
@@ -167,7 +167,7 @@ void loop() {
         receiveCommand();
       }
       if (overrideState != OverrideState::NoOverride) break;
-      encoder.resetPosition(); // Set zero position
+      encoder.resetPosition();  // Set zero position
       stage = StageType::DeployPump;
     case StageType::DeployPump:
       stageTimeLimit = millis() + PUMP_MAX;
@@ -184,8 +184,8 @@ void loop() {
       stageTimeLimit = millis() + RELEASE_MAX;
       stop();
       // Await override, submerge command, or exit condition
-      while (overrideState == OverrideState::NoOverride && 
-             // millis() < stageTimeLimit && 
+      while (overrideState == OverrideState::NoOverride &&
+             // millis() < stageTimeLimit &&
              !receiveCommand()) {
         // Send tiny packet for judges while deploying
         if (millis() >= pressureReadTime) {
@@ -208,14 +208,13 @@ void loop() {
           pressureReadTime += PRESSURE_READ_INTERVAL;
 
           // Keep track of surface average in circular array
-          surfacePressures[surfacePressureIndex%AVERAGE_PRESSURE_LEN] = pressure;
+          surfacePressures[surfacePressureIndex % AVERAGE_PRESSURE_LEN] = pressure;
           surfacePressureIndex++;
 
           // Update surface average
           surfaceAverage = 0;
           int totalReadings = min(AVERAGE_PRESSURE_LEN, surfacePressureIndex);
-          for (int i = 0; i < totalReadings; i++)
-            surfaceAverage += surfacePressures[i];
+          for (int i = 0; i < totalReadings; i++) surfaceAverage += surfacePressures[i];
           surfaceAverage /= totalReadings;
         }
       }
@@ -391,13 +390,13 @@ void profilePressure() {
   serialPrintf("Reading pressure: %f\n", pressure);
   // memcpy(packets[profileHalf] + packetIndex, &pressure, sizeof(float));
   // packetIndex += sizeof(float);
-  
+
   float depth;
   if (surfaceAverage == 0) {
     depth = pressureSensor.depth();
   }
   else {
-    depth = (pressure-surfaceAverage) * MBAR_TO_METER_OF_HEAD + PRESSURE_SENSOR_VERTICAL_OFFSET;
+    depth = (pressure - surfaceAverage) * MBAR_TO_METER_OF_HEAD + PRESSURE_SENSOR_VERTICAL_OFFSET;
   }
   serialPrintf("Calculated depth: %f\n", depth);
 
@@ -413,10 +412,11 @@ void profilePressure() {
 }
 
 int countValidPackets() {
-  float depths[2*(int)((PKT_LEN-PKT_HEADER_LEN)/(sizeof(float)+sizeof(uint32_t)))];
+  float depths[2 * (int)((PKT_LEN - PKT_HEADER_LEN) / (sizeof(float) + sizeof(uint32_t)))];
   int totalPackets = 0;
   for (int half = 0; half < 2; half++) {
-    for (int p = PKT_HEADER_LEN + sizeof(uint32_t); p < PKT_LEN; p += sizeof(float) + sizeof(uint32_t)) {
+    for (int p = PKT_HEADER_LEN + sizeof(uint32_t); p < PKT_LEN;
+         p += sizeof(float) + sizeof(uint32_t)) {
       memcpy(&depths[totalPackets], packets[half] + p, sizeof(float));
       totalPackets++;
     }
@@ -456,8 +456,7 @@ void clearPacketPayloads() {
 // Default state exit condition/basic wait for condition
 // Pass in true for no additional condition
 bool profileAndWait(bool condition) {
-  while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
-         condition) {
+  while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit && condition) {
     if (millis() >= pressureReadTime && packetIndex < PKT_LEN) {
       profilePressure();
     }
@@ -503,7 +502,7 @@ bool isEmpty() {
 
 void initRadio() {
   softwareSPI.setPins(8, 15, 14);
-  
+
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 

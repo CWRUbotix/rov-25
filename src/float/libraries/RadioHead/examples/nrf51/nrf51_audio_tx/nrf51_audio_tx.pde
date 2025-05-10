@@ -29,7 +29,7 @@
 #define USE_SQUELCH 0
 #define SQUELCH_THRESHOLD 2
 
-// These provide data transfer between the low level ADC interrupt handler and the 
+// These provide data transfer between the low level ADC interrupt handler and the
 // higher level packet assembly and transmission
 volatile uint8_t  buffers[NUM_BUFFERS][PACKET_SIZE];
 volatile uint16_t sample_index = 0;          // Of the next sample to write
@@ -38,16 +38,16 @@ volatile bool     buffer_ready[NUM_BUFFERS]; // Set when a buffer is full
 
 // These hold the state of the high level transmitter code
 uint8_t  next_tx_buffer = 0;
- 
+
 // Singleton instance of the radio driver
 RH_NRF51 driver;
 
-void setup() 
+void setup()
 {
   delay(1000);
   Serial.begin(9600);
-  while (!Serial) 
-    ; // wait for serial port to connect. 
+  while (!Serial)
+    ; // wait for serial port to connect.
 
   if (!driver.init())
     Serial.println("init failed");
@@ -57,18 +57,18 @@ void setup()
   // Uses the builtin 1.2V bandgap reference and no prescaling
   // AnalogInput2 is A0 on RedBear nrf51822 board
   // Input voltage range is 0.0 to 1.2 V
-  NRF_ADC->CONFIG = ADC_CONFIG_RES_8bit << ADC_CONFIG_RES_Pos 
-                    | ADC_CONFIG_INPSEL_AnalogInputNoPrescaling << ADC_CONFIG_INPSEL_Pos 
-                    | ADC_CONFIG_REFSEL_VBG << ADC_CONFIG_REFSEL_Pos 
+  NRF_ADC->CONFIG = ADC_CONFIG_RES_8bit << ADC_CONFIG_RES_Pos
+                    | ADC_CONFIG_INPSEL_AnalogInputNoPrescaling << ADC_CONFIG_INPSEL_Pos
+                    | ADC_CONFIG_REFSEL_VBG << ADC_CONFIG_REFSEL_Pos
                     | ADC_CONFIG_PSEL_AnalogInput2 << ADC_CONFIG_PSEL_Pos;
   NRF_ADC->ENABLE = 1;
   NRF_ADC->INTENSET = ADC_INTENSET_END_Msk; // Interrupt at completion of each sample
-    
+
   // Set up TIMER to trigger ADC samples
   // Use TIMER0
   // Timer freq before prescaling is 16MHz (VARIANT_MCK)
   // We set up a 32 bit timer that restarts every 100us and trggers a new ADC sample
-  NRF_TIMER0->PRESCALER = 0 << TIMER_PRESCALER_PRESCALER_Pos; 
+  NRF_TIMER0->PRESCALER = 0 << TIMER_PRESCALER_PRESCALER_Pos;
   NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer << TIMER_BITMODE_BITMODE_Pos;
   NRF_TIMER0->BITMODE = TIMER_BITMODE_BITMODE_32Bit << TIMER_BITMODE_BITMODE_Pos;
   NRF_TIMER0->CC[0] = VARIANT_MCK / SAMPLE_RATE; // Counts per cycle
@@ -84,7 +84,7 @@ void setup()
   // Enable the ADC interrupt, and set the priority
   // ADC_IRQHandler() will be called after each sample is available
   NVIC_SetPriority(ADC_IRQn, 1);
-  NVIC_EnableIRQ(ADC_IRQn);   
+  NVIC_EnableIRQ(ADC_IRQn);
 }
 
 // Called when a new sample is available from the ADC.
@@ -127,7 +127,7 @@ void loop() {
       driver.waitPacketSent(); // Make sure the previous packet has gone
       driver.send((uint8_t*)buffers[next_tx_buffer], PACKET_SIZE);
     }
-    
+
     // Now get ready to wait for the next buffer
     buffer_ready[next_tx_buffer] = false;
     next_tx_buffer = (next_tx_buffer + 1) % NUM_BUFFERS;
