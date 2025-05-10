@@ -1,3 +1,6 @@
+# Ignore Arduino libraries
+libraries/
+
 # Python
 __pycache__/
 *.py[cod]
