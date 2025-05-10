@@ -28,10 +28,10 @@ Cam -> topic plan:
 Matlike = NDArray[generic]
 
 class StreamTopic(StrEnum):
-    CAM0 = 'cam0_stream'
-    CAM1 = 'cam1_stream'
-    DISPARITY = 'disparity_stream'
-    DEPTH = 'depth_stream'
+    CAM0 = 'cam0/image_raw'
+    CAM1 = 'cam1/image_raw'
+    DISPARITY = 'disparity/image_raw'
+    DEPTH = 'depth/image_raw'
 
 @dataclass
 class StreamMeta:

@@ -11,6 +11,7 @@ from launch_ros.actions import Node, PushRosNamespace
 
 def generate_launch_description() -> LaunchDescription:
     gui_path = get_package_share_directory('gui')
+    luxonis_path = get_package_share_directory('luxonis_cam')
     # flir_path: str = get_package_share_directory('rov_flir')
 
     simulation_configuration = LaunchConfiguration('simulation', default=False)
@@ -39,11 +40,16 @@ def generate_launch_description() -> LaunchDescription:
         condition=UnlessCondition(simulation_configuration),
     )
 
+    luxonis_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([str(Path(luxonis_path) / 'launch' / 'luxonis_launch.py')]),
+    )
+
     namespace_launch = GroupAction(
         actions=[
             PushRosNamespace('surface'),
             gui_launch,
             flir_watchdog,
+            luxonis_launch
         ]
     )
 

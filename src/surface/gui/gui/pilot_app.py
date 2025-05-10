@@ -11,8 +11,8 @@ from gui.widgets.livestream_header import LivestreamHeader
 from gui.widgets.timer import TimerDisplay
 from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
 
-FRONT_CAM_TOPIC = 'luxonis_cam_stream'
-BOTTOM_CAM_TOPIC = 'bottom_cam/image_raw'
+FRONT_CAM_TOPIC = 'cam0/image_raw'
+BOTTOM_CAM_TOPIC = 'cam1/image_raw'
 
 
 class GuiType(enum.Enum):

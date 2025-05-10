@@ -62,7 +62,7 @@ def generate_launch_description() -> LaunchDescription:
     front_cam = Node(
         package='spinnaker_camera_driver',
         executable='camera_driver_node',
-        name='front_cam',
+        name='cam0',
         exec_name='front_cam',
         emulate_tty=True,
         output='screen',
@@ -78,7 +78,7 @@ def generate_launch_description() -> LaunchDescription:
     bottom_cam = Node(
         package='spinnaker_camera_driver',
         executable='camera_driver_node',
-        name='bottom_cam',
+        name='cam1',
         exec_name='bottom_cam',
         emulate_tty=True,
         output='screen',
