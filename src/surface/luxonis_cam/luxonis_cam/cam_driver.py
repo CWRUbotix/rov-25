@@ -42,20 +42,20 @@ class StreamMeta:
     script_input_name: str
     script_output_name: str
     out_stream_name: str
+    tx_flag: bool
 
     @staticmethod
-    def of(stream_name: str, topic: StreamTopic) -> 'StreamMeta':
+    def of(stream_name: str, topic: StreamTopic, *, tx_flag: bool) -> 'StreamMeta':
         return StreamMeta(topic=topic,
                           toggle_in_stream_name=f'{stream_name}_toggle_in',
                           script_toggle_name=f'{stream_name}_toggle',
                           script_input_name=f'{stream_name}_script_in',
                           script_output_name=f'{stream_name}_script_out',
-                          out_stream_name=f'{stream_name}_out')
+                          out_stream_name=f'{stream_name}_out',
+                          tx_flag=tx_flag)
 
-@dataclass
-class CamMeta:
-    node: ColorCamera
-    stream_meta: StreamMeta
+# Alias for easier access to LUX_LEFT/LUX_RIGHT/etc.
+CAM_IDS = CameraManage.Request
 
 class FramePublishers:
     def __init__(self, node: Node) -> None:
@@ -118,14 +118,12 @@ class LuxonisCamDriverNode(Node):
     ) -> CameraManage.Response:
         response.success = True
 
-        if request.cam == CameraManage.Request.LUX_LEFT:
-            self.tx_left = request.on
-        elif request.cam == CameraManage.Request.LUX_RIGHT:
-            self.tx_right = request.on
+        if request.cam in self.stream_metas_dict:
+            self.stream_metas_dict[request.cam].tx_flag = request.on
         else:
             response.success = False
 
-        self.get_logger().info(f'TXing: ({self.tx_left}, {self.tx_right})')
+        self.get_logger().info(f'TXing: {[meta.tx_flag for meta in self.stream_metas]}')
 
         return response
 
@@ -142,75 +140,73 @@ class LuxonisCamDriverNode(Node):
         self.right_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
         # self.right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
 
-        self.stream_metas = (
-            StreamMeta.of('left', StreamTopic.CAM0),
-            StreamMeta.of('right', StreamTopic.CAM1),
-            StreamMeta.of('disparity', StreamTopic.DISPARITY)
-        )
+        self.stream_metas_dict = {
+            CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.CAM0, tx_flag=True),
+            CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.CAM1, tx_flag=False),
+            CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.CAM0, tx_flag=False),
+            CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.CAM1, tx_flag=False),
+            CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, tx_flag=False),
+            CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, tx_flag=False)
+        }
 
-        self.cam_metas = (
-            CamMeta(self.left_cam_node, self.stream_metas[0]),
-            CamMeta(self.right_cam_node, self.stream_metas[1])
-        )
+        self.stream_metas = tuple(self.stream_metas_dict.values())
 
         self.script = self.pipeline.createScript()
-        self.script.setScript(
+        script_str = \
 f"""
-tx_left = False
-tx_right = False
+tx_flags = [False] * {len(self.stream_metas)}
+toggle_inputs = ["{'", "'.join([meta.script_toggle_name for meta in self.stream_metas])}"]
+frame_inputs = ["{'", "'.join([meta.script_input_name for meta in self.stream_metas])}"]
+frame_outputs = ["{'", "'.join([meta.script_output_name for meta in self.stream_metas])}"]
 
 while True:
-    left_toggle_msg = node.io['{self.cam_metas[0].stream_meta.script_toggle_name}'].tryGet()
-    right_toggle_msg = node.io['{self.cam_metas[1].stream_meta.script_toggle_name}'].tryGet()
+    for i, (toggle_input, frame_input, frame_output) in enumerate(zip(toggle_inputs, frame_inputs, frame_outputs)):
+        toggle_msg = node.io[toggle_input].tryGet()
+        if toggle_msg is not None:
+            tx_flags[i] = toggle_msg.getData()[0]
 
-    if left_toggle_msg is not None:
-        tx_left = left_toggle_msg.getData()[0]
-    if right_toggle_msg is not None:
-        tx_right = right_toggle_msg.getData()[0]
+        frame = node.io[frame_input].get()
 
-    left_frame = node.io['{self.cam_metas[0].stream_meta.script_input_name}'].get()
-    right_frame = node.io['{self.cam_metas[1].stream_meta.script_input_name}'].get()
+        if tx_flags[i]:
+            node.io[frame_output].send(frame)
+"""
+        self.get_logger().info('\nScript:\n"""' + script_str + '"""\n')
+        self.script.setScript(script_str)
 
-    if tx_left:
-        node.io['{self.cam_metas[0].stream_meta.script_output_name}'].send(left_frame)
-    if tx_right:
-        node.io['{self.cam_metas[1].stream_meta.script_output_name}'].send(right_frame)
-""")
-
-
-        # NOPE! cam_meta.node -> cam_xout(cam_meta.out_stream_name)
-        # cam_meta.node -> script.inputs[cam_meta.toggle_input_name]
-        # toggle_xin(cam_meta.in_stream_name) -> script.inputs[cam_meta.toggle_input_name]
-
-        for cam_meta in self.cam_metas:
+        for node, meta in zip(
+            (self.left_cam_node, self.right_cam_node),
+            [self.stream_metas_dict[cam_id] for cam_id in (CAM_IDS.LUX_LEFT, CAM_IDS.LUX_RIGHT)],
+            strict=True
+        ):
             # Camera frame reader -> script [script_input_name]
-            cam_meta.node.setPreviewSize(640, 400)
-            cam_meta.node.setInterleaved(False)
-            cam_meta.node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
-            cam_meta.node.preview.link(self.script.inputs[cam_meta.stream_meta.script_input_name])
+            node.setPreviewSize(640, 400)
+            node.setInterleaved(False)
+            node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
+            node.preview.link(self.script.inputs[meta.script_input_name])
 
+        self.stereo_node = self.pipeline.create(depthai.node.StereoDepth)
+        self.stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
+
+        self.left_cam_node.isp.link(self.stereo_node.left)
+        self.right_cam_node.isp.link(self.stereo_node.right)
+
+        self.stereo_node.rectifiedLeft.link(self.script.inputs[self.stream_metas_dict[CAM_IDS.LUX_LEFT_RECT].script_input_name])
+        self.stereo_node.rectifiedRight.link(self.script.inputs[self.stream_metas_dict[CAM_IDS.LUX_RIGHT_RECT].script_input_name])
+        self.stereo_node.disparity.link(self.script.inputs[self.stream_metas_dict[CAM_IDS.LUX_DISPARITY].script_input_name])
+        self.stereo_node.depth.link(self.script.inputs[self.stream_metas_dict[CAM_IDS.LUX_DEPTH].script_input_name])
+
+        for stream_meta in self.stream_metas:
             # Camera toggler -> script [script_toggle_name]
             toggle_xin = self.pipeline.create(depthai.node.XLinkIn)
-            toggle_xin.setStreamName(cam_meta.stream_meta.toggle_in_stream_name)
-            toggle_xin.out.link(self.script.inputs[cam_meta.stream_meta.script_toggle_name])
+            toggle_xin.setStreamName(stream_meta.toggle_in_stream_name)
+            toggle_xin.out.link(self.script.inputs[stream_meta.script_toggle_name])
 
             # script [script_output_name] -> cam_xout
-            cam_xout = self.pipeline.create(depthai.node.XLinkOut)
-            cam_xout.setStreamName(cam_meta.stream_meta.out_stream_name)
-            cam_xout.input.setBlocking(False)
-            cam_xout.input.setQueueSize(1)
-            self.script.outputs[cam_meta.stream_meta.script_output_name].link(cam_xout.input)
-
-        # Setup stereo pipeline
-        # self.stereo_node = self.pipeline.create(depthai.node.StereoDepth)
-        # self.stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
-
-        # self.left_cam_node.isp.link(self.stereo_node.left)
-        # self.right_cam_node.isp.link(self.stereo_node.right)
-
-        # self.disparity_out_node = self.pipeline.create(depthai.node.XLinkOut)
-        # self.disparity_out_node.setStreamName('disparity_out')
-        # self.stereo_node.disparity.link(self.disparity_out_node.input)
+            frame_xout = self.pipeline.create(depthai.node.XLinkOut)
+            frame_xout.setStreamName(stream_meta.out_stream_name)
+            frame_xout.input.setBlocking(False)
+            frame_xout.input.setQueueSize(1)
+            self.script.outputs[stream_meta.script_output_name].link(frame_xout.input)
 
         # Deploy pipeline to device
         while True:
@@ -221,31 +217,18 @@ while True:
                 continue
             break
 
-        # if self.cam_to_stream_node:
-        #     self.video_queue = self.device.getOutputQueue('preview', maxSize=1, blocking=False)
+        self.toggle_queues = [self.device.getInputQueue(meta.toggle_in_stream_name) for meta in self.stream_metas]
 
-        # self.disparity_queue = self.device.getOutputQueue('disparity', maxSize=1, blocking=False)
-
-        self.left_toggle_queue = self.device.getInputQueue(self.cam_metas[0].stream_meta.toggle_in_stream_name)
-        self.right_toggle_queue = self.device.getInputQueue(self.cam_metas[1].stream_meta.toggle_in_stream_name)
-
-        self.output_video_queues = [(self.device.getOutputQueue(stream.out_stream_name), stream.topic)
-                                    for stream in self.stream_metas]
-
-        self.tx_left = False
-        self.tx_right = True
+        self.frame_output_queues = [self.device.getOutputQueue(stream.out_stream_name) for stream in self.stream_metas]
 
     def spin(self) -> None:
-        for queue, topic in self.output_video_queues:
-            self.frame_publishers.try_get_publish(topic, queue)
+        for i, output_queue in enumerate(self.frame_output_queues):
+            self.frame_publishers.try_get_publish(self.stream_metas[i].topic, output_queue)
 
-        buf = depthai.Buffer()
-        buf.setData(self.tx_left)
-        self.left_toggle_queue.send(buf)
-
-        buf = depthai.Buffer()
-        buf.setData(self.tx_right)
-        self.right_toggle_queue.send(buf)
+        for i, toggle_queue in enumerate(self.toggle_queues):
+            buf = depthai.Buffer()  # TODO: can we create this once and reuse?
+            buf.setData(self.stream_metas[i].tx_flag)
+            toggle_queue.send(buf)
 
         # disparity_frame = self.disparity_queue.tryGet()  # blocking call, will wait until a new data has arrived
 
@@ -274,7 +257,6 @@ def main() -> None:
     try:
         while True:
             rclpy.spin_once(driver_node, executor=executor, timeout_sec=0)
-
             driver_node.spin()
     finally:
         driver_node.shutdown()
