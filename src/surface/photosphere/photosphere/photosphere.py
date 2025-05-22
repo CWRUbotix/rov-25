@@ -1,3 +1,4 @@
+from photosphere.fisheye_projection import equirectangular_projection
 from rclpy.node import Node
 
 from sensor_msgs.msg import Image
@@ -11,6 +12,8 @@ import socket
 import struct
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
+from rov_msgs.srv import GeneratePhotosphere
+import numpy as np
 
 import cv2
 
@@ -46,6 +49,11 @@ class Photosphere(Node):
             socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         )
 
+        self.fisheye_frames = [
+            np.zeros((4000, 4000, 3), dtype=np.uint8),
+            np.zeros((4000, 4000, 3), dtype=np.uint8)
+        ]
+
         # self.client_socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.client_socket1.connect((HOST_IP, PORT1))
 
@@ -55,6 +63,8 @@ class Photosphere(Node):
         self.data = [b'', b'']
         self.payload_size = struct.calcsize('Q')
         self.bridge = CvBridge()
+
+        self.photosphere_service = self.create_service(GeneratePhotosphere, 'generate_photosphere', callback = self.photosphere_service_callback)
 
     def get_frame(self, img_num: int) -> None:
 
@@ -75,6 +85,8 @@ class Photosphere(Node):
 
         time_msg = self.get_clock().now().to_msg()
         img_msg = self.get_image_msg(frame, time_msg)
+
+        self.fisheye_frames[img_num] = frame
 
         self.fisheye_publishers[img_num].publish(img_msg)
 
@@ -102,6 +114,30 @@ class Photosphere(Node):
     def shutdown(self) -> None:
         self.client_sockets[0].close()
         self.client_sockets[1].close()
+    
+    def photosphere_service_callback(self, request: GeneratePhotosphere.Request, response: GeneratePhotosphere.Response) -> GeneratePhotosphere.Response:
+        """
+        Handle a request to generate a photosphere
+
+        Parameters
+        ----------
+        request : GeneratePhotosphere.Request
+            The request that caused this callback being called
+        response : GeneratePhotosphere.Response
+            The response to be sent
+
+        Returns
+        -------
+        GeneratePhotosphere.Response
+            The filled response
+        """
+
+        projection = equirectangular_projection(self.fisheye_frames[0], self.fisheye_frames[1])
+
+        cv2.imwrite('src/surface/photosphere/photosphere/projection.png', projection)
+
+        response.generated = True
+        return response
         
 
 

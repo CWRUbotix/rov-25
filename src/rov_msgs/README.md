@@ -19,3 +19,7 @@ Used for toggling manipulators on and off.
 [AutonomousFlight.srv](srv/AutonomousFlight.srv)
 
 Send to a automation task's control topic to start or stop that automation task
+
+[GeneratePhotosphere.srv](srv/GeneratePhotosphere.srv)
+
+Send a request to generate a photosphere and receive whether it was generated properly
