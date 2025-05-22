@@ -9,10 +9,18 @@ from gui.widgets.arm import Arm
 from gui.widgets.flood_warning import FloodWarning
 from gui.widgets.livestream_header import LivestreamHeader
 from gui.widgets.timer import TimerDisplay
-from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
+from gui.widgets.video_widget import (
+    CameraDescription,
+    CameraType,
+    VideoWidget,
+    SwitchableVideoWidget,
+    CameraManager,
+)
 
-FRONT_CAM_TOPIC = 'cam0/image_raw'
-BOTTOM_CAM_TOPIC = 'cam1/image_raw'
+from rov_msgs.srv import CameraManage
+
+CAM0_TOPIC = 'cam0/image_raw'
+CAM1_TOPIC = 'cam1/image_raw'
 
 
 class GuiType(enum.Enum):
@@ -52,19 +60,19 @@ class PilotApp(App):
             front_cam_type = CameraType.SIMULATION
             bottom_cam_type = CameraType.SIMULATION
         else:
-            front_cam_type = CameraType.DEPTH
+            front_cam_type = CameraType.ETHERNET
             bottom_cam_type = CameraType.ETHERNET
 
         gui_type = GuiType(gui_param.value)
 
         if gui_type == GuiType.PILOT:
-            self.setWindowTitle('Pilot GUI - CWRUbotix ROV 2024')
+            self.setWindowTitle('Pilot GUI - CWRUbotix ROV 2025')
 
             front_cam_description = CameraDescription(
-                front_cam_type, FRONT_CAM_TOPIC, 'Front Camera', 1280, 720
+                front_cam_type, CAM0_TOPIC, 'Front Camera', 1280, 720
             )
             bottom_cam_description = CameraDescription(
-                bottom_cam_type, BOTTOM_CAM_TOPIC, 'Bottom Camera', 1280, 720
+                bottom_cam_type, CAM1_TOPIC, 'Bottom Camera', 1280, 720
             )
 
             main_layout.addWidget(
@@ -86,13 +94,13 @@ class PilotApp(App):
 
             main_layout.addLayout(top_bar)
 
-            self.setWindowTitle('Livestream GUI - CWRUbotix ROV 2024')
+            self.setWindowTitle('Livestream GUI - CWRUbotix ROV 2025')
 
             front_cam_description = CameraDescription(
-                front_cam_type, FRONT_CAM_TOPIC, 'Forward Camera', 920, 690
+                front_cam_type, CAM0_TOPIC, 'Forward Camera', 920, 690
             )
             bottom_cam_description = CameraDescription(
-                bottom_cam_type, BOTTOM_CAM_TOPIC, 'Down Camera', 920, 690
+                bottom_cam_type, CAM1_TOPIC, 'Down Camera', 920, 690
             )
 
             video_layout = QHBoxLayout()
@@ -109,22 +117,59 @@ class PilotApp(App):
             main_layout.addStretch()
 
         else:
-            self.setWindowTitle('Debug GUI - CWRUbotix ROV 2024')
-
-            front_cam_description = CameraDescription(
-                front_cam_type, FRONT_CAM_TOPIC, 'Front Camera', 721, 541
-            )
-            bottom_cam_description = CameraDescription(
-                bottom_cam_type, BOTTOM_CAM_TOPIC, 'Bottom Camera', 721, 541
-            )
+            self.setWindowTitle('Debug GUI - CWRUbotix ROV 2025')
 
             video_layout = QHBoxLayout()
 
             video_layout.addWidget(
-                VideoWidget(front_cam_description), alignment=Qt.AlignmentFlag.AlignHCenter
+                SwitchableVideoWidget(
+                    (
+                        CameraDescription(
+                            CameraType.ETHERNET,
+                            CAM0_TOPIC,
+                            'Forward Camera',
+                            721,
+                            541,
+                            CameraManager('manage_flir', CameraManage.Request.FLIR_FRONT),
+                        ),
+                        CameraDescription(CameraType.ETHERNET, CAM0_TOPIC, 'No Camera', 721, 541),
+                    ),
+                    'switch_cam0_stream',
+                ),
+                alignment=Qt.AlignmentFlag.AlignHCenter,
             )
+
             video_layout.addWidget(
-                VideoWidget(bottom_cam_description), alignment=Qt.AlignmentFlag.AlignHCenter
+                SwitchableVideoWidget(
+                    (
+                        CameraDescription(
+                            CameraType.ETHERNET,
+                            CAM1_TOPIC,
+                            'Down Camera',
+                            721,
+                            541,
+                            CameraManager('manage_flir', CameraManage.Request.FLIR_DOWN),
+                        ),
+                        CameraDescription(
+                            CameraType.DEPTH,
+                            CAM1_TOPIC,
+                            'Dual Left Eye',
+                            721,
+                            541,
+                            CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT),
+                        ),
+                        CameraDescription(
+                            CameraType.DEPTH,
+                            CAM1_TOPIC,
+                            'Dual Right Eye',
+                            721,
+                            541,
+                            CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT),
+                        ),
+                    ),
+                    'switch_cam1_stream',
+                ),
+                alignment=Qt.AlignmentFlag.AlignHCenter,
             )
 
             main_layout.addLayout(video_layout)

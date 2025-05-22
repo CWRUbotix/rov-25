@@ -57,7 +57,7 @@ class StreamMeta:
 CAM_IDS = CameraManage.Request
 
 STREAM_METAS_DICT = {
-    CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.CAM0, tx_flag=True),
+    CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.CAM1, tx_flag=False),
     CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.CAM1, tx_flag=False),
     CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.CAM0, tx_flag=False),
     CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.CAM1, tx_flag=False),

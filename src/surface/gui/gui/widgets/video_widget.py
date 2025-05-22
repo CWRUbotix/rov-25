@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from enum import IntEnum
-from typing import NamedTuple
+from typing import Sequence, NamedTuple
 
 import cv2
 import numpy as np
@@ -13,6 +14,7 @@ from sensor_msgs.msg import Image
 
 from gui.gui_node import GUINode
 from rov_msgs.msg import CameraControllerSwitch
+from rov_msgs.srv import CameraManage
 
 # TODO: Ubuntu26+
 # Our own implementation of cv2.typing.MatLike until cv2.typing exists in a future ubuntu release
@@ -43,6 +45,15 @@ class CameraType(IntEnum):
     DEPTH = 3
     SIMULATION = 4
 
+@dataclass
+class CameraManager:
+    def __init__(self, topic_name: str, camera_id: int) -> None:
+        self.camera_id = camera_id
+        self.topic_name = topic_name
+        self.client = GUINode().create_client_multithreaded(CameraManage, topic_name)
+
+    def set_cam_state(self, *, on: bool) -> None:
+        GUINode().send_request_multithreaded(self.client, CameraManage.Request(cam=self.camera_id, on=on))
 
 class CameraDescription(NamedTuple):
     """
@@ -68,6 +79,7 @@ class CameraDescription(NamedTuple):
     label: str = 'Camera'
     width: int = WIDTH
     height: int = HEIGHT
+    manager: CameraManager | None = None
 
 
 class VideoWidget(QWidget):
@@ -140,16 +152,14 @@ class VideoWidget(QWidget):
 
 
 class SwitchableVideoWidget(VideoWidget):
-    """A single video stream widget that can be paused and played."""
-
     BUTTON_WIDTH = 150
 
     controller_signal = pyqtSignal(CameraControllerSwitch)
 
     def __init__(
         self,
-        camera_descriptions: list[CameraDescription],
-        controller_button_topic: str | None = None,
+        camera_descriptions: Sequence[CameraDescription],
+        controller_button_topic: str,
         default_cam_num: int = 0,
     ) -> None:
         self.camera_descriptions = camera_descriptions
@@ -169,14 +179,13 @@ class SwitchableVideoWidget(VideoWidget):
         else:
             GUINode().get_logger().error('Missing Layout')
 
-        if controller_button_topic is not None:
-            self.controller_signal.connect(self.controller_camera_switch)
-            self.controller_publisher = GUINode().create_publisher(
-                CameraControllerSwitch, controller_button_topic, qos_profile_default
-            )
-            self.controller_subscriber = GUINode().create_signal_subscription(
-                CameraControllerSwitch, controller_button_topic, self.controller_signal
-            )
+        self.controller_signal.connect(self.controller_camera_switch)
+        self.controller_publisher = GUINode().create_publisher(
+            CameraControllerSwitch, controller_button_topic, qos_profile_default
+        )
+        self.controller_subscriber = GUINode().create_signal_subscription(
+            CameraControllerSwitch, controller_button_topic, self.controller_signal
+        )
 
     @pyqtSlot(CameraControllerSwitch)
     def controller_camera_switch(self, switch: CameraControllerSwitch) -> None:
@@ -186,23 +195,28 @@ class SwitchableVideoWidget(VideoWidget):
         self.controller_publisher.publish(CameraControllerSwitch(toggle_right=True))
 
     def camera_switch(self, *, toggle_right: bool) -> None:
-        if toggle_right:
-            self.active_cam = (self.active_cam + 1) % self.num_of_cams
-        else:
-            self.active_cam = (self.active_cam - 1) % self.num_of_cams
+        self.active_cam = (self.active_cam + (1 if toggle_right else -1)) % self.num_of_cams
 
         # Update Camera Description
-        self.camera_description = self.camera_descriptions[self.active_cam]
+        new_cam_description = self.camera_descriptions[self.active_cam]
 
-        self.camera_subscriber.destroy()
-        self.camera_subscriber = GUINode().create_signal_subscription(
-            Image, self.camera_description.topic, self.handle_frame_signal
-        )
-        self.button.setText(self.camera_description.label)
+        if new_cam_description.topic != self.camera_description.topic:
+            self.camera_subscriber.destroy()
+            self.camera_subscriber = GUINode().create_signal_subscription(
+                Image, new_cam_description.topic, self.handle_frame_signal
+            )
+        if self.camera_description.manager is not None:
+            self.camera_description.manager.set_cam_state(on=False)
+        if new_cam_description.manager is not None:
+            new_cam_description.manager.set_cam_state(on=True)
+
+        self.button.setText(new_cam_description.label)
 
         # Updates text for info when no frame received.
-        self.video_frame_label.setText(f'This topic had no frame: {self.camera_description.topic}')
-        self.label.setText(self.camera_description.label)
+        self.video_frame_label.setText(f'This topic had no frame: {new_cam_description.topic}')
+        self.label.setText(new_cam_description.label)
+
+        self.camera_description = new_cam_description
 
 
 class PauseableVideoWidget(VideoWidget):
