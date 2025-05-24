@@ -27,7 +27,7 @@ find_package(std_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Manip.msg"
-  "msg/CameraControllerSwitch.msg"
+  "msg/VideoWidgetSwitch.msg"
   "msg/Flooding.msg"
   "msg/Temperature.msg"
   "msg/IPAddress.msg"

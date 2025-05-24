@@ -30,6 +30,8 @@ Matlike = NDArray[generic]
 class StreamTopic(StrEnum):
     CAM0 = 'cam0/image_raw'
     CAM1 = 'cam1/image_raw'
+    RECT_LEFT = 'rect_left/image_raw'
+    RECT_RIGHT = 'rect_right/image_raw'
     DISPARITY = 'disparity/image_raw'
     DEPTH = 'depth/image_raw'
 
@@ -59,8 +61,8 @@ CAM_IDS = CameraManage.Request
 STREAM_METAS_DICT = {
     CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.CAM1, tx_flag=False),
     CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.CAM1, tx_flag=False),
-    CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.CAM0, tx_flag=False),
-    CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.CAM1, tx_flag=False),
+    CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.RECT_LEFT, tx_flag=False),
+    CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.RECT_RIGHT, tx_flag=False),
     CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, tx_flag=False),
     CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, tx_flag=False)
 }

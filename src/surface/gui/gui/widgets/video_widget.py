@@ -13,7 +13,7 @@ from rclpy.qos import qos_profile_default
 from sensor_msgs.msg import Image
 
 from gui.gui_node import GUINode
-from rov_msgs.msg import CameraControllerSwitch
+from rov_msgs.msg import VideoWidgetSwitch
 from rov_msgs.srv import CameraManage
 
 # TODO: Ubuntu26+
@@ -154,7 +154,7 @@ class VideoWidget(QWidget):
 class SwitchableVideoWidget(VideoWidget):
     BUTTON_WIDTH = 150
 
-    controller_signal = pyqtSignal(CameraControllerSwitch)
+    controller_signal = pyqtSignal(VideoWidgetSwitch)
 
     def __init__(
         self,
@@ -181,21 +181,25 @@ class SwitchableVideoWidget(VideoWidget):
 
         self.controller_signal.connect(self.controller_camera_switch)
         self.controller_publisher = GUINode().create_publisher(
-            CameraControllerSwitch, controller_button_topic, qos_profile_default
+            VideoWidgetSwitch, controller_button_topic, qos_profile_default
         )
         self.controller_subscriber = GUINode().create_signal_subscription(
-            CameraControllerSwitch, controller_button_topic, self.controller_signal
+            VideoWidgetSwitch, controller_button_topic, self.controller_signal
         )
 
-    @pyqtSlot(CameraControllerSwitch)
-    def controller_camera_switch(self, switch: CameraControllerSwitch) -> None:
-        self.camera_switch(toggle_right=switch.toggle_right)
+    @pyqtSlot(VideoWidgetSwitch)
+    def controller_camera_switch(self, switch: VideoWidgetSwitch) -> None:
+        self.camera_switch(index=switch.index, relative=switch.relative)
 
     def gui_camera_switch(self) -> None:
-        self.controller_publisher.publish(CameraControllerSwitch(toggle_right=True))
+        self.controller_publisher.publish(VideoWidgetSwitch(relative=True, index=1))
 
-    def camera_switch(self, *, toggle_right: bool) -> None:
-        self.active_cam = (self.active_cam + (1 if toggle_right else -1)) % self.num_of_cams
+    def camera_switch(self, index: int, *, relative: bool) -> None:
+        if relative:
+            self.active_cam = self.active_cam + index
+        else:
+            self.active_cam = index
+        self.active_cam %= self.num_of_cams
 
         # Update Camera Description
         new_cam_description = self.camera_descriptions[self.active_cam]

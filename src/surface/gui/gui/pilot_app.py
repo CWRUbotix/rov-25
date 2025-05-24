@@ -134,7 +134,7 @@ class PilotApp(App):
                         ),
                         CameraDescription(CameraType.ETHERNET, CAM0_TOPIC, 'No Camera', 721, 541),
                     ),
-                    'switch_cam0_stream',
+                    'switch_left_stream',
                 ),
                 alignment=Qt.AlignmentFlag.AlignHCenter,
             )
@@ -152,7 +152,7 @@ class PilotApp(App):
                         ),
                         CameraDescription(
                             CameraType.DEPTH,
-                            CAM1_TOPIC,
+                            'rect_left/image_raw',
                             'Dual Left Eye',
                             721,
                             541,
@@ -160,14 +160,14 @@ class PilotApp(App):
                         ),
                         CameraDescription(
                             CameraType.DEPTH,
-                            CAM1_TOPIC,
+                            'rect_right/image_raw',
                             'Dual Right Eye',
                             721,
                             541,
                             CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT),
                         ),
                     ),
-                    'switch_cam1_stream',
+                    'switch_right_stream',
                 ),
                 alignment=Qt.AlignmentFlag.AlignHCenter,
             )
