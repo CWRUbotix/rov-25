@@ -131,10 +131,17 @@ class Photosphere(Node):
         GeneratePhotosphere.Response
             The filled response
         """
-
+        cv2.imwrite('src/surface/photosphere/photosphere/frame1.png', self.fisheye_frames[0])
+        cv2.imwrite('src/surface/photosphere/photosphere/frame2.png', self.fisheye_frames[1])
+        print("frames saved")
         projection = equirectangular_projection(self.fisheye_frames[0], self.fisheye_frames[1])
-
+        print("projection created")
         cv2.imwrite('src/surface/photosphere/photosphere/projection.png', projection)
+        print("projection saved")
+        # fisheye_image1 = cv2.imread('src/surface/photosphere/photosphere/frame1.png')
+        # fisheye_image2 = cv2.imread('src/surface/photosphere/photosphere/frame2.png')
+        # projection = equirectangular_projection(fisheye_image1, fisheye_image2)
+        # cv2.imwrite('src/surface/photosphere/photosphere/projection.png', projection)
 
         response.generated = True
         return response

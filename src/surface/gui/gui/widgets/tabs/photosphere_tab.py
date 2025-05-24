@@ -9,8 +9,8 @@ from rclpy.qos import qos_profile_default
 from rov_msgs.srv import GeneratePhotosphere
 
 
-FISHEYE1_TOPIC = '/fisheye1_image'
-FISHEYE2_TOPIC = '/fisheye2_image'
+FISHEYE1_TOPIC = '/surface/fisheye1_image'
+FISHEYE2_TOPIC = '/surface/fisheye2_image'
 
 class PhotosphereTab(QWidget):
 
@@ -22,18 +22,20 @@ class PhotosphereTab(QWidget):
 
         top_bar = QHBoxLayout()
 
-        fisheye1_camera_description = CameraDescription(CameraType.PHOTOSPHERE, FISHEYE1_TOPIC, "Fisheye 1")
-        fisheye2_camera_description = CameraDescription(CameraType.PHOTOSPHERE, FISHEYE2_TOPIC, "Fisheye 2")
+        # fisheye1_camera_description = CameraDescription(CameraType.PHOTOSPHERE, FISHEYE1_TOPIC, "Fisheye 1")
+        # fisheye2_camera_description = CameraDescription(CameraType.PHOTOSPHERE, FISHEYE2_TOPIC, "Fisheye 2")
+        
+        
         self.photosphere_client = GUINode().create_client_multithreaded(GeneratePhotosphere, 'generate_photosphere')
 
         self.photosphere_response_signal.connect(self.photosphere_status)
 
-        top_bar.addWidget(
-            VideoWidget(fisheye1_camera_description), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        )
-        top_bar.addWidget(
-            VideoWidget(fisheye2_camera_description), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        )
+        # top_bar.addWidget(
+        #     VideoWidget(fisheye1_camera_description), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        # )
+        # top_bar.addWidget(
+        #     VideoWidget(fisheye2_camera_description), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        # )
 
         root_layout = QVBoxLayout()
         root_layout.addLayout(top_bar)

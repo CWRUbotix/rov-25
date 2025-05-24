@@ -18,7 +18,7 @@ class FisheyeMetaData:
 
 # The dimensions of the output image in width by height
 # needs to be 2:1 width to height
-OUTPUT_DIMENSION = (2000, 1000)
+OUTPUT_DIMENSION = (1000, 500)
 
 # The APERTURE of the fisheyes in radians
 APERTURE = 195 * math.pi / 180
@@ -27,18 +27,32 @@ APERTURE = 195 * math.pi / 180
 MAX_WIDTH = APERTURE / 2 / math.pi
 
 # The meta data for the fisheye images
+# FISHEYE_META_DATA = (
+#     FisheyeMetaData(
+#         img_num=0,
+#         left=420,
+#         top=37,
+#         diameter=3020,
+#     ),
+#     FisheyeMetaData(
+#         img_num=1,
+#         left=390,
+#         top=-25,
+#         diameter=3050,
+#     ),
+# )
 FISHEYE_META_DATA = (
     FisheyeMetaData(
         img_num=0,
-        left=420,
-        top=37,
-        diameter=3020,
+        left=100,
+        top=20,
+        diameter=750,
     ),
     FisheyeMetaData(
         img_num=1,
-        left=390,
-        top=-25,
-        diameter=3050,
+        left=100,
+        top=20,
+        diameter=750,
     ),
 )
 
@@ -140,6 +154,16 @@ def unit_to_fisheye_coord(
         unit_to_normal_grid(unit_coord[1], fisheye_image.diameter) + fisheye_image.left,
     )
 
+# The portions of the projections that overlap and can be blurred
+# The first item is the left bound, the second is the right bound
+LEFT_SEAM = (
+    unit_to_normal_grid(-1 * MAX_WIDTH, OUTPUT_DIMENSION[0]),
+    unit_to_normal_grid(-1 + MAX_WIDTH, OUTPUT_DIMENSION[0]),
+)
+RIGHT_SEAM = (
+    unit_to_normal_grid(1 - MAX_WIDTH, OUTPUT_DIMENSION[0]),
+    unit_to_normal_grid(MAX_WIDTH, OUTPUT_DIMENSION[0]),
+)
 
 def equirectangular_projection(
     fisheye_image1: Matlike, fisheye_image2: Matlike
@@ -164,9 +188,15 @@ def equirectangular_projection(
 
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
-
+    projection_matrix = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 5), dtype = np.uint16)
+    
+    print("blank prjection created")
+    
+    
+    print("[")
     # Loop through each output pixel and find its color from the fisheye
     for row_index, row in enumerate(projection):
+        print("[")
         for col_index, _pixel in enumerate(row):
             # Calculate the unit coordinates of the current pixel
             projection_unit_coord = (
@@ -197,6 +227,21 @@ def equirectangular_projection(
                 row[col_index] = images[fisheye_num][fisheye_normal_coord[0]][
                     fisheye_normal_coord[1]
                 ]
+                if fisheye_num == 0:
+                    projection_matrix[row_index][col_index][0] = fisheye_normal_coord[0]
+                    projection_matrix[row_index][col_index][1] = fisheye_normal_coord[1]
+                    projection_matrix[row_index][col_index][2] = 0
+                    projection_matrix[row_index][col_index][3] = 0
+                    projection_matrix[row_index][col_index][4] = 1
+                else:
+                    projection_matrix[row_index][col_index][2] = fisheye_normal_coord[0]
+                    projection_matrix[row_index][col_index][3] = fisheye_normal_coord[1]
+                    projection_matrix[row_index][col_index][0] = 0
+                    projection_matrix[row_index][col_index][1] = 0
+                    projection_matrix[row_index][col_index][4] = 0
+
+                print(projection_matrix[row_index][col_index], ",")
+
 
             # if it is in the overlapping area calculate the blur
             else:
@@ -230,20 +275,20 @@ def equirectangular_projection(
                     1 - alpha
                 )
                 row[col_index] = fisheye1_pixel + fisheye2_pixel
+
+                projection_matrix[row_index][col_index][0] = fisheye_normal_coord1[0]
+                projection_matrix[row_index][col_index][1] = fisheye_normal_coord1[1]
+                projection_matrix[row_index][col_index][2] = fisheye_normal_coord2[1]
+                projection_matrix[row_index][col_index][3] = fisheye_normal_coord2[1]
+                projection_matrix[row_index][col_index][4] = alpha
+                print(projection_matrix[row_index][col_index], ",")
+        print("],")
+    print("]")
+
+
+    print("projection created, returning")
+    print(projection_matrix)
     return projection
-
-
-# The portions of the projections that overlap and can be blurred
-# The first item is the left bound, the second is the right bound
-LEFT_SEAM = (
-    unit_to_normal_grid(-1 * MAX_WIDTH, OUTPUT_DIMENSION[0]),
-    unit_to_normal_grid(-1 + MAX_WIDTH, OUTPUT_DIMENSION[0]),
-)
-RIGHT_SEAM = (
-    unit_to_normal_grid(1 - MAX_WIDTH, OUTPUT_DIMENSION[0]),
-    unit_to_normal_grid(MAX_WIDTH, OUTPUT_DIMENSION[0]),
-)
-
 
 if __name__ == '__main__':
     fisheye_image1 = cv2.imread('src/surface/photosphere/photosphere/fisheye1.jpg')
