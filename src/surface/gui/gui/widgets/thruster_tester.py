@@ -9,6 +9,8 @@ from PyQt6.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLa
 from gui.gui_node import GUINode
 
 
+# TODO: Update ThrusterTester to use Mavlink instead of Mavros
+#       (right now it's probably broken)
 class ThrusterTester(QWidget):
     """Widget to command the pixhawk to test the thrusters, and reassign thruster ports."""
 
