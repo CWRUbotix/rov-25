@@ -152,7 +152,7 @@ class PilotApp(App):
                         ),
                         CameraDescription(
                             CameraType.DEPTH,
-                            CAM1_TOPIC,
+                            'lux_raw/image_raw',
                             'Dual Left Eye',
                             721,
                             541,
@@ -160,7 +160,7 @@ class PilotApp(App):
                         ),
                         CameraDescription(
                             CameraType.DEPTH,
-                            CAM1_TOPIC,
+                            'lux_raw/image_raw',
                             'Dual Right Eye',
                             721,
                             541,

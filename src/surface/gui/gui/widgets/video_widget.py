@@ -196,7 +196,7 @@ class SwitchableVideoWidget(VideoWidget):
 
     def camera_switch(self, index: int, *, relative: bool) -> None:
         if relative:
-            self.active_cam = self.active_cam + index
+            self.active_cam += index
         else:
             self.active_cam = index
         self.active_cam %= self.num_of_cams
@@ -205,7 +205,7 @@ class SwitchableVideoWidget(VideoWidget):
         new_cam_description = self.camera_descriptions[self.active_cam]
 
         if new_cam_description.topic != self.camera_description.topic:
-            self.camera_subscriber.destroy()
+            GUINode().destroy_subscription(self.camera_subscriber)
             self.camera_subscriber = GUINode().create_signal_subscription(
                 Image, new_cam_description.topic, self.handle_frame_signal
             )
