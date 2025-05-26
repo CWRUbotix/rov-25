@@ -227,7 +227,7 @@ while True:
             try:
                 self.device = depthai.Device(pipeline).__enter__()
             except RuntimeError as e:  # noqa: F841 (unused variable e for optional logging below)
-                self.get_logger().warning('Error uploading to Luxonis cam, retrying'
+                self.get_logger().warning('Error uploading to Luxonis cam, retrying '
                                           '(see cam_driver to enable more details)...')
                 # Uncomment to get more details about errors
                 # These are usually just "the cam is disconnected", but can be other things

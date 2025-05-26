@@ -55,33 +55,21 @@ class PilotApp(App):
         simulation_param = self.node.declare_parameter('simulation', value=False)
         gui_param = self.node.declare_parameter('gui', 'pilot')
 
-        if simulation_param.value:
-            front_cam_type = CameraType.SIMULATION
-            bottom_cam_type = CameraType.SIMULATION
-        else:
-            front_cam_type = CameraType.ETHERNET
-            bottom_cam_type = CameraType.ETHERNET
+        mono_cam_type = CameraType.SIMULATION if simulation_param.value else CameraType.ETHERNET
 
         gui_type = GuiType(gui_param.value)
 
         if gui_type == GuiType.PILOT:
+            # TODO: Maybe remove the PILOT/DEBUG distinction now that PILOT is horizontal again
             self.setWindowTitle('Pilot GUI - CWRUbotix ROV 2025')
 
-            front_cam_description = CameraDescription(
-                front_cam_type, CAM0_TOPIC, 'Front Camera', 1280, 720
-            )
-            bottom_cam_description = CameraDescription(
-                bottom_cam_type, CAM1_TOPIC, 'Bottom Camera', 1280, 720
-            )
+            video_layout = QHBoxLayout()
 
-            main_layout.addWidget(
-                VideoWidget(front_cam_description), alignment=Qt.AlignmentFlag.AlignHCenter
-            )
-            main_layout.addWidget(
-                VideoWidget(bottom_cam_description), alignment=Qt.AlignmentFlag.AlignHCenter
-            )
+            for video_widget in PilotApp.make_video_widgets(mono_cam_type, 721, 541):
+                video_layout.addWidget(video_widget, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-            main_layout.addLayout(self.make_bottom_bar())
+            main_layout.addLayout(video_layout)
+            main_layout.addLayout(PilotApp.make_bottom_bar())
 
         elif gui_type == GuiType.LIVESTREAM:
             top_bar = QHBoxLayout()
@@ -95,21 +83,10 @@ class PilotApp(App):
 
             self.setWindowTitle('Livestream GUI - CWRUbotix ROV 2025')
 
-            front_cam_description = CameraDescription(
-                front_cam_type, CAM0_TOPIC, 'Forward Camera', 920, 690
-            )
-            bottom_cam_description = CameraDescription(
-                bottom_cam_type, CAM1_TOPIC, 'Down Camera', 920, 690
-            )
-
             video_layout = QHBoxLayout()
 
-            video_layout.addWidget(
-                VideoWidget(front_cam_description), alignment=Qt.AlignmentFlag.AlignHCenter
-            )
-            video_layout.addWidget(
-                VideoWidget(bottom_cam_description), alignment=Qt.AlignmentFlag.AlignHCenter
-            )
+            for video_widget in PilotApp.make_video_widgets(mono_cam_type, 920, 690):
+                video_layout.addWidget(video_widget, alignment=Qt.AlignmentFlag.AlignHCenter)
             video_layout.setSpacing(0)
 
             main_layout.addLayout(video_layout)
@@ -120,63 +97,16 @@ class PilotApp(App):
 
             video_layout = QHBoxLayout()
 
-            video_layout.addWidget(
-                SwitchableVideoWidget(
-                    (
-                        CameraDescription(
-                            CameraType.ETHERNET,
-                            CAM0_TOPIC,
-                            'Forward Camera',
-                            721,
-                            541,
-                            CameraManager('manage_flir', CameraManage.Request.FLIR_FRONT),
-                        ),
-                        CameraDescription(CameraType.ETHERNET, CAM0_TOPIC, 'No Camera', 721, 541),
-                    ),
-                    'switch_left_stream',
-                ),
-                alignment=Qt.AlignmentFlag.AlignHCenter,
-            )
-
-            video_layout.addWidget(
-                SwitchableVideoWidget(
-                    (
-                        CameraDescription(
-                            CameraType.ETHERNET,
-                            CAM1_TOPIC,
-                            'Down Camera',
-                            721,
-                            541,
-                            CameraManager('manage_flir', CameraManage.Request.FLIR_DOWN),
-                        ),
-                        CameraDescription(
-                            CameraType.DEPTH,
-                            'lux_raw/image_raw',
-                            'Dual Left Eye',
-                            721,
-                            541,
-                            CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT),
-                        ),
-                        CameraDescription(
-                            CameraType.DEPTH,
-                            'lux_raw/image_raw',
-                            'Dual Right Eye',
-                            721,
-                            541,
-                            CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT),
-                        ),
-                    ),
-                    'switch_right_stream',
-                ),
-                alignment=Qt.AlignmentFlag.AlignHCenter,
-            )
+            for video_widget in PilotApp.make_video_widgets(mono_cam_type, 721, 541):
+                video_layout.addWidget(video_widget, alignment=Qt.AlignmentFlag.AlignHCenter)
 
             main_layout.addLayout(video_layout)
-            main_layout.addLayout(self.make_bottom_bar())
+            main_layout.addLayout(PilotApp.make_bottom_bar())
 
         self.apply_monitor_config(gui_type)
 
-    def make_bottom_bar(self) -> QHBoxLayout:
+    @staticmethod
+    def make_bottom_bar() -> QHBoxLayout:
         """Generate a bottom pane used by multiple gui types.
 
         Returns
@@ -200,6 +130,62 @@ class PilotApp(App):
         )
 
         return bottom_screen_layout
+
+    @staticmethod
+    def make_video_widgets(mono_cam_type: CameraType,
+                           frame_width: int, frame_height: int) -> tuple[VideoWidget, VideoWidget]:
+        """Make the (switchable) VideoWidgets for any of the GUI types.
+
+        Parameters
+        ----------
+        mono_cam_type : CameraType
+            the CameraType for the monocular cams (probably ETHERNET or SIMULATION)
+        frame_width : int
+            width to display each frame at in px
+        frame_height : int
+            height to display each frame at in px
+
+        Returns
+        -------
+        tuple[VideoWidget, VideoWidget]
+            the left/top and right/bottom VideoWidgets
+        """
+        return (
+            SwitchableVideoWidget(
+                (
+                    CameraDescription(
+                        mono_cam_type, CAM0_TOPIC, 'Forward Camera',
+                        frame_width, frame_height,
+                        CameraManager('manage_flir', CameraManage.Request.FLIR_FRONT),
+                    ),
+                    # CameraDescription(
+                    #     CameraType.ETHERNET, CAM0_TOPIC, 'No Camera',
+                    #     frame_width, frame_height
+                    # ),
+                ),
+                'switch_left_stream'
+            ),
+            SwitchableVideoWidget(
+                (
+                    CameraDescription(
+                        mono_cam_type, CAM1_TOPIC, 'Down Camera',
+                        frame_width, frame_height,
+                        CameraManager('manage_flir', CameraManage.Request.FLIR_DOWN),
+                    ),
+                    CameraDescription(
+                        CameraType.DEPTH, 'lux_raw/image_raw', 'Dual Left Eye',
+                        frame_width, frame_height,
+                        CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT),
+                    ),
+                    CameraDescription(
+                        CameraType.DEPTH, 'lux_raw/image_raw', 'Dual Right Eye',
+                        frame_width, frame_height,
+                        CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT),
+                    ),
+                ),
+                'switch_right_stream'
+            )
+        )
 
     def apply_monitor_config(self, gui_type: GuiType) -> None:
         """Fullscreen the app to a specific monitor, depending on gui_type and the monitor config.
