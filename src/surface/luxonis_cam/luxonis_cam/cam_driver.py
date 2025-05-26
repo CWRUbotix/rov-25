@@ -16,16 +16,6 @@ from sensor_msgs.msg import Image
 
 from rov_msgs.srv import CameraManage
 
-"""
-Cam -> topic plan:
- - unrectified_left -> cam0
- - unrectified_right -> cam1
- - rectified_left -> cam0
- - rectified_right -> cam1
- - disparity -> disparity
- - depth -> depth
-"""
-
 Matlike = NDArray[generic]
 
 class StreamTopic(StrEnum):
@@ -101,7 +91,7 @@ class FramePublishers:
         img_msg.header.stamp = time
         return img_msg
     
-STREAMS_THAT_NEED_STEREO = [CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT]#, CAM_IDS.LUX_DISPARITY, CAM_IDS.LUX_DEPTH]
+STREAMS_THAT_NEED_STEREO = [CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT, CAM_IDS.LUX_DISPARITY, CAM_IDS.LUX_DEPTH]
 
 class LuxonisCamDriverNode(Node):
     def __init__(self) -> None:
@@ -112,8 +102,8 @@ class LuxonisCamDriverNode(Node):
             CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.LUX_RAW, tx_flag=False),
             CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.RECT_LEFT, tx_flag=False),
             CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.RECT_RIGHT, tx_flag=False),
-            # CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, tx_flag=False),
-            # CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, tx_flag=False)
+            CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, tx_flag=False),
+            CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, tx_flag=False)
         }
 
         self.stream_metas = tuple(self.stream_metas_dict.values())
@@ -171,9 +161,9 @@ while True:
         if toggle_msg is not None:
             tx_flags[i] = toggle_msg.getData()[0]
 
-        frame = node.io[frame_input].get()
+        frame = node.io[frame_input].tryGet()
 
-        if tx_flags[i]:
+        if frame is not None and tx_flags[i]:
             node.io[frame_output].send(frame)
 """
         self.get_logger().info('\nScript:\n"""' + script_str + '"""\n')
@@ -198,24 +188,23 @@ while True:
         left_cam_node.isp.link(script.inputs['left_stereo_script_in'])
         left_stereo_toggle_xin = pipeline.create(depthai.node.XLinkIn)
         left_stereo_toggle_xin.setStreamName('left_stereo_toggle_in')
+        left_stereo_toggle_xin.setMaxDataSize(1)  # Reduce ram usage for boolean streams
         left_stereo_toggle_xin.out.link(script.inputs['left_stereo_toggle'])
         script.outputs['left_stereo_script_out'].link(stereo_node.left)
 
         right_cam_node.isp.link(script.inputs['right_stereo_script_in'])
         right_stereo_toggle_xin = pipeline.create(depthai.node.XLinkIn)
         right_stereo_toggle_xin.setStreamName('right_stereo_toggle_in')
+        right_stereo_toggle_xin.setMaxDataSize(1)
         right_stereo_toggle_xin.out.link(script.inputs['right_stereo_toggle'])
         script.outputs['right_stereo_script_out'].link(stereo_node.right)
-
-        # left_cam_node.isp.link(stereo_node.left)
-        # right_cam_node.isp.link(stereo_node.right)
 
         self.get_logger().info('Finished stereo enable stuff')
 
         stereo_node.rectifiedLeft.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_LEFT_RECT].script_input_name])
         stereo_node.rectifiedRight.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_RIGHT_RECT].script_input_name])
-        # stereo_node.disparity.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_DISPARITY].script_input_name])
-        # stereo_node.depth.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_DEPTH].script_input_name])
+        stereo_node.disparity.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_DISPARITY].script_input_name])
+        stereo_node.depth.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_DEPTH].script_input_name])
 
         self.get_logger().info('Starting stream meta loop')
 
@@ -223,6 +212,7 @@ while True:
             # Camera toggler -> script [script_toggle_name]
             toggle_xin = pipeline.create(depthai.node.XLinkIn)
             toggle_xin.setStreamName(stream_meta.toggle_in_stream_name)
+            toggle_xin.setMaxDataSize(1)
             toggle_xin.out.link(script.inputs[stream_meta.script_toggle_name])
 
             # script [script_output_name] -> cam_xout
@@ -256,16 +246,10 @@ while True:
         self.get_logger().info('Done creating pipeline')
 
     def spin(self) -> None:
-        ##########################################################################################
-        # TODO: Try sending toggles only when they need to change (i.e. in the service callback) #
-        # Maybe the queues are filling up and that's hanging the node at "Spinning b2" below     #
-        ##########################################################################################
-
+        # TODO: only send toggles when we actually need to change state?
         for cam_id, output_queue in self.frame_output_queues.items():
             if self.stream_metas_dict[cam_id].tx_flag:
-                self.frame_publishers.try_get_publish(self.stream_metas[cam_id].topic, output_queue)
-
-        self.get_logger().info('Spinning a')
+                self.frame_publishers.try_get_publish(self.stream_metas_dict[cam_id].topic, output_queue)
 
         enable_stereo = False
         for cam_id in STREAMS_THAT_NEED_STEREO:
@@ -273,24 +257,15 @@ while True:
                 enable_stereo = True
                 break
 
-        self.get_logger().info('Spinning b')
-
         buf = depthai.Buffer()  # TODO: can we create this once and reuse?
-        self.get_logger().info('Spinning b1')
         buf.setData(enable_stereo)
-        self.get_logger().info('Spinning b2')
         self.left_stereo_toggle_queue.send(buf)
-        self.get_logger().info('Spinning b3')
         self.right_stereo_toggle_queue.send(buf)
 
-        self.get_logger().info('Spinning c')
-
         for cam_id, toggle_queue in self.toggle_queues.items():
-            buf = depthai.Buffer()  # TODO: can we create this once and reuse?
+            buf = depthai.Buffer()
             buf.setData(self.stream_metas_dict[cam_id].tx_flag)
             toggle_queue.send(buf)
-
-        self.get_logger().info('Spinning d')
 
         # disparity_frame = self.disparity_queue.tryGet()  # blocking call, will wait until a new data has arrived
 
@@ -318,7 +293,6 @@ def main() -> None:
 
     try:
         while True:
-            rclpy.logging.get_logger('DEBUGGING').info('spinning')
             rclpy.spin_once(driver_node, executor=executor, timeout_sec=0)
             driver_node.spin()
     finally:
