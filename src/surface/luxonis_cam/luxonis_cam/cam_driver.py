@@ -34,17 +34,17 @@ class StreamMeta:
     script_input_name: str
     script_output_name: str
     out_stream_name: str
-    tx_flag: bool
+    enabled: bool
 
     @staticmethod
-    def of(stream_name: str, topic: StreamTopic, *, tx_flag: bool) -> 'StreamMeta':
+    def of(stream_name: str, topic: StreamTopic, *, enabled: bool) -> 'StreamMeta':
         return StreamMeta(topic=topic,
                           toggle_in_stream_name=f'{stream_name}_toggle_in',
                           script_toggle_name=f'{stream_name}_toggle',
                           script_input_name=f'{stream_name}_script_in',
                           script_output_name=f'{stream_name}_script_out',
                           out_stream_name=f'{stream_name}_out',
-                          tx_flag=tx_flag)
+                          enabled=enabled)
 
 # Alias for easier access to LUX_LEFT/LUX_RIGHT/etc.
 CAM_IDS = CameraManage.Request
@@ -97,16 +97,14 @@ class LuxonisCamDriverNode(Node):
     def __init__(self) -> None:
         super().__init__('luxonis_cam_driver', parameter_overrides=[])
 
-        self.stream_metas_dict = {
-            CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.LUX_RAW, tx_flag=False),
-            CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.LUX_RAW, tx_flag=False),
-            CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.RECT_LEFT, tx_flag=False),
-            CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.RECT_RIGHT, tx_flag=False),
-            CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, tx_flag=False),
-            CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, tx_flag=False)
+        self.stream_metas = {
+            CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.LUX_RAW, enabled=False),
+            CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.LUX_RAW, enabled=False),
+            CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.RECT_LEFT, enabled=False),
+            CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.RECT_RIGHT, enabled=False),
+            CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, enabled=False),
+            CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, enabled=False)
         }
-
-        self.stream_metas = tuple(self.stream_metas_dict.values())
 
         self.cam_manage_service = self.create_service(
             CameraManage, 'manage_luxonis', self.cam_manage_callback
@@ -125,12 +123,12 @@ class LuxonisCamDriverNode(Node):
 
         self.get_logger().info('CAM MANAGE CALLBACK')
 
-        if request.cam in self.stream_metas_dict:
-            self.stream_metas_dict[request.cam].tx_flag = request.on
+        if request.cam in self.stream_metas:
+            self.stream_metas[request.cam].enabled = request.on
         else:
             response.success = False
 
-        self.get_logger().info(f'TXing: {[meta.tx_flag for meta in self.stream_metas]}')
+        self.get_logger().info(f'TXing: {[meta.enabled for meta in self.stream_metas.values()]}')
 
         return response
 
@@ -150,20 +148,20 @@ class LuxonisCamDriverNode(Node):
         script = pipeline.createScript()
         script_str = \
 f"""
-tx_flags = [False] * {len(self.stream_metas) + 2}
-toggle_inputs = ["{'", "'.join([meta.script_toggle_name for meta in self.stream_metas])}", "left_stereo_toggle", "right_stereo_toggle"]
-frame_inputs = ["{'", "'.join([meta.script_input_name for meta in self.stream_metas])}", "left_stereo_script_in", "right_stereo_script_in"]
-frame_outputs = ["{'", "'.join([meta.script_output_name for meta in self.stream_metas])}", "left_stereo_script_out", "right_stereo_script_out"]
+enabled_flags = [False] * {len(self.stream_metas.values()) + 2}
+toggle_inputs = ["{'", "'.join([meta.script_toggle_name for meta in self.stream_metas.values()])}", "left_stereo_toggle", "right_stereo_toggle"]
+frame_inputs = ["{'", "'.join([meta.script_input_name for meta in self.stream_metas.values()])}", "left_stereo_script_in", "right_stereo_script_in"]
+frame_outputs = ["{'", "'.join([meta.script_output_name for meta in self.stream_metas.values()])}", "left_stereo_script_out", "right_stereo_script_out"]
 
 while True:
     for i, (toggle_input, frame_input, frame_output) in enumerate(zip(toggle_inputs, frame_inputs, frame_outputs)):
         toggle_msg = node.io[toggle_input].tryGet()
         if toggle_msg is not None:
-            tx_flags[i] = toggle_msg.getData()[0]
+            enabled_flags[i] = toggle_msg.getData()[0]
 
         frame = node.io[frame_input].tryGet()
 
-        if frame is not None and tx_flags[i]:
+        if frame is not None and enabled_flags[i]:
             node.io[frame_output].send(frame)
 """
         self.get_logger().info('\nScript:\n"""' + script_str + '"""\n')
@@ -171,7 +169,7 @@ while True:
 
         for node, meta in zip(
             (left_cam_node, right_cam_node),
-            [self.stream_metas_dict[cam_id] for cam_id in (CAM_IDS.LUX_LEFT, CAM_IDS.LUX_RIGHT)],
+            [self.stream_metas[cam_id] for cam_id in (CAM_IDS.LUX_LEFT, CAM_IDS.LUX_RIGHT)],
             strict=True
         ):
             # Camera frame reader -> script [script_input_name]
@@ -201,14 +199,14 @@ while True:
 
         self.get_logger().info('Finished stereo enable stuff')
 
-        stereo_node.rectifiedLeft.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_LEFT_RECT].script_input_name])
-        stereo_node.rectifiedRight.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_RIGHT_RECT].script_input_name])
-        stereo_node.disparity.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_DISPARITY].script_input_name])
-        stereo_node.depth.link(script.inputs[self.stream_metas_dict[CAM_IDS.LUX_DEPTH].script_input_name])
+        stereo_node.rectifiedLeft.link(script.inputs[self.stream_metas[CAM_IDS.LUX_LEFT_RECT].script_input_name])
+        stereo_node.rectifiedRight.link(script.inputs[self.stream_metas[CAM_IDS.LUX_RIGHT_RECT].script_input_name])
+        stereo_node.disparity.link(script.inputs[self.stream_metas[CAM_IDS.LUX_DISPARITY].script_input_name])
+        stereo_node.depth.link(script.inputs[self.stream_metas[CAM_IDS.LUX_DEPTH].script_input_name])
 
         self.get_logger().info('Starting stream meta loop')
 
-        for stream_meta in self.stream_metas:
+        for stream_meta in self.stream_metas.values():
             # Camera toggler -> script [script_toggle_name]
             toggle_xin = pipeline.create(depthai.node.XLinkIn)
             toggle_xin.setStreamName(stream_meta.toggle_in_stream_name)
@@ -240,20 +238,20 @@ while True:
 
         self.left_stereo_toggle_queue = self.device.getInputQueue('left_stereo_toggle_in')
         self.right_stereo_toggle_queue = self.device.getInputQueue('right_stereo_toggle_in')
-        self.toggle_queues = {cam_id: self.device.getInputQueue(meta.toggle_in_stream_name) for cam_id, meta in self.stream_metas_dict.items()}
-        self.frame_output_queues = {cam_id: self.device.getOutputQueue(meta.out_stream_name) for cam_id, meta in self.stream_metas_dict.items()}
+        self.toggle_queues = {cam_id: self.device.getInputQueue(meta.toggle_in_stream_name) for cam_id, meta in self.stream_metas.items()}
+        self.frame_output_queues = {cam_id: self.device.getOutputQueue(meta.out_stream_name) for cam_id, meta in self.stream_metas.items()}
 
         self.get_logger().info('Done creating pipeline')
 
     def spin(self) -> None:
         # TODO: only send toggles when we actually need to change state?
         for cam_id, output_queue in self.frame_output_queues.items():
-            if self.stream_metas_dict[cam_id].tx_flag:
-                self.frame_publishers.try_get_publish(self.stream_metas_dict[cam_id].topic, output_queue)
+            if self.stream_metas[cam_id].enabled:
+                self.frame_publishers.try_get_publish(self.stream_metas[cam_id].topic, output_queue)
 
         enable_stereo = False
         for cam_id in STREAMS_THAT_NEED_STEREO:
-            if self.stream_metas_dict[cam_id].tx_flag:
+            if self.stream_metas[cam_id].enabled:
                 enable_stereo = True
                 break
 
@@ -264,7 +262,7 @@ while True:
 
         for cam_id, toggle_queue in self.toggle_queues.items():
             buf = depthai.Buffer()
-            buf.setData(self.stream_metas_dict[cam_id].tx_flag)
+            buf.setData(self.stream_metas[cam_id].enabled)
             toggle_queue.send(buf)
 
         # disparity_frame = self.disparity_queue.tryGet()  # blocking call, will wait until a new data has arrived
