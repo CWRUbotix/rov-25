@@ -27,22 +27,30 @@ class StreamTopic(StrEnum):
     DEPTH = 'depth/image_raw'
 
 @dataclass
-class StreamMeta:
-    topic: StreamTopic
+class StreamScriptNames:
     toggle_in_stream_name: str
     script_toggle_name: str
     script_input_name: str
     script_output_name: str
+
+    @staticmethod
+    def of(stream_name: str) -> 'StreamScriptNames':
+        return StreamScriptNames(toggle_in_stream_name=f'{stream_name}_toggle_in',
+                                 script_toggle_name=f'{stream_name}_toggle',
+                                 script_input_name=f'{stream_name}_script_in',
+                                 script_output_name=f'{stream_name}_script_out')
+
+@dataclass
+class StreamMeta:
+    topic: StreamTopic
+    script_names: StreamScriptNames
     out_stream_name: str
     enabled: bool
 
     @staticmethod
     def of(stream_name: str, topic: StreamTopic, *, enabled: bool) -> 'StreamMeta':
         return StreamMeta(topic=topic,
-                          toggle_in_stream_name=f'{stream_name}_toggle_in',
-                          script_toggle_name=f'{stream_name}_toggle',
-                          script_input_name=f'{stream_name}_script_in',
-                          script_output_name=f'{stream_name}_script_out',
+                          script_names=StreamScriptNames.of(stream_name),
                           out_stream_name=f'{stream_name}_out',
                           enabled=enabled)
 
@@ -106,6 +114,11 @@ class LuxonisCamDriverNode(Node):
             CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, enabled=False)
         }
 
+        self.left_stereo_script_names = StreamScriptNames.of('left_stereo')
+        self.right_stereo_script_names = StreamScriptNames.of('right_stereo')
+        self.script_names = tuple(meta.script_names for meta in self.stream_metas.values()) + \
+            (self.left_stereo_script_names, self.right_stereo_script_names)
+
         self.cam_manage_service = self.create_service(
             CameraManage, 'manage_luxonis', self.cam_manage_callback
         )
@@ -121,14 +134,13 @@ class LuxonisCamDriverNode(Node):
     ) -> CameraManage.Response:
         response.success = True
 
-        self.get_logger().info('CAM MANAGE CALLBACK')
-
         if request.cam in self.stream_metas:
             self.stream_metas[request.cam].enabled = request.on
         else:
             response.success = False
 
-        self.get_logger().info(f'TXing: {[meta.enabled for meta in self.stream_metas.values()]}')
+        statuses = [f'{cam}: {meta.enabled}' for cam, meta in self.stream_metas.items()]
+        self.get_logger().info(f'Luxonis now publishing: {'; '.join(statuses)}')
 
         return response
 
@@ -143,15 +155,15 @@ class LuxonisCamDriverNode(Node):
         right_cam_node = pipeline.createColorCamera()
         right_cam_node.setBoardSocket(depthai.CameraBoardSocket.CAM_A)
         right_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
-        # right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
+        right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
 
         script = pipeline.createScript()
         script_str = \
 f"""
-enabled_flags = [False] * {len(self.stream_metas.values()) + 2}
-toggle_inputs = ["{'", "'.join([meta.script_toggle_name for meta in self.stream_metas.values()])}", "left_stereo_toggle", "right_stereo_toggle"]
-frame_inputs = ["{'", "'.join([meta.script_input_name for meta in self.stream_metas.values()])}", "left_stereo_script_in", "right_stereo_script_in"]
-frame_outputs = ["{'", "'.join([meta.script_output_name for meta in self.stream_metas.values()])}", "left_stereo_script_out", "right_stereo_script_out"]
+enabled_flags = [False] * {len(self.script_names)}
+toggle_inputs = ["{'", "'.join([names.script_toggle_name for names in self.script_names])}"]
+frame_inputs = ["{'", "'.join([names.script_input_name for names in self.script_names])}"]
+frame_outputs = ["{'", "'.join([names.script_output_name for names in self.script_names])}"]
 
 while True:
     for i, (toggle_input, frame_input, frame_output) in enumerate(zip(toggle_inputs, frame_inputs, frame_outputs)):
@@ -176,51 +188,37 @@ while True:
             node.setPreviewSize(640, 400)
             node.setInterleaved(False)
             node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
-            node.preview.link(script.inputs[meta.script_input_name])
+            node.preview.link(script.inputs[meta.script_names.script_input_name])
 
         stereo_node = pipeline.create(depthai.node.StereoDepth)
         stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
 
-        self.get_logger().info('Starting stereo enable stuff')
-
-        left_cam_node.isp.link(script.inputs['left_stereo_script_in'])
-        left_stereo_toggle_xin = pipeline.create(depthai.node.XLinkIn)
-        left_stereo_toggle_xin.setStreamName('left_stereo_toggle_in')
-        left_stereo_toggle_xin.setMaxDataSize(1)  # Reduce ram usage for boolean streams
-        left_stereo_toggle_xin.out.link(script.inputs['left_stereo_toggle'])
-        script.outputs['left_stereo_script_out'].link(stereo_node.left)
-
-        right_cam_node.isp.link(script.inputs['right_stereo_script_in'])
-        right_stereo_toggle_xin = pipeline.create(depthai.node.XLinkIn)
-        right_stereo_toggle_xin.setStreamName('right_stereo_toggle_in')
-        right_stereo_toggle_xin.setMaxDataSize(1)
-        right_stereo_toggle_xin.out.link(script.inputs['right_stereo_toggle'])
-        script.outputs['right_stereo_script_out'].link(stereo_node.right)
-
-        self.get_logger().info('Finished stereo enable stuff')
-
-        stereo_node.rectifiedLeft.link(script.inputs[self.stream_metas[CAM_IDS.LUX_LEFT_RECT].script_input_name])
-        stereo_node.rectifiedRight.link(script.inputs[self.stream_metas[CAM_IDS.LUX_RIGHT_RECT].script_input_name])
-        stereo_node.disparity.link(script.inputs[self.stream_metas[CAM_IDS.LUX_DISPARITY].script_input_name])
-        stereo_node.depth.link(script.inputs[self.stream_metas[CAM_IDS.LUX_DEPTH].script_input_name])
-
-        self.get_logger().info('Starting stream meta loop')
-
-        for stream_meta in self.stream_metas.values():
+        for names in self.script_names:
             # Camera toggler -> script [script_toggle_name]
             toggle_xin = pipeline.create(depthai.node.XLinkIn)
-            toggle_xin.setStreamName(stream_meta.toggle_in_stream_name)
+            toggle_xin.setStreamName(names.toggle_in_stream_name)
             toggle_xin.setMaxDataSize(1)
-            toggle_xin.out.link(script.inputs[stream_meta.script_toggle_name])
+            toggle_xin.out.link(script.inputs[names.script_toggle_name])
 
+        left_cam_node.isp.link(script.inputs[self.left_stereo_script_names.script_input_name])
+        right_cam_node.isp.link(script.inputs[self.right_stereo_script_names.script_input_name])
+        script.outputs[self.left_stereo_script_names.script_output_name].link(stereo_node.left)
+        script.outputs[self.right_stereo_script_names.script_output_name].link(stereo_node.right)
+
+        stereo_node.rectifiedLeft.link(script.inputs[self.stream_metas[CAM_IDS.LUX_LEFT_RECT].script_names.script_input_name])
+        stereo_node.rectifiedRight.link(script.inputs[self.stream_metas[CAM_IDS.LUX_RIGHT_RECT].script_names.script_input_name])
+        stereo_node.disparity.link(script.inputs[self.stream_metas[CAM_IDS.LUX_DISPARITY].script_names.script_input_name])
+        stereo_node.depth.link(script.inputs[self.stream_metas[CAM_IDS.LUX_DEPTH].script_names.script_input_name])
+
+        for stream_meta in self.stream_metas.values():
             # script [script_output_name] -> cam_xout
             frame_xout = pipeline.create(depthai.node.XLinkOut)
             frame_xout.setStreamName(stream_meta.out_stream_name)
             frame_xout.input.setBlocking(False)
             frame_xout.input.setQueueSize(1)
-            script.outputs[stream_meta.script_output_name].link(frame_xout.input)
+            script.outputs[stream_meta.script_names.script_output_name].link(frame_xout.input)
 
-        self.get_logger().info('Deploying...')
+        self.get_logger().info('Deploying pipeline...')
 
         # Deploy pipeline to device
         while True:
@@ -234,14 +232,12 @@ while True:
                 continue
             break
 
-        self.get_logger().info('Getting queues')
-
         self.left_stereo_toggle_queue = self.device.getInputQueue('left_stereo_toggle_in')
         self.right_stereo_toggle_queue = self.device.getInputQueue('right_stereo_toggle_in')
-        self.toggle_queues = {cam_id: self.device.getInputQueue(meta.toggle_in_stream_name) for cam_id, meta in self.stream_metas.items()}
+        self.toggle_queues = {cam_id: self.device.getInputQueue(meta.script_names.toggle_in_stream_name) for cam_id, meta in self.stream_metas.items()}
         self.frame_output_queues = {cam_id: self.device.getOutputQueue(meta.out_stream_name) for cam_id, meta in self.stream_metas.items()}
 
-        self.get_logger().info('Done creating pipeline')
+        self.get_logger().info('Pipeline deployed')
 
     def spin(self) -> None:
         # TODO: only send toggles when we actually need to change state?
