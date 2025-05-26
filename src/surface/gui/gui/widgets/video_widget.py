@@ -1,6 +1,7 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Sequence, NamedTuple
+from typing import NamedTuple
 
 import cv2
 import numpy as np
@@ -53,7 +54,8 @@ class CameraManager:
         self.client = GUINode().create_client_multithreaded(CameraManage, topic_name)
 
     def set_cam_state(self, *, on: bool) -> None:
-        GUINode().send_request_multithreaded(self.client, CameraManage.Request(cam=self.camera_id, on=on))
+        GUINode().send_request_multithreaded(self.client,
+                                             CameraManage.Request(cam=self.camera_id, on=on))
 
 class CameraDescription(NamedTuple):
     """

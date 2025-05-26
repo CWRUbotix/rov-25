@@ -11,12 +11,11 @@ from gui.widgets.livestream_header import LivestreamHeader
 from gui.widgets.timer import TimerDisplay
 from gui.widgets.video_widget import (
     CameraDescription,
-    CameraType,
-    VideoWidget,
-    SwitchableVideoWidget,
     CameraManager,
+    CameraType,
+    SwitchableVideoWidget,
+    VideoWidget,
 )
-
 from rov_msgs.srv import CameraManage
 
 CAM0_TOPIC = 'cam0/image_raw'

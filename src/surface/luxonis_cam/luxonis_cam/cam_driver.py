@@ -9,7 +9,6 @@ from cv_bridge import CvBridge
 from numpy import generic
 from numpy.typing import NDArray
 from rclpy.executors import MultiThreadedExecutor
-import rclpy.logging
 from rclpy.node import Node, Publisher
 from rclpy.qos import QoSPresetProfiles
 from sensor_msgs.msg import Image
@@ -98,8 +97,9 @@ class FramePublishers:
         img_msg.encoding = 'rgb8'
         img_msg.header.stamp = time
         return img_msg
-    
-STREAMS_THAT_NEED_STEREO = [CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT, CAM_IDS.LUX_DISPARITY, CAM_IDS.LUX_DEPTH]
+
+STREAMS_THAT_NEED_STEREO = [CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT,
+                            CAM_IDS.LUX_DISPARITY, CAM_IDS.LUX_DEPTH]
 
 class LuxonisCamDriverNode(Node):
     def __init__(self) -> None:
@@ -109,15 +109,16 @@ class LuxonisCamDriverNode(Node):
             CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.LUX_RAW, enabled=False),
             CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.LUX_RAW, enabled=False),
             CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.RECT_LEFT, enabled=False),
-            CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.RECT_RIGHT, enabled=False),
+            CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.RECT_RIGHT,
+                                                  enabled=False),
             CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, enabled=False),
             CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, enabled=False)
         }
 
         self.left_stereo_script_names = StreamScriptNames.of('left_stereo')
         self.right_stereo_script_names = StreamScriptNames.of('right_stereo')
-        self.script_names = tuple(meta.script_names for meta in self.stream_metas.values()) + \
-            (self.left_stereo_script_names, self.right_stereo_script_names)
+        self.script_names = (*(meta.script_names for meta in self.stream_metas.values()),
+                             self.left_stereo_script_names, self.right_stereo_script_names)
 
         self.cam_manage_service = self.create_service(
             CameraManage, 'manage_luxonis', self.cam_manage_callback
@@ -166,7 +167,8 @@ frame_inputs = ["{'", "'.join([names.script_input_name for names in self.script_
 frame_outputs = ["{'", "'.join([names.script_output_name for names in self.script_names])}"]
 
 while True:
-    for i, (toggle_input, frame_input, frame_output) in enumerate(zip(toggle_inputs, frame_inputs, frame_outputs)):
+    for i, (toggle_input, frame_input, frame_output) in enumerate(zip(toggle_inputs, frame_inputs,
+                                                                      frame_outputs)):
         toggle_msg = node.io[toggle_input].tryGet()
         if toggle_msg is not None:
             enabled_flags[i] = toggle_msg.getData()[0]
@@ -224,8 +226,9 @@ while True:
         while True:
             try:
                 self.device = depthai.Device(pipeline).__enter__()
-            except RuntimeError as e:
-                self.get_logger().warning('Error uploading to Luxonis cam, retrying (see cam_driver to enable more details)...')
+            except RuntimeError as e:  # noqa: F841 (unused variable e for optional logging below)
+                self.get_logger().warning('Error uploading to Luxonis cam, retrying'
+                                          '(see cam_driver to enable more details)...')
                 # Uncomment to get more details about errors
                 # These are usually just "the cam is disconnected", but can be other things
                 # self.get_logger().warning(e)
@@ -234,8 +237,11 @@ while True:
 
         self.left_stereo_toggle_queue = self.device.getInputQueue('left_stereo_toggle_in')
         self.right_stereo_toggle_queue = self.device.getInputQueue('right_stereo_toggle_in')
-        self.toggle_queues = {cam_id: self.device.getInputQueue(meta.script_names.toggle_in_stream_name) for cam_id, meta in self.stream_metas.items()}
-        self.frame_output_queues = {cam_id: self.device.getOutputQueue(meta.out_stream_name) for cam_id, meta in self.stream_metas.items()}
+        self.toggle_queues = {cam_id:
+                              self.device.getInputQueue(meta.script_names.toggle_in_stream_name)
+                              for cam_id, meta in self.stream_metas.items()}
+        self.frame_output_queues = {cam_id: self.device.getOutputQueue(meta.out_stream_name)
+                                    for cam_id, meta in self.stream_metas.items()}
 
         self.get_logger().info('Pipeline deployed')
 
@@ -261,7 +267,7 @@ while True:
             buf.setData(self.stream_metas[cam_id].enabled)
             toggle_queue.send(buf)
 
-        # disparity_frame = self.disparity_queue.tryGet()  # blocking call, will wait until a new data has arrived
+        # disparity_frame = self.disparity_queue.tryGet()
 
         # if disparity_frame:
         #     frame = disparity_frame.getFrame()
