@@ -1,5 +1,5 @@
-#define LED_RED_PIN 9
-#define LED_BLUE_PIN 6
+#define LED_RED_PIN   9
+#define LED_BLUE_PIN  6
 #define LED_GREEN_PIN 12
 
 struct COLOR {
@@ -25,7 +25,6 @@ void loop() {
   delay(1000);
   setLedColor(GREEN);
   delay(1000);
-
 }
 
 void setLedColor(COLOR color) {

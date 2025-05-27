@@ -1,13 +1,13 @@
 /* Blue Robotics MS5837 Library Example
 -----------------------------------------------------
- 
+
 Title: Blue Robotics MS5837 Library Example
 
 Description: This example demonstrates the MS5837 Library with a connected
 sensor. The example reads the sensor and prints the resulting values
 to the serial terminal.
 
-The code is designed for the Arduino Uno board and can be compiled and 
+The code is designed for the Arduino Uno board and can be compiled and
 uploaded via the Arduino 1.0+ software.
 
 -------------------------------
@@ -35,17 +35,17 @@ THE SOFTWARE.
 -------------------------------*/
 
 #include <Wire.h>
+
 #include "MS5837.h"
 
 MS5837 sensor;
 
 void setup() {
-  
   Serial.begin(9600);
-  
+
   delay(1000);
 
-  Serial.println("Starting");  
+  Serial.println("Starting");
   Wire.begin();
 
   // Initialize pressure sensor
@@ -58,29 +58,29 @@ void setup() {
     Serial.println("\n\n\n");
     delay(5000);
   }
-  
+
   sensor.setModel(MS5837::MS5837_02BA);
-  sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
+  sensor.setFluidDensity(997);  // kg/m^3 (freshwater, 1029 for seawater)
 }
 
 void loop() {
   // Update pressure and temperature readings
   sensor.read();
 
-  Serial.print("Pressure: "); 
-  Serial.print(sensor.pressure()); 
+  Serial.print("Pressure: ");
+  Serial.print(sensor.pressure());
   Serial.println(" mbar");
-  
-  Serial.print("Temperature: "); 
-  Serial.print(sensor.temperature()); 
+
+  Serial.print("Temperature: ");
+  Serial.print(sensor.temperature());
   Serial.println(" deg C");
-  
-  Serial.print("Depth: "); 
-  Serial.print(sensor.depth()); 
+
+  Serial.print("Depth: ");
+  Serial.print(sensor.depth());
   Serial.println(" m");
-  
-  Serial.print("Altitude: "); 
-  Serial.print(sensor.altitude()); 
+
+  Serial.print("Altitude: ");
+  Serial.print(sensor.altitude());
   Serial.println(" m above mean sea level");
 
   delay(1000);

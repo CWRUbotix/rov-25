@@ -25,8 +25,8 @@
 #define PIN_LIMIT_NC 10
 
 // Status LED pins
-#define PIN_LED_RED 9
-#define PIN_LED_BLUE 6
+#define PIN_LED_RED   9
+#define PIN_LED_BLUE  6
 #define PIN_LED_GREEN 12
 
 // The encoder requires two adjecent pins on the PIO, with the given pin being the lower-numbered
@@ -113,7 +113,6 @@ struct COLOR {
   uint8_t b;
 };
 
-
 // The number of blinks of the status LED for each error code
 enum ERROR_CODES {
   RADIO_INIT = 2,
@@ -149,7 +148,8 @@ void setup() {
 
   if (digitalRead(PIN_LIMIT_NC) && digitalRead(PIN_LIMIT_NO)) {
     errorAndStop("Limit switch not detected", LIMIT_SWITCH_INIT);
-  } else if (!digitalRead(PIN_LIMIT_NC) && !digitalRead(PIN_LIMIT_NO)) {
+  }
+  else if (!digitalRead(PIN_LIMIT_NC) && !digitalRead(PIN_LIMIT_NO)) {
     errorAndStop("Limit switch malfunction", LIMIT_SWITCH_INIT);
   }
 
@@ -206,11 +206,11 @@ void loop() {
         receiveCommand();
       }
       if (overrideState != OverrideState::NoOverride) break;
-      
+
       stop();
       encoder.update();
       encoder.resetPosition();  // Set zero position
-      
+
       delay(10'000);
       stage = StageType::DeployPump;
     case StageType::DeployPump:
@@ -284,7 +284,7 @@ void loop() {
 
       // Await override or exit condition
       //if (profileAndWait(countValidPackets() < 10)) break;
-      
+
       stage = StageType::Pump;
     case StageType::Pump:
       // Pump code
@@ -329,7 +329,8 @@ void loopOverride() {
       stop();
       overrideState = OverrideState::Stop;
     }
-  } else if (overrideState == OverrideState::Pump) {
+  }
+  else if (overrideState == OverrideState::Pump) {
     if (!isEmpty()) {
       pump();
     }
@@ -556,7 +557,6 @@ void errorAndStop(String errorMsg, uint8_t error_code) {
   }
 }
 
-
 /******* Setup Methods *******/
 
 void initRadio() {
@@ -597,10 +597,10 @@ void initRadio() {
 
 void initPressureSensor() {
   Wire.begin();
-  
+
   setLedColor({0, 255, 255});
   bool init_success = false;
-  for(int i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++) {
     if (pressureSensor.init()) {
       init_success = true;
       break;
@@ -609,7 +609,7 @@ void initPressureSensor() {
     delay(200);
   }
 
-  if(!init_success) {
+  if (!init_success) {
     errorAndStop("Pressure sensor init failed", PRESSURE_SENSOR_INIT);
   }
 

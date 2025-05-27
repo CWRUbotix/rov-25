@@ -1,11 +1,10 @@
 const uint8_t MOTOR_PWM_1 = 20;
 const uint8_t MOTOR_PWM_2 = 21;
 
-
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial){}
+  while (!Serial) {}
 
   Serial.println("Float Transceiver");
   Serial.println();
@@ -15,7 +14,6 @@ void setup() {
 
   digitalWrite(MOTOR_PWM_1, LOW);
   digitalWrite(MOTOR_PWM_2, LOW);
-
 }
 
 void loop() {
@@ -44,5 +42,3 @@ void loop() {
     delay(500);
   }
 }
-
-

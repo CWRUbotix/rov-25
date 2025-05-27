@@ -1,8 +1,8 @@
 #define PIN_LIMIT_NO 11
 #define PIN_LIMIT_NC 10
 
-#define PIN_LED_RED 9
-#define PIN_LED_BLUE 6
+#define PIN_LED_RED   9
+#define PIN_LED_BLUE  6
 #define PIN_LED_GREEN 12
 
 void setup() {

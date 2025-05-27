@@ -6,7 +6,6 @@
 #define PIN_MOTOR_PUMP 20
 #define PIN_MOTOR_SUCK 21
 
-
 PicoEncoder encoder;
 const int STEP_TOL = 10000;
 
@@ -31,7 +30,6 @@ void loop() {
   travelTo(-500000);
 }
 
-
 // Instruct the motor to travel to a position
 bool travelTo(int pos) {
   encoder.update();
@@ -54,4 +52,3 @@ bool travelTo(int pos) {
     return true;
   }
 }
-
