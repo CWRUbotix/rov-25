@@ -10,23 +10,31 @@
 #include <RHSoftwareSPI.h>
 #include <RH_RF95.h>
 #include <SPI.h>
+#include <Wire.h>
 
 #include "MS5837.h"
 #include "PicoEncoder.h"
 #include "rov_common.hpp"
 
 // H-bridge direction control pins
-const uint8_t MOTOR_PWM = 6;  // Leave 100% cycle for top speed
-const uint8_t PUMP_PIN = 9;   // Set high for pump (CW when facing down)
-const uint8_t SUCK_PIN = 10;  // Set high for suck (CCW when facing down)
+#define PIN_MOTOR_PUMP 20
+#define PIN_MOTOR_SUCK 21
 
 // Limit switch pins
-const uint8_t LIMIT_FULL = 12;   // Low when syringe is full
-const uint8_t LIMIT_EMPTY = 11;  // Low when syringe is empty
+#define PIN_LIMIT_NO 11
+#define PIN_LIMIT_NC 10
+
+// Status LED pins
+#define PIN_LED_RED 9
+#define PIN_LED_BLUE 6
+#define PIN_LED_GREEN 12
+
+// The encoder requires two adjecent pins on the PIO, with the given pin being the lower-numbered
+#define PIN_ENCODER 4
 
 const uint8_t TEAM_NUM = 25;
 const uint32_t PACKET_SEND_INTERVAL = 1000;
-const uint32_t FLOAT_PKT_RX_TIMEOUT = 900;
+const uint32_t FLOAT_PKT_RX_TIMEOUT = 10;
 const uint8_t JUDGE_PKT_SIZE = 30;
 
 #ifdef DO_DEBUGGING
@@ -66,9 +74,7 @@ RHSoftwareSPI softwareSPI;
 
 // Encoder initialization
 PicoEncoder encoder;
-const uint8_t ENCODER_PIN = 4;
-const int STEP_TOL = 10000;
-int EMPTY_POS = 0;  // TODO: Find empty encoder pos
+long EMPTY_POS = -4'500'000;
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
@@ -91,7 +97,7 @@ enum class StageType {
   HoldDepth
 };
 enum class OverrideState { NoOverride, Stop, Suck, Pump };
-enum class MotorState { Stop, Suck, Pump, Error };
+enum class MotorState { Stop, Suck, Pump, Control, Error };
 
 StageType stage = StageType::DeploySuck;
 OverrideState overrideState = OverrideState::NoOverride;
@@ -100,11 +106,34 @@ MotorState motorState = MotorState::Error;
 uint8_t profileNum = 0;
 uint8_t profileHalf = 0;
 
+// Colors for status LED
+struct COLOR {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+};
+
+
+// The number of blinks of the status LED for each error code
+enum ERROR_CODES {
+  RADIO_INIT = 2,
+  ENCODER_INIT = 3,
+  PRESSURE_SENSOR_INIT = 4,
+  LIMIT_SWITCH_INIT = 5
+};
+
+COLOR COLOR_OFF = {0, 0, 0};
+COLOR COLOR_ERROR = {255, 0, 0};
+COLOR COLOR_INITIALIZING = {255, 255, 0};
+COLOR COLOR_READY = {0, 255, 0};
+COLOR COLOR_DESCENDING = {0, 0, 255};
+COLOR COLOR_ASCENDING = {255, 0, 255};
+
 void setup() {
   delay(2000);
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial) {}
+  // while (!Serial) {}
 
   Serial.println("Float Transceiver");
   Serial.println();
@@ -114,17 +143,23 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
-  pinMode(LIMIT_EMPTY, INPUT_PULLUP);
-  pinMode(LIMIT_FULL, INPUT_PULLUP);
+  // Set up limit switches
+  pinMode(PIN_LIMIT_NO, INPUT_PULLUP);
+  pinMode(PIN_LIMIT_NC, INPUT_PULLUP);
 
-  pinMode(MOTOR_PWM, OUTPUT);
-  pinMode(SUCK_PIN, OUTPUT);
-  pinMode(PUMP_PIN, OUTPUT);
+  if (digitalRead(PIN_LIMIT_NC) && digitalRead(PIN_LIMIT_NO)) {
+    errorAndStop("Limit switch not detected", LIMIT_SWITCH_INIT);
+  } else if (!digitalRead(PIN_LIMIT_NC) && !digitalRead(PIN_LIMIT_NO)) {
+    errorAndStop("Limit switch malfunction", LIMIT_SWITCH_INIT);
+  }
 
-  digitalWrite(MOTOR_PWM, LOW);
-  digitalWrite(SUCK_PIN, LOW);
-  digitalWrite(PUMP_PIN, LOW);
+  // Set up motor
+  pinMode(PIN_MOTOR_PUMP, OUTPUT);
+  pinMode(PIN_MOTOR_SUCK, OUTPUT);
+  digitalWrite(PIN_MOTOR_PUMP, LOW);
+  digitalWrite(PIN_MOTOR_SUCK, LOW);
 
+  // Set up radio and packets
   clearPacketPayloads();
 
   packets[0][PKT_IDX_TEAM_NUM] = TEAM_NUM;
@@ -134,12 +169,15 @@ void setup() {
   packets[1][PKT_IDX_PROFILE_HALF] = 1;
 
   initRadio();
+
   initPressureSensor();
-  if (encoder.begin(ENCODER_PIN) != 0) {
-    Serial.print("Encoder init failed!");
-    while (true);
+
+  if (encoder.begin(PIN_ENCODER) != 0) {
+    errorAndStop("Encoder init failed", ENCODER_INIT);
   }
 }
+
+bool recordAndWait(bool (*condition)());
 
 void loop() {
   while (overrideState != OverrideState::NoOverride) {
@@ -160,17 +198,24 @@ void loop() {
     case StageType::DeploySuck:
       // Deploy code
       stageTimeLimit = millis() + SUCK_MAX;
+      setLedColor(COLOR_INITIALIZING);
       suck();
       // Await override or exit condition
       while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
-             digitalRead(LIMIT_FULL)) {
+             digitalRead(PIN_LIMIT_NO)) {
         receiveCommand();
       }
       if (overrideState != OverrideState::NoOverride) break;
+      
+      stop();
+      encoder.update();
       encoder.resetPosition();  // Set zero position
+      
+      delay(10'000);
       stage = StageType::DeployPump;
     case StageType::DeployPump:
       stageTimeLimit = millis() + PUMP_MAX;
+      setLedColor(COLOR_INITIALIZING);
       pump();
       // Await override or exit condition
       while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit &&
@@ -182,6 +227,7 @@ void loop() {
     case StageType::WaitDeploying:
       // WaitDeploying code
       stageTimeLimit = millis() + RELEASE_MAX;
+      setLedColor(COLOR_READY);
       stop();
       // Await override, submerge command, or exit condition
       while (overrideState == OverrideState::NoOverride &&
@@ -223,27 +269,43 @@ void loop() {
     case StageType::Descending:
       // Descending code
       stageTimeLimit = millis() + DESCEND_TIME + HOLD_TIME;
+      setLedColor(COLOR_DESCENDING);
+      suck();
+
       // TODO: Cool PID stuff
       // Await override or exit condition
-      if (profileAndWait(countValidPackets() < 10)) break;
+      if (recordAndWait([]() -> bool { return digitalRead(PIN_LIMIT_NO); })) break;
+
+      stop();
+      encoder.update();
+      encoder.resetPosition();
+
+      if (recordAndWait([]() -> bool { return true; })) break;
+
+      // Await override or exit condition
+      //if (profileAndWait(countValidPackets() < 10)) break;
+      
       stage = StageType::Pump;
     case StageType::Pump:
       // Pump code
       stageTimeLimit = millis() + PUMP_MAX;
+      setLedColor(COLOR_ASCENDING);
       pump();
       // Await override or exit condition
-      if (profileAndWait(!isEmpty())) break;
+      if (recordAndWait([]() -> bool { return !isEmpty(); })) break;
       stage = StageType::Ascending;
     case StageType::Ascending:
       // Ascending code
       stageTimeLimit = millis() + ASCEND_TIME;
+      setLedColor(COLOR_ASCENDING);
       stop();
       // Await override or exit condition
-      if (profileAndWait(true)) break;
+      if (recordAndWait([]() -> bool { return true; })) break;
       stage = StageType::WaitTransmitting;
     case StageType::WaitTransmitting:
       // WaitTransmitting code
       // Await override or exit condition
+      setLedColor(COLOR_READY);
       while (overrideState == OverrideState::NoOverride && !receiveCommand()) {
         if (millis() >= packetSendTime) {
           transmitPressurePacket();
@@ -258,16 +320,16 @@ void loop() {
 }
 
 void loopOverride() {
+  setLedColor(COLOR_ERROR);
   if (overrideState == OverrideState::Suck) {
-    if (digitalRead(LIMIT_FULL) == HIGH) {
+    if (digitalRead(PIN_LIMIT_NO) == HIGH) {
       suck();
     }
     else {
       stop();
       overrideState = OverrideState::Stop;
     }
-  }
-  else if (overrideState == OverrideState::Pump) {
+  } else if (overrideState == OverrideState::Pump) {
     if (!isEmpty()) {
       pump();
     }
@@ -286,32 +348,29 @@ void loopOverride() {
 
 void pump() {
   Serial.println("PUMPING");
-  digitalWrite(MOTOR_PWM, HIGH);
-  digitalWrite(PUMP_PIN, HIGH);
-  digitalWrite(SUCK_PIN, LOW);
+  digitalWrite(PIN_MOTOR_PUMP, HIGH);
+  digitalWrite(PIN_MOTOR_SUCK, LOW);
   motorState = MotorState::Pump;
 }
 
 void suck() {
   Serial.println("SUCKING");
-  digitalWrite(MOTOR_PWM, HIGH);
-  digitalWrite(PUMP_PIN, LOW);
-  digitalWrite(SUCK_PIN, HIGH);
+  digitalWrite(PIN_MOTOR_PUMP, LOW);
+  digitalWrite(PIN_MOTOR_SUCK, HIGH);
   motorState = MotorState::Suck;
 }
 
 void stop() {
   Serial.println("STOPPING");
-  digitalWrite(MOTOR_PWM, LOW);
-  digitalWrite(PUMP_PIN, LOW);
-  digitalWrite(SUCK_PIN, LOW);
+  digitalWrite(PIN_MOTOR_PUMP, HIGH);
+  digitalWrite(PIN_MOTOR_SUCK, HIGH);
   motorState = MotorState::Stop;
 }
 
 // Recieves an override command from the radio
 // Returns `true` if the submerge command was recieved
 bool receiveCommand() {
-  Serial.println("Receiving command...");
+  // Serial.println("Receiving command...");
 
   if (!rf95.waitAvailableTimeout(FLOAT_PKT_RX_TIMEOUT)) {
     return false;
@@ -380,7 +439,7 @@ bool receiveCommand() {
   return shouldSubmerge;
 }
 
-void profilePressure() {
+void recordPressure() {
   pressureReadTime = millis();
   memcpy(packets[profileHalf] + packetIndex, &pressureReadTime, sizeof(uint32_t));
   packetIndex += sizeof(uint32_t);
@@ -455,48 +514,48 @@ void clearPacketPayloads() {
 
 // Default state exit condition/basic wait for condition
 // Pass in true for no additional condition
-bool profileAndWait(bool condition) {
-  while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit && condition) {
+bool recordAndWait(bool (*condition)()) {
+  while (overrideState == OverrideState::NoOverride && millis() < stageTimeLimit && condition()) {
     if (millis() >= pressureReadTime && packetIndex < PKT_LEN) {
-      profilePressure();
+      recordPressure();
     }
     receiveCommand();
   }
   return overrideState != OverrideState::NoOverride;
 }
 
-// Instruct the motor to travel to a position
-// TODO: convert 'position' to an actual meaningful value
-// bool travelTo(int pos) {
-//   encoder.update();
-//   if (pos < (int)encoder.position - STEP_TOL) {
-//     // Forward
-//     digitalWrite(IN1, HIGH);
-//     digitalWrite(IN2, LOW);
-//     return false;
-//   }
-//   else if (pos > (int)encoder.position + STEP_TOL) {
-//     // Backward
-//     digitalWrite(IN1, LOW);
-//     digitalWrite(IN2, HIGH);
-//     return false;
-//   }
-//   else {
-//     // Off
-//     digitalWrite(IN1, LOW);
-//     digitalWrite(IN2, LOW);
-//     return true;
-//   }
-// }
-
 // Check if pump has finished
 bool isEmpty() {
   encoder.update();
+  Serial.println(encoder.position);
   if (encoder.position < EMPTY_POS) {
     return true;
   }
   return false;
 }
+
+// Set color of status LED
+void setLedColor(COLOR color) {
+  analogWrite(PIN_LED_RED, color.r);
+  analogWrite(PIN_LED_GREEN, color.g);
+  analogWrite(PIN_LED_BLUE, color.b);
+}
+
+void errorAndStop(String errorMsg, uint8_t error_code) {
+  while (true) {
+    Serial.println(errorMsg);
+
+    for (uint8_t i = 0; i < error_code; i++) {
+      setLedColor(COLOR_ERROR);
+      delay(250);
+      setLedColor(COLOR_OFF);
+      delay(250);
+    }
+
+    delay(750);
+  }
+}
+
 
 /******* Setup Methods *******/
 
@@ -516,8 +575,7 @@ void initRadio() {
   delay(10);
 
   if (!rf95.init()) {
-    Serial.println("RFM95 radio init failed");
-    while (1) {}
+    errorAndStop("RFM95 radio init failed", RADIO_INIT);
   }
   Serial.println("RFM95 radio init OK!");
 
@@ -538,7 +596,22 @@ void initRadio() {
 }
 
 void initPressureSensor() {
-  pressureSensor.init();
+  Wire.begin();
+  
+  setLedColor({0, 255, 255});
+  bool init_success = false;
+  for(int i = 0; i < 5; i++) {
+    if (pressureSensor.init()) {
+      init_success = true;
+      break;
+    }
+
+    delay(200);
+  }
+
+  if(!init_success) {
+    errorAndStop("Pressure sensor init failed", PRESSURE_SENSOR_INIT);
+  }
 
   pressureSensor.setModel(MS5837::MS5837_02BA);
   pressureSensor.setFluidDensity(997);  // kg/m^3
