@@ -19,7 +19,6 @@ Matlike = NDArray[generic]
 
 
 class StreamTopic(StrEnum):
-    CAM0 = 'cam0/image_raw'
     LUX_RAW = 'lux_raw/image_raw'
     RECT_LEFT = 'rect_left/image_raw'
     RECT_RIGHT = 'rect_right/image_raw'
