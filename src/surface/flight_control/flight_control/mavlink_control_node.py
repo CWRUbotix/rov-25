@@ -9,7 +9,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 
-from rov_msgs.msg import Heartbeat, Manip, VehicleState
+from rov_msgs.msg import Heartbeat, Manip, VehicleState, VideoWidgetSwitch
 from rov_msgs.srv import VehicleArming
 
 os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
@@ -157,6 +157,10 @@ class MavlinkManualControlNode(Node):
 
         self.arming_service = self.create_service(
             VehicleArming, 'arming', callback=self.arming_service_callback
+        )
+
+        self.right_stream_switch_publisher = self.create_publisher(
+            VideoWidgetSwitch, 'switch_right_stream', qos_profile_system_default
         )
 
         self.invert_controls = False
@@ -325,10 +329,10 @@ class MavlinkManualControlNode(Node):
         # Camera switching uses the DPAD, currently not remapable with the controller profile system
         # because DPADs are presented as axes not buttons and using any other axis is non-sensible
         if joy_state.buttons[self.profile.cam_front_button]:
-            # TODO: Message camera manager and gui to swap cameras
+            self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=0))
             self.invert_controls = False
         elif joy_state.buttons[self.profile.cam_back_button]:
-            # TODO: Message camera manager and gui to swap cameras
+            self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=1))
             self.invert_controls = True
 
     def poll_mavlink(self) -> None:

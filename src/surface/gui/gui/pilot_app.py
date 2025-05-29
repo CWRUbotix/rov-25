@@ -158,10 +158,6 @@ class PilotApp(App):
                         frame_width, frame_height,
                         CameraManager('manage_flir', CameraManage.Request.FLIR_FRONT),
                     ),
-                    # CameraDescription(
-                    #     CameraType.ETHERNET, CAM0_TOPIC, 'No Camera',
-                    #     frame_width, frame_height
-                    # ),
                 ),
                 'switch_left_stream'
             ),
