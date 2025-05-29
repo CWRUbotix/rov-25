@@ -2,6 +2,7 @@ import math
 import os
 import time
 from dataclasses import dataclass
+from enum import StrEnum
 
 import rclpy
 import rclpy.utilities
@@ -78,6 +79,21 @@ R2PRESS_PERCENT = 5
 CONTROLLER_PROFILE_PARAM = 'controller_profile'
 
 
+class FlightMode(StrEnum):
+    STABILIZE='STABILIZE'
+    ACRO='ACRO'
+    ALT_HOLD='ALT_HOLD'
+    AUTO='AUTO'
+    GUIDED='GUIDED'
+    CIRCLE='CIRCLE'
+    SURFACE='SURFACE'
+    POSHOLD='POSHOLD'
+    MANUAL='MANUAL'
+
+# TODO: either get a depth sensor for SURFACE/ALT_HOLD modes or remove the carousel
+MODE_CAROUSEL = (FlightMode.MANUAL, FlightMode.STABILIZE,
+                 FlightMode.ALT_HOLD, FlightMode.SURFACE)
+
 @dataclass
 class ManipButton:
     claw: str
@@ -97,6 +113,8 @@ class ControllerProfile:
     disarm_button: int = PAIRING_BUTTON
     cam_front_button: int = DPAD_UP
     cam_back_button: int = DPAD_DOWN
+    prev_mode_button: int = DPAD_LEFT
+    next_mode_button: int = DPAD_RIGHT
     lateral: int = LJOYX
     forward: int = LJOYY
     vertical_down: int = L2PRESS_PERCENT  # negative vertical value
@@ -170,6 +188,10 @@ class MavlinkManualControlNode(Node):
 
         self.timer = self.create_timer(1 / MAVLINK_POLL_RATE, self.poll_mavlink)
 
+        self.current_mode_idx = 0
+        self.pressing_next_mode_button = False
+        self.pressing_prev_mode_button = False
+
     def controller_callback(self, joy_state: JoystickState) -> None:
         """Handle a joystick update.
 
@@ -182,6 +204,28 @@ class MavlinkManualControlNode(Node):
         self.send_mavlink_control(joy_state)
         self.manip_callback(joy_state)
         self.process_camera_buttons(joy_state)
+        self.change_mode_callback(joy_state)
+
+    def change_mode_callback(self, joy_state: JoystickState) -> None:
+        buttons = joy_state.buttons
+        if buttons[self.profile.next_mode_button] == PRESSED and not self.pressing_next_mode_button:
+            self.current_mode_idx = (self.current_mode_idx + 1) % len(MODE_CAROUSEL)
+            self.set_mode(MODE_CAROUSEL[self.current_mode_idx])
+            self.pressing_next_mode_button = True
+        elif buttons[self.profile.next_mode_button] == UNPRESSED:
+            self.pressing_next_mode_button = False
+
+        if buttons[self.profile.prev_mode_button] == PRESSED and not self.pressing_prev_mode_button:
+            self.current_mode_idx = (self.current_mode_idx - 1) % len(MODE_CAROUSEL)
+            self.set_mode(MODE_CAROUSEL[self.current_mode_idx])
+            self.pressing_prev_mode_button = True
+        elif buttons[self.profile.prev_mode_button] == UNPRESSED:
+            self.pressing_prev_mode_button = False
+
+    def set_mode(self, mode: FlightMode) -> None:
+        self.get_logger().info(f'Switching to {mode} mode')
+        mode_id = self.mavlink.mode_mapping()[mode]
+        self.mavlink.set_mode(mode_id)
 
     @staticmethod
     def joystick_map(raw: float) -> float:
@@ -394,6 +438,9 @@ class MavlinkManualControlNode(Node):
                     self.get_logger().info('Vehicle disarmed')
             else:
                 self.get_logger().warning(f'Unknown ardusub state: {mavlink_msg.system_status}')
+
+            self.get_logger().info(f'Current mode: {mavutil.mode_string_v10(mavlink_msg)}')
+
         return new_state
 
     def pi_heartbeat_callback(self, _: Heartbeat) -> None:
