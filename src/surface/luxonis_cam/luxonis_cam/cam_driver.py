@@ -17,6 +17,7 @@ from rov_msgs.srv import CameraManage
 
 Matlike = NDArray[generic]
 
+
 class StreamTopic(StrEnum):
     CAM0 = 'cam0/image_raw'
     LUX_RAW = 'lux_raw/image_raw'
@@ -24,6 +25,7 @@ class StreamTopic(StrEnum):
     RECT_RIGHT = 'rect_right/image_raw'
     DISPARITY = 'disparity/image_raw'
     DEPTH = 'depth/image_raw'
+
 
 @dataclass
 class StreamScriptNames:
@@ -34,10 +36,13 @@ class StreamScriptNames:
 
     @staticmethod
     def of(stream_name: str) -> 'StreamScriptNames':
-        return StreamScriptNames(toggle_in_stream_name=f'{stream_name}_toggle_in',
-                                 script_toggle_name=f'{stream_name}_toggle',
-                                 script_input_name=f'{stream_name}_script_in',
-                                 script_output_name=f'{stream_name}_script_out')
+        return StreamScriptNames(
+            toggle_in_stream_name=f'{stream_name}_toggle_in',
+            script_toggle_name=f'{stream_name}_toggle',
+            script_input_name=f'{stream_name}_script_in',
+            script_output_name=f'{stream_name}_script_out',
+        )
+
 
 @dataclass
 class StreamMeta:
@@ -48,13 +53,17 @@ class StreamMeta:
 
     @staticmethod
     def of(stream_name: str, topic: StreamTopic, *, enabled: bool) -> 'StreamMeta':
-        return StreamMeta(topic=topic,
-                          script_names=StreamScriptNames.of(stream_name),
-                          out_stream_name=f'{stream_name}_out',
-                          enabled=enabled)
+        return StreamMeta(
+            topic=topic,
+            script_names=StreamScriptNames.of(stream_name),
+            out_stream_name=f'{stream_name}_out',
+            enabled=enabled,
+        )
+
 
 # Alias for easier access to LUX_LEFT/LUX_RIGHT/etc.
 CAM_IDS = CameraManage.Request
+
 
 class FramePublishers:
     def __init__(self, node: Node) -> None:
@@ -74,8 +83,9 @@ class FramePublishers:
             if topic in self.publishers:
                 self.publishers[topic].publish(img_msg)
             else:
-                self.node.get_logger().warning(f'Invalid camera publisher topic "{topic.value}", '
-                                               'not publishing')
+                self.node.get_logger().warning(
+                    f'Invalid camera publisher topic "{topic.value}", not publishing'
+                )
 
     def get_image_msg(self, image: Matlike, time: Time) -> Image:
         """Convert cv2 image to ROS2 Image with CvBridge.
@@ -98,8 +108,14 @@ class FramePublishers:
         img_msg.header.stamp = time
         return img_msg
 
-STREAMS_THAT_NEED_STEREO = [CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT,
-                            CAM_IDS.LUX_DISPARITY, CAM_IDS.LUX_DEPTH]
+
+STREAMS_THAT_NEED_STEREO = [
+    CAM_IDS.LUX_LEFT_RECT,
+    CAM_IDS.LUX_RIGHT_RECT,
+    CAM_IDS.LUX_DISPARITY,
+    CAM_IDS.LUX_DEPTH,
+]
+
 
 class LuxonisCamDriverNode(Node):
     def __init__(self) -> None:
@@ -109,16 +125,20 @@ class LuxonisCamDriverNode(Node):
             CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.LUX_RAW, enabled=False),
             CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.LUX_RAW, enabled=False),
             CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.RECT_LEFT, enabled=False),
-            CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of('right_rect', StreamTopic.RECT_RIGHT,
-                                                  enabled=False),
+            CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of(
+                'right_rect', StreamTopic.RECT_RIGHT, enabled=False
+            ),
             CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, enabled=False),
-            CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, enabled=False)
+            CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, enabled=False),
         }
 
         self.left_stereo_script_names = StreamScriptNames.of('left_stereo')
         self.right_stereo_script_names = StreamScriptNames.of('right_stereo')
-        self.script_names = (*(meta.script_names for meta in self.stream_metas.values()),
-                             self.left_stereo_script_names, self.right_stereo_script_names)
+        self.script_names = (
+            *(meta.script_names for meta in self.stream_metas.values()),
+            self.left_stereo_script_names,
+            self.right_stereo_script_names,
+        )
 
         self.cam_manage_service = self.create_service(
             CameraManage, 'manage_luxonis', self.cam_manage_callback
@@ -141,7 +161,7 @@ class LuxonisCamDriverNode(Node):
             response.success = False
 
         statuses = [f'{cam}: {meta.enabled}' for cam, meta in self.stream_metas.items()]
-        self.get_logger().info(f'Luxonis now publishing: {'; '.join(statuses)}')
+        self.get_logger().info(f'Luxonis now publishing: {"; ".join(statuses)}')
 
         return response
 
@@ -159,8 +179,7 @@ class LuxonisCamDriverNode(Node):
         right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
 
         script = pipeline.createScript()
-        script_str = \
-f"""
+        script_str = f"""
 enabled_flags = [False] * {len(self.script_names)}
 toggle_inputs = ["{'", "'.join([names.script_toggle_name for names in self.script_names])}"]
 frame_inputs = ["{'", "'.join([names.script_input_name for names in self.script_names])}"]
@@ -184,7 +203,7 @@ while True:
         for node, meta in zip(
             (left_cam_node, right_cam_node),
             [self.stream_metas[cam_id] for cam_id in (CAM_IDS.LUX_LEFT, CAM_IDS.LUX_RIGHT)],
-            strict=True
+            strict=True,
         ):
             # Camera frame reader -> script [script_input_name]
             node.setPreviewSize(640, 400)
@@ -207,10 +226,18 @@ while True:
         script.outputs[self.left_stereo_script_names.script_output_name].link(stereo_node.left)
         script.outputs[self.right_stereo_script_names.script_output_name].link(stereo_node.right)
 
-        stereo_node.rectifiedLeft.link(script.inputs[self.stream_metas[CAM_IDS.LUX_LEFT_RECT].script_names.script_input_name])
-        stereo_node.rectifiedRight.link(script.inputs[self.stream_metas[CAM_IDS.LUX_RIGHT_RECT].script_names.script_input_name])
-        stereo_node.disparity.link(script.inputs[self.stream_metas[CAM_IDS.LUX_DISPARITY].script_names.script_input_name])
-        stereo_node.depth.link(script.inputs[self.stream_metas[CAM_IDS.LUX_DEPTH].script_names.script_input_name])
+        stereo_node.rectifiedLeft.link(
+            script.inputs[self.stream_metas[CAM_IDS.LUX_LEFT_RECT].script_names.script_input_name]
+        )
+        stereo_node.rectifiedRight.link(
+            script.inputs[self.stream_metas[CAM_IDS.LUX_RIGHT_RECT].script_names.script_input_name]
+        )
+        stereo_node.disparity.link(
+            script.inputs[self.stream_metas[CAM_IDS.LUX_DISPARITY].script_names.script_input_name]
+        )
+        stereo_node.depth.link(
+            script.inputs[self.stream_metas[CAM_IDS.LUX_DEPTH].script_names.script_input_name]
+        )
 
         for stream_meta in self.stream_metas.values():
             # script [script_output_name] -> cam_xout
@@ -227,8 +254,10 @@ while True:
             try:
                 self.device = depthai.Device(pipeline).__enter__()
             except RuntimeError as e:  # noqa: F841 (unused variable e for optional logging below)
-                self.get_logger().warning('Error uploading to Luxonis cam, retrying '
-                                          '(see cam_driver to enable more details)...')
+                self.get_logger().warning(
+                    'Error uploading to Luxonis cam, retrying '
+                    '(see cam_driver to enable more details)...'
+                )
                 # Uncomment to get more details about errors
                 # These are usually just "the cam is disconnected", but can be other things
                 # self.get_logger().warning(e)
@@ -237,11 +266,14 @@ while True:
 
         self.left_stereo_toggle_queue = self.device.getInputQueue('left_stereo_toggle_in')
         self.right_stereo_toggle_queue = self.device.getInputQueue('right_stereo_toggle_in')
-        self.toggle_queues = {cam_id:
-                              self.device.getInputQueue(meta.script_names.toggle_in_stream_name)
-                              for cam_id, meta in self.stream_metas.items()}
-        self.frame_output_queues = {cam_id: self.device.getOutputQueue(meta.out_stream_name)
-                                    for cam_id, meta in self.stream_metas.items()}
+        self.toggle_queues = {
+            cam_id: self.device.getInputQueue(meta.script_names.toggle_in_stream_name)
+            for cam_id, meta in self.stream_metas.items()
+        }
+        self.frame_output_queues = {
+            cam_id: self.device.getOutputQueue(meta.out_stream_name)
+            for cam_id, meta in self.stream_metas.items()
+        }
 
         self.get_logger().info('Pipeline deployed')
 

@@ -45,12 +45,7 @@ def generate_launch_description() -> LaunchDescription:
     )
 
     namespace_launch = GroupAction(
-        actions=[
-            PushRosNamespace('surface'),
-            gui_launch,
-            flir_watchdog,
-            luxonis_launch
-        ]
+        actions=[PushRosNamespace('surface'), gui_launch, flir_watchdog, luxonis_launch]
     )
 
     return LaunchDescription([namespace_launch])

@@ -132,8 +132,9 @@ class PilotApp(App):
         return bottom_screen_layout
 
     @staticmethod
-    def make_video_widgets(mono_cam_type: CameraType,
-                           frame_width: int, frame_height: int) -> tuple[VideoWidget, VideoWidget]:
+    def make_video_widgets(
+        mono_cam_type: CameraType, frame_width: int, frame_height: int
+    ) -> tuple[VideoWidget, VideoWidget]:
         """Make the (switchable) VideoWidgets for any of the GUI types.
 
         Parameters
@@ -154,33 +155,45 @@ class PilotApp(App):
             SwitchableVideoWidget(
                 (
                     CameraDescription(
-                        mono_cam_type, CAM0_TOPIC, 'Forward Camera',
-                        frame_width, frame_height,
+                        mono_cam_type,
+                        CAM0_TOPIC,
+                        'Forward Camera',
+                        frame_width,
+                        frame_height,
                         CameraManager('manage_flir', CameraManage.Request.FLIR_FRONT),
                     ),
                 ),
-                'switch_left_stream'
+                'switch_left_stream',
             ),
             SwitchableVideoWidget(
                 (
                     CameraDescription(
-                        mono_cam_type, CAM1_TOPIC, 'Down Camera',
-                        frame_width, frame_height,
+                        mono_cam_type,
+                        CAM1_TOPIC,
+                        'Down Camera',
+                        frame_width,
+                        frame_height,
                         CameraManager('manage_flir', CameraManage.Request.FLIR_DOWN),
                     ),
                     CameraDescription(
-                        CameraType.DEPTH, 'lux_raw/image_raw', 'Dual Left Eye',
-                        frame_width, frame_height,
+                        CameraType.DEPTH,
+                        'lux_raw/image_raw',
+                        'Dual Left Eye',
+                        frame_width,
+                        frame_height,
                         CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT),
                     ),
                     CameraDescription(
-                        CameraType.DEPTH, 'lux_raw/image_raw', 'Dual Right Eye',
-                        frame_width, frame_height,
+                        CameraType.DEPTH,
+                        'lux_raw/image_raw',
+                        'Dual Right Eye',
+                        frame_width,
+                        frame_height,
                         CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT),
                     ),
                 ),
-                'switch_right_stream'
-            )
+                'switch_right_stream',
+            ),
         )
 
     def apply_monitor_config(self, gui_type: GuiType) -> None:

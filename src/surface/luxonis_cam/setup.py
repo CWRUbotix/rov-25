@@ -9,8 +9,7 @@ setup(
     version='0.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + PACKAGE_NAME]),
+        ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
         ('share/' + PACKAGE_NAME, ['package.xml']),
         (
             str(Path('share') / PACKAGE_NAME / 'launch'),
@@ -25,8 +24,6 @@ setup(
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': [
-            'luxonis_cam_driver = luxonis_cam.cam_driver:main'
-        ],
+        'console_scripts': ['luxonis_cam_driver = luxonis_cam.cam_driver:main'],
     },
 )

@@ -5,7 +5,6 @@ from gui.widgets.arm import Arm
 from gui.widgets.heartbeat import HeartbeatWidget
 from gui.widgets.ip_widget import IPWidget
 from gui.widgets.logger import Logger
-from gui.widgets.thruster_tester import ThrusterTester
 
 
 class GeneralDebugTab(QWidget):
