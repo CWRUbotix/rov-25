@@ -207,6 +207,7 @@ void loop() {
   }
 
   // Main state machine
+  float depth;
   switch (stage) {
     case StageType::DeploySuck:
       // Check for stage completion
@@ -265,7 +266,7 @@ void loop() {
       break;
 
     case StageType::Descending:
-      float depth = getDepth();
+      depth = getDepth();
       // TODO: Fancy PID stuff
       
       if (!digitalRead(PIN_LIMIT_NO)) {
