@@ -10,8 +10,8 @@
 #include <RHSoftwareSPI.h>
 #include <RH_RF95.h>
 #include <SPI.h>
-#include <Wire.h>
 #include <TaskScheduler.h>
+#include <Wire.h>
 
 #include "MS5837.h"
 #include "PicoEncoder.h"
@@ -133,7 +133,8 @@ void recordPressureCallback();
 
 // Task objects
 Task taskUpdateEncoder(10, TASK_FOREVER, &updateEncoderCallback);
-Task taskTransmitSinglePressure(PRESSURE_READ_INTERVAL, TASK_FOREVER, &transmitSinglePressureCallback);
+Task taskTransmitSinglePressure(
+  PRESSURE_READ_INTERVAL, TASK_FOREVER, &transmitSinglePressureCallback);
 Task taskRecordPressure(PRESSURE_READ_INTERVAL, TASK_FOREVER, &recordPressureCallback);
 
 void setup() {
@@ -213,7 +214,7 @@ void loop() {
       if (millis() > stageTimeout || !digitalRead(PIN_LIMIT_NO)) {
         motor_stop();
         encoder.resetPosition();  // Set zero position
-        
+
         // Transition to DeployWait
         stage = StageType::DeployWait;
         stageTimeout = millis() + AFTER_HOME_WAIT;
@@ -225,7 +226,6 @@ void loop() {
     case StageType::DeployWait:
       // Check for stage completion
       if (millis() > stageTimeout) {
-        
         // Transition to DeployPump
         stage = StageType::DeployPump;
         stageTimeout = millis() + PUMP_MAX;
@@ -267,7 +267,7 @@ void loop() {
     case StageType::Descending:
       float depth = getDepth();
       // TODO: Fancy PID stuff
-      
+
       if (!digitalRead(PIN_LIMIT_NO)) {
         motor_stop();
       }
@@ -275,7 +275,7 @@ void loop() {
       // Check for stage completion
       if (millis() > stageTimeout) {
         motor_stop();
-        
+
         // Transition to Pump
         stage = StageType::Pump;
         stageTimeout = millis() + PUMP_MAX;
@@ -324,23 +324,21 @@ void loop() {
       }
       break;
 
-    default:
-      Serial.println("Error: Undefined float stage");
-      break;
+    default: Serial.println("Error: Undefined float stage"); break;
   }
 }
 
 // Task implementations
-void updateEncoderCallback() {
-  encoder.update();
-}
+void updateEncoderCallback() { encoder.update(); }
 
 float getDepth() {
   pressureSensor.read();
   if (surfaceAverage == 0) {
     return pressureSensor.depth();
-  } else {
-    return (pressureSensor.pressure() - surfaceAverage) * MBAR_TO_METER_OF_HEAD + PRESSURE_SENSOR_VERTICAL_OFFSET;
+  }
+  else {
+    return (pressureSensor.pressure() - surfaceAverage) * MBAR_TO_METER_OF_HEAD +
+           PRESSURE_SENSOR_VERTICAL_OFFSET;
   }
 }
 
@@ -463,40 +461,39 @@ bool receiveCommand() {
   response.getBytes(responseBytes, response.length() + 1);
   rf95.send(responseBytes, response.length() + 1);
   rf95.waitPacketSent();
-  
+
   return shouldSubmerge;
 }
 
 void handleOverride() {
   setLedColor(COLOR_ERROR);
-  
+
   switch (overrideState) {
     case OverrideState::Suck:
       if (digitalRead(PIN_LIMIT_NO) == HIGH) {
         motor_suck();
-      } else {
+      }
+      else {
         motor_stop();
         overrideState = OverrideState::Stop;
       }
       break;
-      
+
     case OverrideState::Pump:
       if (!isEmpty()) {
         motor_pump();
-      } else {
+      }
+      else {
         motor_stop();
         overrideState = OverrideState::Stop;
       }
       break;
-      
-    case OverrideState::Stop:
-      motor_stop();
-      break;
-      
-    default:
-      break;
+
+    case OverrideState::Stop: motor_stop(); break;
+
+    default: break;
   }
-  
+
   // Check for commands to exit override
   receiveCommand();
 }
@@ -509,8 +506,9 @@ void transmitSurfacePressure() {
   int intComponent = pressure;
   int fracComponent = trunc((pressure - intComponent) * 10000);
   char judgePacketBuffer[JUDGE_PKT_SIZE];
-  snprintf(judgePacketBuffer, JUDGE_PKT_SIZE, "ROS:SINGLE:%d:%lu,%d.%04d\0", 
-           TEAM_NUM, millis(), intComponent, fracComponent);
+  snprintf(
+    judgePacketBuffer, JUDGE_PKT_SIZE, "ROS:SINGLE:%d:%lu,%d.%04d\0", TEAM_NUM, millis(),
+    intComponent, fracComponent);
   Serial.println(judgePacketBuffer);
 
   rf95.send((uint8_t*)judgePacketBuffer, strlen(judgePacketBuffer));
@@ -556,9 +554,7 @@ void clearPacketPayloads() {
   }
 }
 
-bool isEmpty() {
-  return encoder.position < EMPTY_POS;
-}
+bool isEmpty() { return encoder.position < EMPTY_POS; }
 
 void setLedColor(COLOR color) {
   analogWrite(PIN_LED_RED, color.r);
@@ -617,7 +613,7 @@ void initPressureSensor() {
   bool init_success = false;
 
   Wire.begin();
-  for(int i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++) {
     if (pressureSensor.init()) {
       init_success = true;
       break;
