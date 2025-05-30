@@ -70,17 +70,17 @@ void loop() {
   Serial.print("Pressure: ");
   Serial.print(sensor.pressure());
   Serial.println(" mbar");
-  
-  // Serial.print("Temperature: "); 
-  // Serial.print(sensor.temperature()); 
+
+  // Serial.print("Temperature: ");
+  // Serial.print(sensor.temperature());
   // Serial.println(" deg C");
-  
-  // Serial.print("Depth: "); 
-  // Serial.print(sensor.depth()); 
+
+  // Serial.print("Depth: ");
+  // Serial.print(sensor.depth());
   // Serial.println(" m");
-  
-  // Serial.print("Altitude: "); 
-  // Serial.print(sensor.altitude()); 
+
+  // Serial.print("Altitude: ");
+  // Serial.print(sensor.altitude());
   // Serial.println(" m above mean sea level");
 
   delay(100);
