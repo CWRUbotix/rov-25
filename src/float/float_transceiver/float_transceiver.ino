@@ -38,6 +38,7 @@ const uint32_t PACKET_SEND_INTERVAL = 1000;
 const uint32_t FLOAT_PKT_RX_TIMEOUT = 10;
 const uint8_t JUDGE_PKT_SIZE = 30;
 
+// #define DO_DEBUGGING
 #ifdef DO_DEBUGGING
 const uint32_t PRESSURE_READ_INTERVAL = 200;
 const uint32_t PROFILE_SEGMENT = 10000;
@@ -60,7 +61,7 @@ const uint32_t HOLD_TIME = 0;
 
 // Distance from the pressure sensor to the bottom of the float (m)
 const float MBAR_TO_METER_OF_HEAD = 0.010199773339984;
-const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0.635;
+const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0.62;
 const int AVERAGE_PRESSURE_LEN = 5;
 
 float surfacePressures[AVERAGE_PRESSURE_LEN];
@@ -98,11 +99,7 @@ MotorState motorState = MotorState::Error;
 uint8_t profileNum = 0;
 uint8_t profileHalf = 0;
 
-// Timing variables
-uint32_t stageStartTime = 0;
 uint32_t stageTimeout = 0;
-uint32_t nextPacketTransmitTime = 0;
-uint32_t nextSurfacePressureTime = 0;
 
 // Colors for status LED
 struct COLOR {
@@ -130,10 +127,12 @@ Scheduler taskScheduler;
 
 // Task callback function declarations
 void updateEncoderCallback();
+void transmitSinglePressureCallback();
 void recordPressureCallback();
 
 // Task objects
 Task taskUpdateEncoder(10, TASK_FOREVER, &updateEncoderCallback);
+Task taskTransmitSinglePressure(PRESSURE_READ_INTERVAL, TASK_FOREVER, &transmitSinglePressureCallback);
 Task taskRecordPressure(PRESSURE_READ_INTERVAL, TASK_FOREVER, &recordPressureCallback);
 
 void setup() {
@@ -179,14 +178,13 @@ void setup() {
   taskScheduler.init();
   taskScheduler.addTask(taskUpdateEncoder);
   taskScheduler.addTask(taskRecordPressure);
+  taskScheduler.addTask(taskTransmitSinglePressure);
 
   // Enable encoder task (always running)
   taskUpdateEncoder.enable();
 
   // Initialize stage timing
-  stageStartTime = millis();
-  stageTimeout = stageStartTime + SUCK_MAX;
-  nextSurfacePressureTime = millis() + PRESSURE_READ_INTERVAL;
+  stageTimeout = millis() + SUCK_MAX;
 
   // Start first stage
   setLedColor(COLOR_INITIALIZING);
@@ -216,8 +214,7 @@ void loop() {
         
         // Transition to DeployWait
         stage = StageType::DeployWait;
-        stageStartTime = millis();
-        stageTimeout = stageStartTime + AFTER_HOME_WAIT;
+        stageTimeout = millis() + AFTER_HOME_WAIT;
         setLedColor(COLOR_INITIALIZING);
         Serial.println("Stage: DeployWait");
       }
@@ -229,8 +226,7 @@ void loop() {
         
         // Transition to DeployPump
         stage = StageType::DeployPump;
-        stageStartTime = millis();
-        stageTimeout = stageStartTime + PUMP_MAX;
+        stageTimeout = millis() + PUMP_MAX;
         setLedColor(COLOR_INITIALIZING);
         motor_pump();
         Serial.println("Stage: DeployPump");
@@ -242,36 +238,34 @@ void loop() {
       if (millis() > stageTimeout || isEmpty()) {
         // Transition to WaitDeploying
         stage = StageType::WaitDeploying;
-        stageStartTime = millis();
-        stageTimeout = stageStartTime + RELEASE_MAX;
+        stageTimeout = millis() + RELEASE_MAX;
+
         setLedColor(COLOR_READY);
         motor_stop();
+        taskTransmitSinglePressure.enable();
+
         Serial.println("Stage: WaitDeploying");
       }
       break;
 
     case StageType::WaitDeploying:
-      // Handle surface pressure transmission
-      if (millis() >= nextSurfacePressureTime) {
-        transmitSurfacePressure();
-        nextSurfacePressureTime = millis() + PRESSURE_READ_INTERVAL;
-      }
-
       // Check for submerge command
       if (millis() > stageTimeout || shouldSubmerge) {
         // Transition to Descending
         stage = StageType::Descending;
-        stageStartTime = millis();
-        stageTimeout = stageStartTime + DESCEND_TIME + HOLD_TIME;
+        stageTimeout = millis() + DESCEND_TIME + HOLD_TIME;
         setLedColor(COLOR_DESCENDING);
         motor_suck();
+        taskTransmitSinglePressure.disable();
         taskRecordPressure.enable();  // Start recording pressure
         Serial.println("Stage: Descending");
       }
       break;
 
     case StageType::Descending:
+      float depth = getDepth();
       // TODO: Fancy PID stuff
+      
       if (!digitalRead(PIN_LIMIT_NO)) {
         motor_stop();
       }
@@ -282,8 +276,7 @@ void loop() {
         
         // Transition to Pump
         stage = StageType::Pump;
-        stageStartTime = millis();
-        stageTimeout = stageStartTime + PUMP_MAX;
+        stageTimeout = millis() + PUMP_MAX;
         setLedColor(COLOR_ASCENDING);
         motor_pump();
         Serial.println("Stage: Pump");
@@ -295,8 +288,7 @@ void loop() {
       if (millis() > stageTimeout || isEmpty()) {
         // Transition to Ascending
         stage = StageType::Ascending;
-        stageStartTime = millis();
-        stageTimeout = stageStartTime + ASCEND_TIME;
+        stageTimeout = millis() + ASCEND_TIME;
         setLedColor(COLOR_ASCENDING);
         motor_stop();
         Serial.println("Stage: Ascending");
@@ -308,32 +300,25 @@ void loop() {
       if (millis() > stageTimeout) {
         // Transition to WaitTransmitting
         stage = StageType::WaitTransmitting;
-        stageStartTime = millis();
-        stageTimeout = stageStartTime + TX_MAX_TIME;
+        stageTimeout = millis() + TX_MAX_TIME;
         setLedColor(COLOR_READY);
         taskRecordPressure.disable();  // Stop recording pressure
-        nextPacketTransmitTime = millis();  // Transmit immediately
+        taskTransmitSinglePressure.enable();
         Serial.println("Stage: WaitTransmitting");
       }
       break;
 
     case StageType::WaitTransmitting:
-      // Handle packet transmission
-      if (millis() >= nextPacketTransmitTime) {
-        transmitPressurePacket();
-        nextPacketTransmitTime = millis() + PACKET_SEND_INTERVAL;
-      }
-
       // Check for submerge command to start next profile
       if (millis() > stageTimeout || shouldSubmerge) {
         // Transition back to Descending
         stage = StageType::Descending;
-        stageStartTime = millis();
-        stageTimeout = stageStartTime + DESCEND_TIME + HOLD_TIME;
+        stageTimeout = millis() + DESCEND_TIME + HOLD_TIME;
         setLedColor(COLOR_DESCENDING);
         motor_suck();
+        taskTransmitSinglePressure.disable();
         taskRecordPressure.enable();  // Start recording pressure again
-        Serial.println("Stage: Descending (next profile)");
+        Serial.println("Stage: Descending");
       }
       break;
 
@@ -348,21 +333,36 @@ void updateEncoderCallback() {
   encoder.update();
 }
 
+float getDepth() {
+  pressureSensor.read();
+  if (surfaceAverage == 0) {
+    return pressureSensor.depth();
+  } else {
+    return (pressureSensor.pressure() - surfaceAverage) * MBAR_TO_METER_OF_HEAD + PRESSURE_SENSOR_VERTICAL_OFFSET;
+  }
+}
+
+void transmitSinglePressureCallback() {
+  for (int half = 0; half < 2; half++) {
+    serialPrintf("Sending packet #%d half %d with content {", profileNum, half);
+    for (int p = 0; p < PKT_LEN; p++) {
+      serialPrintf("%d, ", packets[half][p]);
+    }
+    Serial.println("}");
+
+    packets[half][PKT_IDX_PROFILE_NUM] = profileNum;
+
+    rf95.send(packets[half], PKT_LEN);
+    rf95.waitPacketSent();
+  }
+}
+
 void recordPressureCallback() {
   uint32_t currentTime = millis();
   memcpy(packets[profileHalf] + packetIndex, &currentTime, sizeof(uint32_t));
   packetIndex += sizeof(uint32_t);
 
-  pressureSensor.read();
-  float pressure = pressureSensor.pressure();
-  serialPrintf("Reading pressure: %f\n", pressure);
-
-  float depth;
-  if (surfaceAverage == 0) {
-    depth = pressureSensor.depth();
-  } else {
-    depth = (pressure - surfaceAverage) * MBAR_TO_METER_OF_HEAD + PRESSURE_SENSOR_VERTICAL_OFFSET;
-  }
+  float depth = getDepth();
   serialPrintf("Calculated depth: %f\n", depth);
 
   memcpy(packets[profileHalf] + packetIndex, &depth, sizeof(float));
@@ -546,21 +546,6 @@ int countValidPackets() {
   return validPackets;
 }
 
-void transmitPressurePacket() {
-  for (int half = 0; half < 2; half++) {
-    serialPrintf("Sending packet #%d half %d with content {", profileNum, half);
-    for (int p = 0; p < PKT_LEN; p++) {
-      serialPrintf("%d, ", packets[half][p]);
-    }
-    Serial.println("}");
-
-    packets[half][PKT_IDX_PROFILE_NUM] = profileNum;
-
-    rf95.send(packets[half], PKT_LEN);
-    rf95.waitPacketSent();
-  }
-}
-
 void clearPacketPayloads() {
   for (int half = 0; half < 2; half++) {
     for (int i = PKT_HEADER_LEN; i < PKT_LEN; i++) {
@@ -624,10 +609,10 @@ void initRadio() {
 }
 
 void initPressureSensor() {
-  Wire.begin();
-  
   setLedColor({0, 255, 255});
   bool init_success = false;
+
+  Wire.begin();
   for(int i = 0; i < 5; i++) {
     if (pressureSensor.init()) {
       init_success = true;
@@ -642,7 +627,4 @@ void initPressureSensor() {
 
   pressureSensor.setModel(MS5837::MS5837_02BA);
   pressureSensor.setFluidDensity(997);
-
-  serialPrintf("PRESSURE: %f\n", pressureSensor.pressure());
-  pressureSensor.depth();
 }
