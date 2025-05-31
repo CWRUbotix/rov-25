@@ -136,6 +136,10 @@ class FramePublishers:
         """
         video_frame = queue.tryGet()
 
+        # Discard None (failed to get frame)
+        if video_frame is None:
+            return
+
         # Type narrow to make mypy happy
         if not isinstance(video_frame, depthai.ImgFrame):
             self.node.get_logger().warn('Dequeued something other than an image frame, skipping')
