@@ -1,11 +1,52 @@
+from collections.abc import Callable
+from dataclasses import dataclass
+
+from PyQt6.QtCore import QEvent, QObject, Qt
+from PyQt6.QtGui import QKeyEvent, QMouseEvent
 from PyQt6.QtWidgets import QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 
-from gui.widgets.video_widget import CameraDescription, CameraManager, CameraType, VideoWidget, SwitchableVideoWidget
+from gui.gui_node import GUINode
+from gui.widgets.video_widget import (
+    CameraDescription,
+    CameraManager,
+    CameraType,
+    SwitchableVideoWidget,
+)
 from rov_msgs.srv import CameraManage
-
 
 FRAME_WIDTH = 921
 FRAME_HEIGHT = 690
+
+POINTS_PER_EYE = 2
+
+@dataclass
+class Point:
+    x: int
+    y: int
+
+@dataclass
+class KeyPoints:
+    left_eye: list[Point | None]
+    right_eye: list[Point | None]
+
+    def has_all_points(self) -> bool:
+        return all(point is not None for point in self.left_eye + self.right_eye) and \
+                len(self.left_eye) == POINTS_PER_EYE and len(self.right_eye) == POINTS_PER_EYE
+
+class MousePressEventFilter(QObject):
+    def __init__(self, callback: Callable[[QEvent], None]) -> None:
+        super().__init__()
+
+        self.callback = callback
+
+    def eventFilter(self, obj: QObject | None, event: QEvent | None) -> bool:  # noqa: N802
+        if obj is None or event is None:
+            return super().eventFilter(obj, event)
+
+        if event.type() == QEvent.Type.MouseButtonPress:
+            self.callback(event)
+
+        return super().eventFilter(obj, event)
 
 class ShipwreckTab(QWidget):
     def __init__(self) -> None:
@@ -28,6 +69,8 @@ class ShipwreckTab(QWidget):
             ),
             'switch_rect_left_stream'
         )
+        left_eye.installEventFilter(
+            MousePressEventFilter(lambda event: self.click_eye(event, is_right_eye=False)))
 
         right_eye = SwitchableVideoWidget(
             (
@@ -44,6 +87,8 @@ class ShipwreckTab(QWidget):
             ),
             'switch_rect_left_stream'
         )
+        left_eye.installEventFilter(
+            MousePressEventFilter(lambda event: self.click_eye(event, is_right_eye=False)))
 
         cam_layout.addWidget(left_eye)
         cam_layout.addWidget(right_eye)
@@ -59,3 +104,45 @@ class ShipwreckTab(QWidget):
         root_layout.addLayout(button_layout)
 
         self.setLayout(root_layout)
+
+        self.points = KeyPoints([None, None], [None, None])
+
+        self.keys: dict[int, bool] = {
+            Qt.Key.Key_1.value: False,
+            Qt.Key.Key_2.value: False,
+        }
+
+    def click_eye(self, event: QEvent | None, *, is_right_eye: bool) -> None:
+        if not isinstance(event, QMouseEvent):
+            return
+
+        if self.keys[Qt.Key.Key_2]:
+            point_idx = 1
+        elif self.keys[Qt.Key.Key_1]:
+            point_idx = 0
+        else:
+            return  # No key pressed, don't register point
+
+        point = Point(event.pos().x(), event.pos().y())
+
+        if is_right_eye:
+            self.points.right_eye[point_idx] = point
+        else:
+            self.points.left_eye[point_idx] = point
+
+        GUINode().get_logger().info(str(self.points))
+
+    def keyPressEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
+        self.handle_key_event(event, target_value=True)
+
+    def keyReleaseEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
+        self.handle_key_event(event, target_value=False)
+
+    def handle_key_event(self, event: QKeyEvent | None, *, target_value: bool) -> None:
+        # Shouldn't ever happen, just type narrowing
+        if event is None:
+            return
+
+        if not event.isAutoRepeat() and event.key() in self.keys and self.keys[event.key()] != target_value:
+            self.keys[event.key()] = target_value
+            GUINode().get_logger().info(str(self.keys))
