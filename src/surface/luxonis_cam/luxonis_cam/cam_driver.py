@@ -9,7 +9,8 @@ from cv_bridge import CvBridge
 from numpy import generic
 from numpy.typing import NDArray
 from rclpy.executors import MultiThreadedExecutor
-from rclpy.node import Node, Publisher
+from rclpy.node import Node
+from rclpy.publisher import Publisher
 from rclpy.qos import QoSPresetProfiles
 from sensor_msgs.msg import Image
 
@@ -134,6 +135,12 @@ class FramePublishers:
             queue to read from (single read then give up, won't block long)
         """
         video_frame = queue.tryGet()
+
+        # Type narrow to make mypy happy
+        if not isinstance(video_frame, depthai.ImgFrame):
+            self.node.get_logger().warn('Dequeued something other than an image frame, skipping')
+            return
+
         time_msg = self.node.get_clock().now().to_msg()
 
         if video_frame is not None:
@@ -249,7 +256,7 @@ class LuxonisCamDriverNode(Node):
         right_cam_node = pipeline.createColorCamera()
         right_cam_node.setBoardSocket(depthai.CameraBoardSocket.CAM_A)
         right_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
-        right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D)
+        right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D.value)
 
         script = pipeline.createScript()
         script_str = f"""
@@ -364,13 +371,13 @@ while True:
                 break
 
         buf = depthai.Buffer()  # TODO: can we create this once and reuse?
-        buf.setData(enable_stereo)
+        buf.setData([1 if enable_stereo else 0])
         self.left_stereo_toggle_queue.send(buf)
         self.right_stereo_toggle_queue.send(buf)
 
         for cam_id, toggle_queue in self.toggle_queues.items():
             buf = depthai.Buffer()
-            buf.setData(self.stream_metas[cam_id].enabled)
+            buf.setData([1 if self.stream_metas[cam_id].enabled else 0])
             toggle_queue.send(buf)
 
         # disparity_frame = self.disparity_queue.tryGet()
