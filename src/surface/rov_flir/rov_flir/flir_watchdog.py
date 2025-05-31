@@ -80,7 +80,7 @@ class Watchdog:
         self.should_be_alive = False
         # Alternative killing (doesn't work): self.process.kill()
         self.process.send_signal(SIGINT)
-        self.node.get_logger().info(f'Killing FLIR ${self.name} cam')
+        self.node.get_logger().info(f'Killing FLIR {self.name} cam')
         try:
             self.process.wait(timeout=KILL_TIMEOUT_S)
             return not self.is_alive()
@@ -181,13 +181,13 @@ class FlirWatchdogNode(Node):
         )
 
         self.cam_manage_service = self.create_service(
-            CameraManage, 'manage_flir', self.manage_cams_callback
+            CameraManage, 'manage_flir', self.cam_manage_callback
         )
 
         atexit.register(self.front_watchdog.kill_process)
         atexit.register(self.bottom_watchdog.kill_process)
 
-    def manage_cams_callback(
+    def cam_manage_callback(
         self, request: CameraManage.Request, response: CameraManage.Response
     ) -> CameraManage.Response:
         """
@@ -205,10 +205,10 @@ class FlirWatchdogNode(Node):
         CameraManage.Response
             the completed service response
         """
-        if request.cam == CameraManage.Request.DOWN:
+        if request.cam == CameraManage.Request.FLIR_DOWN:
             self.get_logger().info(f'Received down cam {"on" if request.on else "off"} request')
             target_watchdog = self.bottom_watchdog
-        elif request.cam == CameraManage.Request.FRONT:
+        elif request.cam == CameraManage.Request.FLIR_FRONT:
             self.get_logger().info(f'Received front cam {"on" if request.on else "off"} request')
             target_watchdog = self.front_watchdog
         else:
