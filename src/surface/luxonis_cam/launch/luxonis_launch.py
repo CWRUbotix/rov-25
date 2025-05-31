@@ -9,7 +9,7 @@ def generate_launch_description() -> LaunchDescription:
         name='luxonis_cam',
         exec_name='luxonis_cam',
         emulate_tty=True,
-        output='screen'
+        output='screen',
     )
 
     return LaunchDescription([dual_cam])

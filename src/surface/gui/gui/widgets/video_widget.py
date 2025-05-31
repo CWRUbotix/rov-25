@@ -46,6 +46,7 @@ class CameraType(IntEnum):
     DEPTH = 3
     SIMULATION = 4
 
+
 @dataclass
 class CameraManager:
     def __init__(self, topic_name: str, camera_id: int) -> None:
@@ -54,8 +55,10 @@ class CameraManager:
         self.client = GUINode().create_client_multithreaded(CameraManage, topic_name)
 
     def set_cam_state(self, *, on: bool) -> None:
-        GUINode().send_request_multithreaded(self.client,
-                                             CameraManage.Request(cam=self.camera_id, on=on))
+        GUINode().send_request_multithreaded(
+            self.client, CameraManage.Request(cam=self.camera_id, on=on)
+        )
+
 
 class CameraDescription(NamedTuple):
     """
