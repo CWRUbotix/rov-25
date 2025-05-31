@@ -1,4 +1,4 @@
-from photosphere.fisheye_projection import equirectangular_projection
+from photosphere.fisheye_projection import convert_with_matrix
 from rclpy.node import Node
 
 from sensor_msgs.msg import Image
@@ -134,7 +134,7 @@ class Photosphere(Node):
         cv2.imwrite('src/surface/photosphere/photosphere/frame1.png', self.fisheye_frames[0])
         cv2.imwrite('src/surface/photosphere/photosphere/frame2.png', self.fisheye_frames[1])
         print("frames saved")
-        projection = equirectangular_projection(self.fisheye_frames[0], self.fisheye_frames[1])
+        projection = convert_with_matrix(self.fisheye_frames[0], self.fisheye_frames[1])
         print("projection created")
         cv2.imwrite('src/surface/photosphere/photosphere/projection.png', projection)
         print("projection saved")

@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 from numpy import generic
-from projection_matrix import get_matrix
+from photosphere.projection_matrix import get_matrix
 import time
 Matlike = NDArray[generic]
 
@@ -278,6 +278,8 @@ def equirectangular_projection(
                 else:
                     alpha = 1 - (col_index - RIGHT_SEAM[0]) / (RIGHT_SEAM[1] - RIGHT_SEAM[0])
 
+                    # alpha = 1 - (col_index - RIGHT_SEAM[0]) / (RIGHT_SEAM[1] - RIGHT_SEAM[0])
+
                 # Set the pixel using the alpha
                 # fisheye1_pixel = (
                 #     images[0][fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
@@ -292,7 +294,7 @@ def equirectangular_projection(
                     fisheye_normal_coord1[1],
                     fisheye_normal_coord2[0],
                     fisheye_normal_coord2[1],
-                    alpha
+                    int(alpha * 100)
                 ]
                 projection_matrix[row_index][col_index] = projection_pixel
 
@@ -475,11 +477,9 @@ def convert_with_matrix(fisheye_image1: Matlike, fisheye_image2: Matlike
             # ):
             if len(pixel) == 5:
                 fisheye1_pixel = (
-                    images[0][pixel[0]][pixel[1]] * pixel[4]
+                    images[0][pixel[0]][pixel[1]] * (pixel[4] / 100.0)
                 )
-                fisheye2_pixel = images[1][pixel[2]][pixel[3]] * (
-                    1 - pixel[4]
-                )
+                fisheye2_pixel = images[1][pixel[2]][pixel[3]] * (1 - (pixel[4] / 100.0))
                 projection_image[row_index][col_index] = fisheye1_pixel + fisheye2_pixel
 
             elif col_index < LEFT_SEAM[0] or RIGHT_SEAM[1] < col_index:
