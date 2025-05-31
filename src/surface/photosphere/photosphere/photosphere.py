@@ -1,21 +1,21 @@
-from photosphere.fisheye_projection import convert_with_matrix
-from rclpy.node import Node
-
-from sensor_msgs.msg import Image
-from rclpy.qos import qos_profile_default
-from builtin_interfaces.msg import Time
-from numpy.typing import NDArray
-from numpy import generic, uint8
-from cv_bridge import CvBridge
 import pickle
 import socket
 import struct
-import rclpy
-from rclpy.executors import MultiThreadedExecutor
-from rov_msgs.srv import GeneratePhotosphere
-import numpy as np
 
 import cv2
+import numpy as np
+import rclpy
+from builtin_interfaces.msg import Time
+from cv_bridge import CvBridge
+from numpy import generic
+from numpy.typing import NDArray
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.node import Node
+from rclpy.qos import qos_profile_default
+from sensor_msgs.msg import Image
+
+from photosphere.fisheye_projection import convert_with_matrix
+from rov_msgs.srv import GeneratePhotosphere
 
 HOST_IP = '127.0.1.1' # the server ip address
 PORT1 = 9997
@@ -93,13 +93,16 @@ class Photosphere(Node):
         # cv2.imshow('RECEIVING VIDEO', frame)
 
     def get_image_msg(self, image: Matlike, time: Time) -> Image:
-        """Convert cv2 image to ROS2 Image with CvBridge.
+        """
+        Convert cv2 image to ROS2 Image with CvBridge.
+
         Parameters
         ----------
         image : Matlike
             The image to convert
         time : Time
             The timestamp for the ros message
+
         Returns
         -------
         Image
@@ -114,10 +117,10 @@ class Photosphere(Node):
     def shutdown(self) -> None:
         self.client_sockets[0].close()
         self.client_sockets[1].close()
-    
+
     def photosphere_service_callback(self, request: GeneratePhotosphere.Request, response: GeneratePhotosphere.Response) -> GeneratePhotosphere.Response:
         """
-        Handle a request to generate a photosphere
+        Handle a request to generate a photosphere.
 
         Parameters
         ----------
