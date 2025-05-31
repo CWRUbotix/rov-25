@@ -6,7 +6,7 @@ This is the package for all our msg, srv, and action definitions.
 
 ## Msg files
 
-[CameraControllerSwitch.msg](msg/CameraControllerSwitch.msg)
+[VideoWidgetSwitch.msg](msg/VideoWidgetSwitch.msg)
 
 Used for toggling through camera feeds in the pilot gui.
 
