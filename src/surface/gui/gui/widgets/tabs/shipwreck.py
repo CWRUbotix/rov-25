@@ -1,8 +1,12 @@
 from PyQt6.QtWidgets import QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 
-from gui.widgets.video_widget import CameraDescription, CameraManager, CameraType, VideoWidget, SwitchableVideoWidget
+from gui.widgets.video_widget import (
+    CameraDescription,
+    CameraManager,
+    CameraType,
+    SwitchableVideoWidget,
+)
 from rov_msgs.srv import CameraManage
-
 
 FRAME_WIDTH = 921
 FRAME_HEIGHT = 690
