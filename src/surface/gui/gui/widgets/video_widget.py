@@ -76,6 +76,8 @@ class CameraDescription(NamedTuple):
         The width of the Camera Stream, by default WIDTH constant.
     height: int
         The height of the Camera Stream, by default HEIGHT constant.
+    manager: CameraManager | None
+        Used for toggling cam streams in SwitchableVideoWidgets
 
     """
 
