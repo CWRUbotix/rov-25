@@ -1,9 +1,10 @@
 from collections.abc import Callable
 from dataclasses import dataclass
+from math import sqrt
 from typing import override
 
 from PyQt6.QtCore import QEvent, QObject, Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QKeyEvent, QMouseEvent
+from PyQt6.QtGui import QFont, QKeyEvent, QMouseEvent
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from gui.gui_node import GUINode
@@ -14,6 +15,7 @@ from gui.widgets.video_widget import (
     ClickableLabel,
     SwitchableVideoWidget,
 )
+from rov_msgs.msg import Intrinsics
 from rov_msgs.srv import CameraManage
 
 FRAME_WIDTH = 921
@@ -21,19 +23,44 @@ FRAME_HEIGHT = 690
 
 POINTS_PER_EYE = 2
 
+BASELINE_MM = 60.6
+
 @dataclass
-class Point:
-    x: int
-    y: int
+class Point2D:
+    x: float
+    y: float
 
     @override
     def __str__(self) -> str:
-        return f'({self.x}, {self.y})'
+        return f'({round(self.x, 3)}, {round(self.y, 3)})'
 
 @dataclass
-class KeyPoints:
-    left_eye: list[Point | None]
-    right_eye: list[Point | None]
+class Point3D:
+    x: float
+    y: float
+    z: float
+
+    @override
+    def __str__(self) -> str:
+        return f'({round(self.x, 3)}, {round(self.y, 3)}, {round(self.z, 3)})'
+
+@dataclass
+class KeyPoints2D:
+    left_eye: list[Point2D | None]
+    right_eye: list[Point2D | None]
+
+    def has_all_points(self) -> bool:
+        return all(point is not None for point in self.left_eye + self.right_eye) and \
+                len(self.left_eye) == POINTS_PER_EYE and len(self.right_eye) == POINTS_PER_EYE
+
+    @override
+    def __str__(self) -> str:
+        return f'{self.left_eye[0]}-{self.left_eye[1]} \t {self.right_eye[0]}-{self.right_eye[1]}'
+
+@dataclass
+class KeyPoints3D:
+    left_eye: list[Point3D | None]
+    right_eye: list[Point3D | None]
 
     def has_all_points(self) -> bool:
         return all(point is not None for point in self.left_eye + self.right_eye) and \
@@ -47,11 +74,14 @@ class ShipwreckTab(QWidget):
     click_left_signal = pyqtSignal(QMouseEvent)
     click_right_signal = pyqtSignal(QMouseEvent)
 
+    intrinsics_left_signal = pyqtSignal(Intrinsics)
+    intrinsics_right_signal = pyqtSignal(Intrinsics)
+
     def __init__(self) -> None:
         super().__init__()
 
-        self.click_left_signal.connect(self.click_left)
-        self.click_right_signal.connect(self.click_right)
+        self.click_left_signal.connect(self.click_left_slot)
+        self.click_right_signal.connect(self.click_right_slot)
 
         cam_layout = QHBoxLayout()
 
@@ -68,7 +98,7 @@ class ShipwreckTab(QWidget):
                     CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT_RECT),
                 ),
             ),
-            'switch_rect_left_stream',
+            'switch_rect_stream',
             make_label=lambda: ClickableLabel(self.click_left_signal)
         )
 
@@ -85,40 +115,84 @@ class ShipwreckTab(QWidget):
                     CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT_RECT),
                 ),
             ),
-            'switch_rect_left_stream',
+            'switch_rect_stream',
             make_label=lambda: ClickableLabel(self.click_right_signal)
         )
 
         cam_layout.addWidget(left_eye)
         cam_layout.addWidget(right_eye)
 
-        button_layout = QHBoxLayout()
-        on_button = QPushButton('Start stream')
-        off_button = QPushButton('Stop stream')
-        self.points_label = QLabel('No points')
-        button_layout.addWidget(on_button)
-        button_layout.addWidget(off_button)
-        button_layout.addWidget(self.points_label)
+        data_layout = QVBoxLayout()
+        row_1 = QHBoxLayout()
+        row_2 = QHBoxLayout()
+
+        self.img_points_label = QLabel('No 2D points')
+        self.focal_length_label = QLabel('No focal length')
+        self.world_points_label = QLabel('No 3D points')
+        self.length_label = QLabel('No length')
+        bold_font = QFont()
+        bold_font.setBold(True)
+        self.length_label.setFont(bold_font)
+        row_1.addWidget(self.img_points_label)
+        row_1.addWidget(self.length_label)
+        row_2.addWidget(self.focal_length_label)
+        row_2.addWidget(self.world_points_label)
+
+        data_layout.addLayout(row_1)
+        data_layout.addLayout(row_2)
 
         root_layout = QVBoxLayout()
         root_layout.addLayout(cam_layout)
-        root_layout.addLayout(button_layout)
+        root_layout.addLayout(data_layout)
 
         self.setLayout(root_layout)
 
-        self.points = KeyPoints([None, None], [None, None])
+        self.img_points = KeyPoints2D([None, None], [None, None])
+        self.world_points = KeyPoints3D([None, None], [None, None])
 
         self.keys: dict[int, bool] = {
             Qt.Key.Key_1.value: False,
             Qt.Key.Key_2.value: False,
         }
 
+        GUINode().create_signal_subscription(Intrinsics, 'luxonis_left_intrinsics', self.intrinsics_left_signal)
+        GUINode().create_signal_subscription(Intrinsics, 'luxonis_right_intrinsics', self.intrinsics_right_signal)
+
+        self.intrinsics_left_signal.connect(self.intrinsics_left_slot)
+        self.intrinsics_right_signal.connect(self.intrinsics_right_slot)
+
+        self.intrinsics_left: Intrinsics | None = None
+        self.focal_left_mm: Point2D | None = None
+        self.intrinsics_right: Intrinsics | None = None
+        self.focal_right_mm: Point2D | None = None
+
+    @staticmethod
+    def px_to_mm(px: float) -> float:
+        # 3 um/px (https://docs.luxonis.com/hardware/sensors/OV9782)
+        # / 1000 to get mm
+        return px * 3 / 1000
+
+    @pyqtSlot(Intrinsics)
+    def intrinsics_left_slot(self, intrinsics: Intrinsics) -> None:
+        self.intrinsics_left = intrinsics
+        self.focal_left_mm = Point2D(ShipwreckTab.px_to_mm(intrinsics.fx), ShipwreckTab.px_to_mm(intrinsics.fy))
+        self.show_intrinsics()
+
+    @pyqtSlot(Intrinsics)
+    def intrinsics_right_slot(self, intrinsics: Intrinsics) -> None:
+        self.intrinsics_right = intrinsics
+        self.focal_right_mm = Point2D(ShipwreckTab.px_to_mm(intrinsics.fx), ShipwreckTab.px_to_mm(intrinsics.fy))
+        self.show_intrinsics()
+
+    def show_intrinsics(self) -> None:
+        self.focal_length_label.setText(f'{self.focal_left_mm} \t {self.focal_right_mm}')
+
     @pyqtSlot(QMouseEvent)
-    def click_left(self, event: QMouseEvent) -> None:
+    def click_left_slot(self, event: QMouseEvent) -> None:
         self.click_eye(event, is_right_eye=False)
 
     @pyqtSlot(QMouseEvent)
-    def click_right(self, event: QMouseEvent) -> None:
+    def click_right_slot(self, event: QMouseEvent) -> None:
         self.click_eye(event, is_right_eye=True)
 
     def click_eye(self, event: QMouseEvent, *, is_right_eye: bool) -> None:
@@ -129,16 +203,39 @@ class ShipwreckTab(QWidget):
         else:
             return  # No key pressed, don't register point
 
-        point = Point(event.pos().x(), event.pos().y())
+        point = Point2D(event.pos().x(), event.pos().y())
 
         if is_right_eye:
-            self.points.right_eye[point_idx] = point
+            self.img_points.right_eye[point_idx] = point
         else:
-            self.points.left_eye[point_idx] = point
+            self.img_points.left_eye[point_idx] = point
 
-        GUINode().get_logger().info(str(self.points))
+        self.img_points_label.setText(str(self.img_points))
 
-        self.points_label.setText(str(self.points))
+        self.calc_world_points()
+
+    def calc_world_points(self) -> None:
+        if not self.img_points.has_all_points() or self.focal_left_mm is None or self.focal_left_mm is None:
+            return
+
+        # TODO: using x focal len of left eye for both rn
+        # Don't use focal lengths in real-world units unless you convert image space x/y to real world units too
+        f = self.intrinsics_left.fx
+        zs = [f * BASELINE_MM / (self.img_points.left_eye[i].x - self.img_points.right_eye[i].x) for i in (0, 1)]
+        xs = [left_point.x * z / f for left_point, z in zip(self.img_points.left_eye, zs, strict=True)]
+        ys = [left_point.y * z / f for left_point, z in zip(self.img_points.left_eye, zs, strict=True)]
+
+        self.world_points = KeyPoints3D(
+            left_eye=[Point3D(x, y, z) for x, y, z in zip(xs, ys, zs, strict=True)],
+            right_eye=[None, None]
+        )
+
+        self.world_points_label.setText(f'3D: {self.world_points}')
+
+        length = sqrt((self.world_points.left_eye[0].x - self.world_points.left_eye[1].x) ** 2 +
+                      (self.world_points.left_eye[0].y - self.world_points.left_eye[1].y) ** 2 +
+                      (self.world_points.left_eye[0].z - self.world_points.left_eye[1].z) ** 2)
+        self.length_label.setText(f'Length: {length}mm')
 
     def keyPressEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
         self.handle_key_event(event, target_value=True)

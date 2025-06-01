@@ -14,10 +14,14 @@ from rclpy.publisher import Publisher
 from rclpy.qos import QoSPresetProfiles
 from sensor_msgs.msg import Image
 
+from rov_msgs.msg import Intrinsics
 from rov_msgs.srv import CameraManage
 
 Matlike = NDArray[generic]
 
+
+LEFT_CAM_SOCKET = depthai.CameraBoardSocket.CAM_A
+RIGHT_CAM_SOCKET = depthai.CameraBoardSocket.CAM_D
 
 class StreamTopic(StrEnum):
     LUX_RAW = 'lux_raw/image_raw'
@@ -212,6 +216,14 @@ class LuxonisCamDriverNode(Node):
         self.cam_manage_service = self.create_service(
             CameraManage, 'manage_luxonis', self.cam_manage_callback
         )
+        self.intrinsics_publishers = (
+            self.create_publisher(
+                Intrinsics, 'luxonis_left_intrinsics', QoSPresetProfiles.DEFAULT.value
+            ),
+            self.create_publisher(
+                Intrinsics, 'luxonis_right_intrinsics', QoSPresetProfiles.DEFAULT.value
+            )
+        )
 
         self.create_pipeline()
 
@@ -254,11 +266,11 @@ class LuxonisCamDriverNode(Node):
         pipeline = depthai.Pipeline()
 
         left_cam_node = pipeline.createColorCamera()
-        left_cam_node.setBoardSocket(depthai.CameraBoardSocket.CAM_D)
+        left_cam_node.setBoardSocket(LEFT_CAM_SOCKET)
         left_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
 
         right_cam_node = pipeline.createColorCamera()
-        right_cam_node.setBoardSocket(depthai.CameraBoardSocket.CAM_A)
+        right_cam_node.setBoardSocket(RIGHT_CAM_SOCKET)
         right_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
         right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D.value)
 
@@ -361,8 +373,37 @@ while True:
 
         self.get_logger().info('Pipeline deployed')
 
+        calib_data = self.device.readCalibration()
+        focal_lengths_mm = [0.0, 0.0]
+        self.intrinsics: list[list[list[float]]] = []
+        for i, cam in enumerate((LEFT_CAM_SOCKET, RIGHT_CAM_SOCKET)):
+            # 3um/px (https://docs.luxonis.com/hardware/sensors/OV9782)
+            # / 1000 to get mm
+            self.intrinsics.append(calib_data.getCameraIntrinsics(cam))
+            focal_lengths_mm[i] = self.intrinsics[-1][0][0] * 3 / 1000
+        self.get_logger().info(f'focal lengths: {focal_lengths_mm}')
+
+        # intrinsics = calib_data.getCameraIntrinsics(depthai.CameraBoardSocket.CAM_A)
+        # self.get_logger().info(f'CAM_A focal length in pixels: {intrinsics[0][0]}')
+        # # self.get_logger().info(f'CAM_A intrinsics: {intrinsics}')
+
+        # intrinsics = calib_data.getCameraIntrinsics(depthai.CameraBoardSocket.CAM_D)
+        # self.get_logger().info(f'CAM_D focal length in pixels: {intrinsics[0][0]}')
+        # # self.get_logger().info(f'CAM_D intrinsics: {intrinsics}')
+
     def spin(self) -> None:
         """Run one iteration of I/O with the Luxonis cam."""
+        for intrinsics, publisher in zip(self.intrinsics, self.intrinsics_publishers, strict=True):
+            publisher.publish(
+                Intrinsics(
+                    fx=intrinsics[0][0],
+                    fy=intrinsics[1][1],
+                    x0=intrinsics[0][2],
+                    y0=intrinsics[1][2],
+                    s=intrinsics[0][1]
+                )
+            )
+
         # TODO: only send toggles when we actually need to change state?
         for cam_id, output_queue in self.frame_output_queues.items():
             if self.stream_metas[cam_id].enabled:
