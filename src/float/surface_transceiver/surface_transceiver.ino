@@ -26,7 +26,10 @@ const String LEGAL_COMMANDS[] = {"submerge", "suck", "pump", "stop", "return"};
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial) {}
+  while (!Serial) {
+    digitalWrite(LED_BUILTIN, millis() % 500 == 0);
+  }
+  digitalWrite(LED_BUILTIN, HIGH);
 
   Serial.println("Surface Transceiver");
   pinMode(RFM95_RST, OUTPUT);
