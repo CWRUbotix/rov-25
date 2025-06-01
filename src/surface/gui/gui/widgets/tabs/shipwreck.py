@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from math import sqrt
-from typing import override
+from typing import TypeGuard, override
 
 from PyQt6.QtCore import QEvent, QObject, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont, QKeyEvent, QMouseEvent
@@ -45,30 +45,21 @@ class Point3D:
         return f'({round(self.x, 3)}, {round(self.y, 3)}, {round(self.z, 3)})'
 
 @dataclass
-class KeyPoints2D:
-    left_eye: list[Point2D | None]
-    right_eye: list[Point2D | None]
-
-    def has_all_points(self) -> bool:
-        return all(point is not None for point in self.left_eye + self.right_eye) and \
-                len(self.left_eye) == POINTS_PER_EYE and len(self.right_eye) == POINTS_PER_EYE
+class KeyPoints[T: Point2D | Point3D | None]:
+    left_eye: list[T]
+    right_eye: list[T]
 
     @override
     def __str__(self) -> str:
         return f'{self.left_eye[0]}-{self.left_eye[1]} \t {self.right_eye[0]}-{self.right_eye[1]}'
 
-@dataclass
-class KeyPoints3D:
-    left_eye: list[Point3D | None]
-    right_eye: list[Point3D | None]
-
-    def has_all_points(self) -> bool:
-        return all(point is not None for point in self.left_eye + self.right_eye) and \
-                len(self.left_eye) == POINTS_PER_EYE and len(self.right_eye) == POINTS_PER_EYE
-
-    @override
-    def __str__(self) -> str:
-        return f'{self.left_eye[0]}-{self.left_eye[1]} \t {self.right_eye[0]}-{self.right_eye[1]}'
+def has_all_points[T: Point2D | Point3D | None](key_points: KeyPoints[T]) -> \
+    TypeGuard['KeyPoints[Point2D | Point3D]']:
+    return (
+        all(point is not None for point in key_points.left_eye + key_points.right_eye) and
+        len(key_points.left_eye) == POINTS_PER_EYE and
+        len(key_points.right_eye) == POINTS_PER_EYE
+    )
 
 class ShipwreckTab(QWidget):
     click_left_signal = pyqtSignal(QMouseEvent)
@@ -147,24 +138,24 @@ class ShipwreckTab(QWidget):
 
         self.setLayout(root_layout)
 
-        self.img_points = KeyPoints2D([None, None], [None, None])
-        self.world_points = KeyPoints3D([None, None], [None, None])
+        self.img_points = KeyPoints[Point2D | None]([None, None], [None, None])
+        self.world_points: list[Point3D] = []
 
         self.keys: dict[int, bool] = {
             Qt.Key.Key_1.value: False,
             Qt.Key.Key_2.value: False,
         }
 
-        GUINode().create_signal_subscription(Intrinsics, 'luxonis_left_intrinsics', self.intrinsics_left_signal)
-        GUINode().create_signal_subscription(Intrinsics, 'luxonis_right_intrinsics', self.intrinsics_right_signal)
+        GUINode().create_signal_subscription(Intrinsics, 'luxonis_left_intrinsics',
+                                             self.intrinsics_left_signal)
+        GUINode().create_signal_subscription(Intrinsics, 'luxonis_right_intrinsics',
+                                             self.intrinsics_right_signal)
 
         self.intrinsics_left_signal.connect(self.intrinsics_left_slot)
         self.intrinsics_right_signal.connect(self.intrinsics_right_slot)
 
         self.intrinsics_left: Intrinsics | None = None
-        self.focal_left_mm: Point2D | None = None
         self.intrinsics_right: Intrinsics | None = None
-        self.focal_right_mm: Point2D | None = None
 
     @staticmethod
     def px_to_mm(px: float) -> float:
@@ -175,17 +166,22 @@ class ShipwreckTab(QWidget):
     @pyqtSlot(Intrinsics)
     def intrinsics_left_slot(self, intrinsics: Intrinsics) -> None:
         self.intrinsics_left = intrinsics
-        self.focal_left_mm = Point2D(ShipwreckTab.px_to_mm(intrinsics.fx), ShipwreckTab.px_to_mm(intrinsics.fy))
         self.show_intrinsics()
 
     @pyqtSlot(Intrinsics)
     def intrinsics_right_slot(self, intrinsics: Intrinsics) -> None:
         self.intrinsics_right = intrinsics
-        self.focal_right_mm = Point2D(ShipwreckTab.px_to_mm(intrinsics.fx), ShipwreckTab.px_to_mm(intrinsics.fy))
         self.show_intrinsics()
 
     def show_intrinsics(self) -> None:
-        self.focal_length_label.setText(f'{self.focal_left_mm} \t {self.focal_right_mm}')
+        if self.intrinsics_left is None or self.intrinsics_right is None:
+            return
+
+        focal_left_mm = Point2D(ShipwreckTab.px_to_mm(self.intrinsics_left.fx),
+                                ShipwreckTab.px_to_mm(self.intrinsics_left.fy))
+        focal_right_mm = Point2D(ShipwreckTab.px_to_mm(self.intrinsics_right.fx),
+                                 ShipwreckTab.px_to_mm(self.intrinsics_right.fy))
+        self.focal_length_label.setText(f'Focal lens (mm): {focal_left_mm} \t {focal_right_mm}')
 
     @pyqtSlot(QMouseEvent)
     def click_left_slot(self, event: QMouseEvent) -> None:
@@ -210,32 +206,38 @@ class ShipwreckTab(QWidget):
         else:
             self.img_points.left_eye[point_idx] = point
 
-        self.img_points_label.setText(str(self.img_points))
+        self.img_points_label.setText(f'2D (px): {self.img_points}')
 
         self.calc_world_points()
 
     def calc_world_points(self) -> None:
-        if not self.img_points.has_all_points() or self.focal_left_mm is None or self.focal_left_mm is None:
+        if (not has_all_points(self.img_points) or
+            self.intrinsics_left is None or self.intrinsics_right is None):
             return
 
         # TODO: using x focal len of left eye for both rn
-        # Don't use focal lengths in real-world units unless you convert image space x/y to real world units too
+        # Don't use focal lengths in real-world units unless
+        #  you convert image space x/y to real world units too
         f = self.intrinsics_left.fx
-        zs = [f * BASELINE_MM / (self.img_points.left_eye[i].x - self.img_points.right_eye[i].x) for i in (0, 1)]
-        xs = [left_point.x * z / f for left_point, z in zip(self.img_points.left_eye, zs, strict=True)]
-        ys = [left_point.y * z / f for left_point, z in zip(self.img_points.left_eye, zs, strict=True)]
+        zs = []
+        xs = []
+        ys = []
 
-        self.world_points = KeyPoints3D(
-            left_eye=[Point3D(x, y, z) for x, y, z in zip(xs, ys, zs, strict=True)],
-            right_eye=[None, None]
-        )
+        for i in (0, 1):
+            zs.append(f * BASELINE_MM / (self.img_points.left_eye[i].x -
+                                         self.img_points.right_eye[i].x))
+            left_point = self.img_points.left_eye[i]
+            xs.append(left_point.x * zs[i] / f)
+            ys.append(left_point.y * zs[i] / f)
 
-        self.world_points_label.setText(f'3D: {self.world_points}')
+        self.world_points = [Point3D(x, y, z) for x, y, z in zip(xs, ys, zs, strict=True)]
+        self.world_points_label.setText(f'3D (mm): {'\t'.join(
+            [str(point) for point in self.world_points])}')
 
-        length = sqrt((self.world_points.left_eye[0].x - self.world_points.left_eye[1].x) ** 2 +
-                      (self.world_points.left_eye[0].y - self.world_points.left_eye[1].y) ** 2 +
-                      (self.world_points.left_eye[0].z - self.world_points.left_eye[1].z) ** 2)
-        self.length_label.setText(f'Length: {length}mm')
+        length = sqrt((self.world_points[0].x - self.world_points[1].x) ** 2 +
+                      (self.world_points[0].y - self.world_points[1].y) ** 2 +
+                      (self.world_points[0].z - self.world_points[1].z) ** 2)
+        self.length_label.setText(f'Length (mm): {length}')
 
     def keyPressEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
         self.handle_key_event(event, target_value=True)
@@ -248,6 +250,7 @@ class ShipwreckTab(QWidget):
         if event is None:
             return
 
-        if not event.isAutoRepeat() and event.key() in self.keys and self.keys[event.key()] != target_value:
+        if (not event.isAutoRepeat() and event.key() in self.keys
+            and self.keys[event.key()] != target_value):
             self.keys[event.key()] = target_value
             GUINode().get_logger().info(str(self.keys))
