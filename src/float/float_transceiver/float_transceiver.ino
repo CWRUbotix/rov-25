@@ -46,6 +46,7 @@ const uint32_t PROFILE_SEGMENT = 10000;
 const uint32_t PRESSURE_READ_INTERVAL = 5000;
 const uint32_t PROFILE_SEGMENT = 60000;
 #endif
+
 const uint32_t PRESSURE_TRANSMIT_INTERVAL = 1000;
 
 const uint32_t ONE_MINUTE = 60000;
@@ -63,7 +64,7 @@ const uint32_t HOLD_TIME = 0;
 // Distance from the pressure sensor to the bottom of the float (m)
 const float MBAR_TO_METER_OF_HEAD = 0.010199773339984;
 const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0.62;
-const int AVERAGE_PRESSURE_LEN = 5;
+const int AVERAGE_PRESSURE_LEN = 10;
 
 float surfacePressures[AVERAGE_PRESSURE_LEN];
 float surfaceAverage = 0;
@@ -133,6 +134,7 @@ float depthVelCovar;
 uint32_t lastKalmanUpdate;
 
 const float DEPTH_SENSOR_VAR = 1e-5;  // std dev of 3mm
+const float VEL_PROCESS_NOISE = 1e-3;
 
 // Task scheduler and task declarations
 Scheduler taskScheduler;
@@ -343,13 +345,13 @@ void startStageDescending() {
   stageTimeout = millis() + DESCEND_TIME + HOLD_TIME;
   
   setLedColor(COLOR_DESCENDING);
-  // taskRecordPressure.enable();
+  taskRecordPressure.enable();
 
   // Init Kalman filter
   depthMean = 0;
   velMean = 0;
-  depthVar = 0;
-  velVar = 0;
+  depthVar = 1;
+  velVar = 1;
   depthVelCovar = 0;
   lastKalmanUpdate = millis();
 }
@@ -500,22 +502,24 @@ void motor_stop() {
 void updateKalmanFilter(float deltaTime, float measuredDepth, float measurementVar) {
   // Prediction step
   float newDepthMean = depthMean + velMean * deltaTime;
-  float newDepthVar = depthVar + deltaTime * deltaTime * depthVar + 2 * deltaTime * depthVelCovar;
-  float newCov = depthVelCovar + deltaTime * depthVar;
+  float newDepthVar = depthVar + deltaTime * deltaTime * velVar + 2 * deltaTime * depthVelCovar;
+  float newVelVar = velVar + VEL_PROCESS_NOISE;
+  float newCov = depthVelCovar + deltaTime * velVar;
 
   depthMean = newDepthMean;
   depthVar = newDepthVar;
+  velVar = newVelVar;
   depthVelCovar = newCov;
 
   // Measurement step
-  float kalmanGainPos = depthVar / (depthVar + measurementVar);
+  float kalmanGainDepth = depthVar / (depthVar + measurementVar);
   float kalmanGainVel = depthVelCovar / (depthVar + measurementVar);
 
-  newDepthMean = depthMean + kalmanGainPos * (measuredDepth - depthMean);
+  newDepthMean = depthMean + kalmanGainDepth * (measuredDepth - depthMean);
   float newVelMean = velMean + kalmanGainVel * (measuredDepth - depthMean);
 
-  newDepthVar = depthVar - kalmanGainPos * depthVar;
-  float newVelVar = velVar - kalmanGainVel * depthVelCovar;
+  newDepthVar = depthVar - kalmanGainDepth * depthVar;
+  newVelVar = velVar - kalmanGainVel * depthVelCovar;
   newCov = depthVelCovar - kalmanGainVel * depthVar;
 
   depthMean = newDepthMean;
@@ -527,20 +531,17 @@ void updateKalmanFilter(float deltaTime, float measuredDepth, float measurementV
 
 void hover() {
   pressureSensor.read();
-  float pressure = pressureSensor.pressure();
+  float depth = getDepth();
 
-  Serial.print("Pressure: ");
-  Serial.println(pressure);
+  uint32_t updateTime = millis();
 
-  // float depth = getDepth();
+  updateKalmanFilter((updateTime - lastKalmanUpdate) * 0.001, depth, DEPTH_SENSOR_VAR);
+  lastKalmanUpdate = updateTime;
 
-  // uint32_t updateTime = millis();
-
-  // updateKalmanFilter((updateTime - lastKalmanUpdate) * 0.001, depth, DEPTH_SENSOR_VAR);
-  // Serial.print("Depth: ");
-  // Serial.print(depth);
-  // Serial.print(" Vel: ");
-  // Serial.println(velMean);
+  Serial.print("Depth: ");
+  Serial.print(depth, 3);
+  Serial.print(" Vel: ");
+  Serial.println(velMean, 3);
 }
 
 // Command processing
