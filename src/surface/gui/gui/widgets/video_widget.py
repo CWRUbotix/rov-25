@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import NamedTuple
@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge
 from numpy.typing import NDArray
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtCore import Qt, pyqtBoundSignal, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QImage, QMouseEvent, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 from rclpy.qos import qos_profile_default
 from sensor_msgs.msg import Image
@@ -88,6 +88,17 @@ class CameraDescription(NamedTuple):
     height: int = HEIGHT
     manager: CameraManager | None = None
 
+class ClickableLabel(QLabel):
+    def __init__(self, signal: pyqtBoundSignal) -> None:
+        super().__init__()
+        self.signal = signal
+
+    def mousePressEvent(self, event: QMouseEvent | None) -> None:  # noqa: N802
+        if event is not None:
+            self.signal.emit(event)
+
+        return super().mousePressEvent(event)
+
 
 class VideoWidget(QWidget):
     """A single video stream widget."""
@@ -95,7 +106,8 @@ class VideoWidget(QWidget):
     update_big_video_signal = pyqtSignal(QWidget)
     handle_frame_signal = pyqtSignal(Image)
 
-    def __init__(self, camera_description: CameraDescription) -> None:
+    def __init__(self, camera_description: CameraDescription,
+                 make_label: Callable[[], QLabel] = lambda: QLabel()) -> None:
         super().__init__()
 
         self.camera_description = camera_description
@@ -103,7 +115,7 @@ class VideoWidget(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        self.video_frame_label = QLabel()
+        self.video_frame_label = make_label()
         self.video_frame_label.setText(f'This topic had no frame: {camera_description.topic}')
         layout.addWidget(self.video_frame_label)
 
@@ -168,13 +180,14 @@ class SwitchableVideoWidget(VideoWidget):
         camera_descriptions: Sequence[CameraDescription],
         controller_button_topic: str,
         default_cam_num: int = 0,
+        make_label: Callable[[], QLabel] = lambda: QLabel()
     ) -> None:
         self.camera_descriptions = camera_descriptions
         self.active_cam = default_cam_num
 
         self.num_of_cams = len(camera_descriptions)
 
-        super().__init__(camera_descriptions[self.active_cam])
+        super().__init__(camera_descriptions[self.active_cam], make_label=make_label)
 
         self.button: QPushButton = QPushButton(camera_descriptions[self.active_cam].label)
         self.button.setMaximumWidth(self.BUTTON_WIDTH)
