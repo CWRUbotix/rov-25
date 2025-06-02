@@ -55,7 +55,7 @@ const uint32_t ONE_MINUTE = 60000;
 const uint32_t AFTER_HOME_WAIT = 10'000;
 const uint32_t RELEASE_MAX = 8 * ONE_MINUTE;
 const uint32_t SUCK_MAX = PROFILE_SEGMENT;
-const uint32_t DESCEND_TIME = PROFILE_SEGMENT;
+const uint32_t DESCEND_TIME = 2 * ONE_MINUTE;
 const uint32_t PUMP_MAX = PROFILE_SEGMENT;
 const uint32_t ASCEND_TIME = ONE_MINUTE;
 const uint32_t TX_MAX_TIME = 2 * ONE_MINUTE;
@@ -63,7 +63,7 @@ const uint32_t HOLD_TIME = 0;
 
 // Distance from the pressure sensor to the bottom of the float (m)
 const float MBAR_TO_METER_OF_HEAD = 0.010199773339984;
-const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0.62;
+const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0; // 0.62 to measure to bottom of float;
 const int AVERAGE_PRESSURE_LEN = 10;
 
 float surfacePressures[AVERAGE_PRESSURE_LEN];
@@ -71,8 +71,11 @@ float surfaceAverage = 0;
 int surfacePressureIndex = 0;
 
 RHSoftwareSPI softwareSPI;
+
 PicoEncoder encoder;
-long EMPTY_POS = -4'500'000;
+const long COUNTS_PER_REV = 64 * 30 * 4 * 64; // Encoder advertises 64 CPR, 30:1 gearbox, PicoEncoder lib multiplies by 4 * 64;
+const long EMPTY_ANGLE = 58;
+const long NEUTRAL_BOUYANCY_ANGLE = 29;
 
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
 MS5837 pressureSensor;
@@ -92,7 +95,7 @@ enum class StageType {
 };
 
 enum class OverrideState { NoOverride, Stop, Suck, Pump };
-enum class MotorState { Stop, Suck, Pump, Error };
+enum class MotorState { Stop, Suck, Pump, SpeedControl, Error };
 
 StageType stage = StageType::DeploySuck;
 OverrideState overrideState = OverrideState::NoOverride;
@@ -135,6 +138,18 @@ uint32_t lastKalmanUpdate;
 
 const float DEPTH_SENSOR_VAR = 1e-5;  // std dev of 3mm
 const float VEL_PROCESS_NOISE = 1e-3;
+
+const float TARGET_DEPTH = 2.5;  // meters
+const float DEPTH_TOLERANCE = 0.5; // 0.5 m in either direction of target, i.e. 2m to 3m
+
+const float DEPTH_P = 15;
+const float DEPTH_I = 2;
+const float DEPTH_D = 100;
+
+const float MOT_P = 1;
+
+const float DEPTH_ACC_MAX = 7.5;
+float depthErrAcc = 0;
 
 // Task scheduler and task declarations
 Scheduler taskScheduler;
@@ -226,7 +241,7 @@ void loop() {
     case StageType::DeploySuck:
       // Check for stage completion
       if (millis() > stageTimeout || !digitalRead(PIN_LIMIT_NO)) {
-        motor_stop();
+        motorStop();
         encoder.resetPosition();  // Set zero position
 
         startStageDeployWait();
@@ -259,14 +274,9 @@ void loop() {
     case StageType::Descending:
       hover();
 
-      // motor_stop();
-      if (!digitalRead(PIN_LIMIT_NO)) {
-        motor_stop();
-      }
-
       // Check for stage completion
-      if (millis() > stageTimeout) {
-        motor_stop();
+      if (millis() > stageTimeout || countValidPackets() >= 10) {
+        motorStop();
 
         startStagePump();
       }
@@ -275,7 +285,7 @@ void loop() {
     case StageType::Pump:
       // Check for stage completion
       if (millis() > stageTimeout || isEmpty()) {
-        motor_stop();
+        motorStop();
 
         startStageAscending();
       }
@@ -283,7 +293,7 @@ void loop() {
 
     case StageType::Ascending:
       // Check for stage completion
-      if (millis() > stageTimeout) {
+      if (millis() > stageTimeout || getDepth() < PRESSURE_SENSOR_VERTICAL_OFFSET + 0.01) {
         startStageWaitWaitTransmitting();        
       }
       break;
@@ -308,7 +318,7 @@ void startStageDeploySuck() {
   stageTimeout = millis() + SUCK_MAX;
 
   setLedColor(COLOR_INITIALIZING);
-  motor_suck();
+  motorSuck();
 }
 
 void startStageDeployWait() {
@@ -317,7 +327,7 @@ void startStageDeployWait() {
   stageTimeout = millis() + AFTER_HOME_WAIT;
 
   setLedColor(COLOR_INITIALIZING);
-  motor_stop();
+  motorStop();
 }
 
 void startStageDeployPump() {
@@ -326,7 +336,7 @@ void startStageDeployPump() {
   stageTimeout = millis() + PUMP_MAX;
   
   setLedColor(COLOR_INITIALIZING);
-  motor_pump();
+  motorPump();
 }
 
 void startStageWaitDeploying() {
@@ -335,7 +345,7 @@ void startStageWaitDeploying() {
   stageTimeout = millis() + RELEASE_MAX;
 
   setLedColor(COLOR_READY);
-  motor_stop();
+  motorStop();
   taskTransmitSurfacePressure.enable();
 }
 
@@ -345,6 +355,13 @@ void startStageDescending() {
   stageTimeout = millis() + DESCEND_TIME + HOLD_TIME;
   
   setLedColor(COLOR_DESCENDING);
+
+  // Set up pressure logging
+  clearPacketPayloads();
+  packets[0][PKT_IDX_TEAM_NUM] = TEAM_NUM;
+  packets[0][PKT_IDX_PROFILE_HALF] = 0;
+  packets[1][PKT_IDX_TEAM_NUM] = TEAM_NUM;
+  packets[1][PKT_IDX_PROFILE_HALF] = 1;
   taskRecordPressure.enable();
 
   // Init Kalman filter
@@ -354,6 +371,9 @@ void startStageDescending() {
   velVar = 1;
   depthVelCovar = 0;
   lastKalmanUpdate = millis();
+
+  // Init control system
+  depthErrAcc = 0;
 }
 
 void startStagePump() {
@@ -362,7 +382,7 @@ void startStagePump() {
   stageTimeout = millis() + PUMP_MAX;
 
   setLedColor(COLOR_ASCENDING);
-  motor_pump();
+  motorPump();
 }
 
 void startStageAscending() {
@@ -371,7 +391,7 @@ void startStageAscending() {
   stageTimeout = millis() + ASCEND_TIME;
 
   setLedColor(COLOR_ASCENDING);
-  motor_stop();
+  motorStop();
 }
 
 void startStageWaitWaitTransmitting() {
@@ -382,7 +402,7 @@ void startStageWaitWaitTransmitting() {
   setLedColor(COLOR_READY);
   taskRecordPressure.disable();  // Stop recording pressure
   taskTransmitPackets.enable();
-  motor_stop();
+  motorStop();
 }
 
 // Task implementations
@@ -404,6 +424,7 @@ float getPressure() {
 }
 
 float getDepth() {
+  pressureSensor.read();
   float pressure = getPressure();
 
   if (surfaceAverage == 0) {
@@ -477,25 +498,46 @@ void transmitSurfacePressureCallback() {
 
 
 // Motor control functions
-void motor_pump() {
+void motorPump() {
   Serial.println("PUMPING");
   digitalWrite(PIN_MOTOR_PUMP, HIGH);
   digitalWrite(PIN_MOTOR_SUCK, LOW);
   motorState = MotorState::Pump;
 }
 
-void motor_suck() {
+void motorSuck() {
   Serial.println("SUCKING");
   digitalWrite(PIN_MOTOR_PUMP, LOW);
   digitalWrite(PIN_MOTOR_SUCK, HIGH);
   motorState = MotorState::Suck;
 }
 
-void motor_stop() {
+void motorStop() {
   Serial.println("STOPPING");
   digitalWrite(PIN_MOTOR_PUMP, HIGH);
   digitalWrite(PIN_MOTOR_SUCK, HIGH);
   motorState = MotorState::Stop;
+}
+
+void setMotorSpeed(float setpoint) {
+  if (setpoint < -1) {
+    setpoint = -1;
+  } else if (setpoint > 1) {
+    setpoint = 1;
+  }
+
+  if (setpoint > 0) {
+    // Suck
+    digitalWrite(PIN_MOTOR_PUMP, LOW);
+    digitalWrite(PIN_MOTOR_SUCK, setpoint * 255);
+  } else if (setpoint < 0) {
+    // Pump
+    digitalWrite(PIN_MOTOR_PUMP, -setpoint * 255);
+    digitalWrite(PIN_MOTOR_SUCK, LOW);
+  } else {
+    motorStop();
+  }
+  motorState = MotorState::SpeedControl;
 }
 
 // Control loop
@@ -530,18 +572,37 @@ void updateKalmanFilter(float deltaTime, float measuredDepth, float measurementV
 }
 
 void hover() {
-  pressureSensor.read();
-  float depth = getDepth();
-
   uint32_t updateTime = millis();
-
-  updateKalmanFilter((updateTime - lastKalmanUpdate) * 0.001, depth, DEPTH_SENSOR_VAR);
+  float deltaTime = (updateTime - lastKalmanUpdate) * 0.001;
   lastKalmanUpdate = updateTime;
 
+  float raw_depth = getDepth();
+
+  updateKalmanFilter(deltaTime, raw_depth, DEPTH_SENSOR_VAR);
+
   Serial.print("Depth: ");
-  Serial.print(depth, 3);
+  Serial.print(depthMean, 3);
   Serial.print(" Vel: ");
   Serial.println(velMean, 3);
+
+  float depthErr = TARGET_DEPTH - depthMean;
+
+  depthErrAcc += depthErr * deltaTime;
+    if (depthErrAcc > DEPTH_ACC_MAX) {
+    depthErr = DEPTH_ACC_MAX;
+  } else if (depthErrAcc < - DEPTH_ACC_MAX) {
+    depthErrAcc = -DEPTH_ACC_MAX;
+  }
+
+  float targetAngle = DEPTH_P * depthErr + DEPTH_I * depthErrAcc + DEPTH_D * -velMean + NEUTRAL_BOUYANCY_ANGLE;
+
+  float motorSetpoint = MOT_P * targetAngle;  // From -1 to 1, positive is suck (increase depth)
+
+  if ((motorSetpoint > 0 && !digitalRead(PIN_LIMIT_NO)) || (motorSetpoint < 0 && isEmpty())) {
+    motorStop();
+  } else {
+    setMotorSpeed(motorSetpoint);
+  }
 }
 
 // Command processing
@@ -619,25 +680,25 @@ void handleOverride() {
   switch (overrideState) {
     case OverrideState::Suck:
       if (digitalRead(PIN_LIMIT_NO) == HIGH) {
-        motor_suck();
+        motorSuck();
       }
       else {
-        motor_stop();
+        motorStop();
         overrideState = OverrideState::Stop;
       }
       break;
 
     case OverrideState::Pump:
       if (!isEmpty()) {
-        motor_pump();
+        motorPump();
       }
       else {
-        motor_stop();
+        motorStop();
         overrideState = OverrideState::Stop;
       }
       break;
 
-    case OverrideState::Stop: motor_stop(); break;
+    case OverrideState::Stop: motorStop(); break;
 
     default: break;
   }
@@ -647,6 +708,12 @@ void handleOverride() {
 }
 
 // Utility functions
+float getMotorAngle() {
+  return -encoder.position * TWO_PI / COUNTS_PER_REV;
+}
+
+bool isEmpty() { return getMotorAngle() > EMPTY_ANGLE; }
+
 int countValidPackets() {
   float depths[2 * (int)((PKT_LEN - PKT_HEADER_LEN) / (sizeof(float) + sizeof(uint32_t)))];
   int totalPackets = 0;
@@ -659,7 +726,7 @@ int countValidPackets() {
   }
   int validPackets = 0;
   for (int i = 0; i < totalPackets; i++) {
-    if (2 < depths[i] && depths[i] < 3) {
+    if (TARGET_DEPTH - DEPTH_TOLERANCE < depths[i] && depths[i] < TARGET_DEPTH + DEPTH_TOLERANCE) {
       validPackets++;
     }
   }
@@ -673,8 +740,6 @@ void clearPacketPayloads() {
     }
   }
 }
-
-bool isEmpty() { return encoder.position < EMPTY_POS; }
 
 void setLedColor(COLOR color) {
   analogWrite(PIN_LED_RED, color.r);
