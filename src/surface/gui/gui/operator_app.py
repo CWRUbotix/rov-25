@@ -64,6 +64,8 @@ class OperatorApp(App):
 
     @pyqtSlot(int)
     def tab_change_slot(self, index: int) -> None:
+        # TODO: ? must switch tabs away from the shipwreck to regain keyboard
+        #       (prevent keyboard use in other apps)
         if self.tabs.tabText(index) == SHIPWRECK_TEXT:
             self.shipwreck_tab.grabKeyboard()
         else:
