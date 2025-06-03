@@ -308,7 +308,7 @@ while True:
             node.preview.link(script.inputs[meta.script_topics.script_input_name])
 
         stereo_node = pipeline.create(depthai.node.StereoDepth)
-        stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
+        stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)
 
         for names in self.script_topics:
             # Camera toggler -> script [script_toggle_name]
