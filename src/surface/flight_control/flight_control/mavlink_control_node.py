@@ -259,9 +259,11 @@ class MavlinkManualControlNode(Node):
             elif buttons[self.profile.servo_down]:
                 self.servo_pwm = SERVO_PRESET_DOWN
         else:
-            self.servo_pwm += int((buttons[self.profile.servo_down] -
-                                buttons[self.profile.servo_up]
-                            ) * SERVO_TURN_RATE / JOYSTICK_POLL_RATE)
+            self.servo_pwm += int(
+                (buttons[self.profile.servo_down] - buttons[self.profile.servo_up])
+                * SERVO_TURN_RATE
+                / JOYSTICK_POLL_RATE
+            )
         self.servo_pwm = max(min(self.servo_pwm, SERVO_MAX), SERVO_MIN)
         self.mavlink.mav.command_long_send(
             self.mavlink.target_system,
@@ -270,7 +272,11 @@ class MavlinkManualControlNode(Node):
             0,
             12,
             self.servo_pwm,
-            0,0,0,0,0
+            0,
+            0,
+            0,
+            0,
+            0,
         )
 
     def manip_callback(self, joy_state: JoystickState) -> None:
