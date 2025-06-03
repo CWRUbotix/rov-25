@@ -42,6 +42,15 @@ MAVLINK_CONNECTION_STRING = 'udpin:0.0.0.0:14550'
 VEHICLE_COMPONENT_ID = 1
 MANUAL_CONTROL_EXTENSIONS_CODE = 0b00000011
 
+SERVO_CENTER = 1500
+SERVO_MIN = 500
+SERVO_MAX = 2500
+SERVO_TURN_RATE = 500
+SERVO_PRESET_UP = 500
+SERVO_PRESET_DOWN = 1500
+# If True each button corresponds to a preset
+# If false one button moves gradually up and one moves gradually down
+SERVO_USE_PRESETS = False
 
 UNPRESSED = 0
 PRESSED = 1
@@ -89,8 +98,8 @@ class ManipButton:
 class ControllerProfile:
     manip_left: int = L1
     manip_right: int = R1
-    valve_clockwise: int = TRI_BUTTON
-    valve_counterclockwise: int = SQUARE_BUTTON
+    servo_up: int = TRI_BUTTON
+    servo_down: int = SQUARE_BUTTON
     roll_left: int = X_BUTTON  # positive roll
     roll_right: int = O_BUTTON  # negative roll
     arm_button: int = MENU
@@ -163,7 +172,9 @@ class MavlinkManualControlNode(Node):
             VideoWidgetSwitch, 'switch_right_stream', qos_profile_system_default
         )
 
-        self.invert_controls = False
+        self.back_cam_mode = False
+
+        self.servo_pwm = SERVO_PRESET_DOWN if SERVO_USE_PRESETS else SERVO_CENTER
 
         # Unix timestamp of the last mavlink heartbeat from the pi
         self.last_pi_heartbeat: float = 0
@@ -217,8 +228,9 @@ class MavlinkManualControlNode(Node):
         axes = joy_state.axes
         buttons = joy_state.buttons
 
-        inv = -1 if self.invert_controls else 1
+        inv = -1 if self.back_cam_mode else 1
 
+        # Control thrusters
         self.mavlink.mav.manual_control_send(
             self.mavlink.target_system,
             int(-self.joystick_map(axes[self.profile.forward]) * 1000) * inv,
@@ -238,6 +250,27 @@ class MavlinkManualControlNode(Node):
             MANUAL_CONTROL_EXTENSIONS_CODE,
             int(-self.joystick_map(axes[self.profile.pitch]) * PITCH_THROTTLE * 1000) * inv,
             int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000) * inv,
+        )
+
+        # Control servo
+        if SERVO_USE_PRESETS:
+            if buttons[self.profile.servo_up]:
+                self.servo_pwm = SERVO_PRESET_UP
+            elif buttons[self.profile.servo_down]:
+                self.servo_pwm = SERVO_PRESET_DOWN
+        else:
+            self.servo_pwm += int((buttons[self.profile.servo_down] -
+                                buttons[self.profile.servo_up]
+                            ) * SERVO_TURN_RATE / JOYSTICK_POLL_RATE)
+        self.servo_pwm = max(min(self.servo_pwm, SERVO_MAX), SERVO_MIN)
+        self.mavlink.mav.command_long_send(
+            self.mavlink.target_system,
+            self.mavlink.target_component,
+            mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
+            0,
+            12,
+            self.servo_pwm,
+            0,0,0,0,0
         )
 
     def manip_callback(self, joy_state: JoystickState) -> None:
@@ -338,10 +371,10 @@ class MavlinkManualControlNode(Node):
         # because DPADs are presented as axes not buttons and using any other axis is non-sensible
         if joy_state.buttons[self.profile.cam_front_button]:
             self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=0))
-            self.invert_controls = False
+            self.back_cam_mode = False
         elif joy_state.buttons[self.profile.cam_back_button]:
             self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=1))
-            self.invert_controls = True
+            self.back_cam_mode = True
 
     def poll_mavlink(self) -> None:
         """Check for incoming mavlink messages from the vehicle and send state updates if
