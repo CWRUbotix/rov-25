@@ -10,7 +10,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 
-from rov_msgs.msg import Heartbeat, Manip, VehicleState
+from rov_msgs.msg import Heartbeat, Manip, VehicleState, VideoWidgetSwitch
 from rov_msgs.srv import VehicleArming
 
 os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
@@ -43,6 +43,16 @@ MAVLINK_CONNECTION_STRING = 'udpin:0.0.0.0:14550'
 VEHICLE_COMPONENT_ID = 1
 MANUAL_CONTROL_EXTENSIONS_CODE = 0b00000011
 
+SERVO_OUTPUT_PIN = 12
+SERVO_CENTER = 1500
+SERVO_MIN = 500
+SERVO_MAX = 2500
+SERVO_TURN_RATE = 500
+SERVO_PRESET_UP = 500
+SERVO_PRESET_DOWN = 1500
+# If True each button corresponds to a preset
+# If false one button moves gradually up and one moves gradually down
+SERVO_USE_PRESETS = False
 
 UNPRESSED = 0
 PRESSED = 1
@@ -105,8 +115,8 @@ class ManipButton:
 class ControllerProfile:
     manip_left: int = L1
     manip_right: int = R1
-    valve_clockwise: int = TRI_BUTTON
-    valve_counterclockwise: int = SQUARE_BUTTON
+    servo_up: int = TRI_BUTTON
+    servo_down: int = SQUARE_BUTTON
     roll_left: int = X_BUTTON  # positive roll
     roll_right: int = O_BUTTON  # negative roll
     arm_button: int = MENU
@@ -177,7 +187,13 @@ class MavlinkManualControlNode(Node):
             VehicleArming, 'arming', callback=self.arming_service_callback
         )
 
-        self.invert_controls = False
+        self.right_stream_switch_publisher = self.create_publisher(
+            VideoWidgetSwitch, 'switch_right_stream', qos_profile_system_default
+        )
+
+        self.back_cam_mode = False
+
+        self.servo_pwm = SERVO_PRESET_DOWN if SERVO_USE_PRESETS else SERVO_CENTER
 
         # Unix timestamp of the last mavlink heartbeat from the pi
         self.last_pi_heartbeat: float = 0
@@ -200,6 +216,7 @@ class MavlinkManualControlNode(Node):
         joy_state : JoystickState
             The current state of the joystick buttons and axes
         """
+        # MARK: CTRLR CALLBACK
         self.process_arming_buttons(joy_state)
         self.send_mavlink_control(joy_state)
         self.manip_callback(joy_state)
@@ -241,6 +258,7 @@ class MavlinkManualControlNode(Node):
         float
             The output of the mapping, between -1 and 1
         """
+        # MARK: JOY MAP
         return math.copysign(math.fabs(raw) ** JOY_MAP_STRENGTH, raw) * GLOBAL_THROTTLE
 
     def send_mavlink_control(self, joy_state: JoystickState) -> None:
@@ -251,11 +269,13 @@ class MavlinkManualControlNode(Node):
         joy_state : JoystickState
             The state of the joystick buttons and axes
         """
+        # MARK: SEND MAV CTRL
         axes = joy_state.axes
         buttons = joy_state.buttons
 
-        inv = -1 if self.invert_controls else 1
+        inv = -1 if self.back_cam_mode else 1
 
+        # Control thrusters
         self.mavlink.mav.manual_control_send(
             self.mavlink.target_system,
             int(-self.joystick_map(axes[self.profile.forward]) * 1000) * inv,
@@ -277,6 +297,33 @@ class MavlinkManualControlNode(Node):
             int((buttons[self.profile.roll_left] - buttons[self.profile.roll_right]) * 1000) * inv,
         )
 
+        # Control servo
+        if SERVO_USE_PRESETS:
+            if buttons[self.profile.servo_up]:
+                self.servo_pwm = SERVO_PRESET_UP
+            elif buttons[self.profile.servo_down]:
+                self.servo_pwm = SERVO_PRESET_DOWN
+        else:
+            self.servo_pwm += int(
+                (buttons[self.profile.servo_down] - buttons[self.profile.servo_up])
+                * SERVO_TURN_RATE
+                / JOYSTICK_POLL_RATE
+            )
+        self.servo_pwm = max(min(self.servo_pwm, SERVO_MAX), SERVO_MIN)
+        self.mavlink.mav.command_long_send(
+            self.mavlink.target_system,
+            self.mavlink.target_component,
+            mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
+            0,
+            SERVO_OUTPUT_PIN,
+            self.servo_pwm,
+            0,
+            0,
+            0,
+            0,
+            0,
+        )
+
     def manip_callback(self, joy_state: JoystickState) -> None:
         """Process a joystick state and send a ros message to open or close a manipulator if
         required.
@@ -286,6 +333,7 @@ class MavlinkManualControlNode(Node):
         joy_state : JoystickState
             The state of the joystick buttons and axes
         """
+        # MARK: MANIP CALLBACK
         buttons = joy_state.buttons
         for button_id, manip_button in self.manip_buttons.items():
             just_pressed = buttons[button_id] == PRESSED
@@ -305,6 +353,7 @@ class MavlinkManualControlNode(Node):
         arm : bool
             Whether the vehicle should be armed (True) or disarmed (False)
         """
+        # MARK: SET ARMED
         self.mavlink.mav.command_long_send(
             self.mavlink.target_system,
             self.mavlink.target_component,
@@ -336,6 +385,7 @@ class MavlinkManualControlNode(Node):
         VehicleArming.Response
             The filled ROS service response
         """
+        # MARK: ARM CALLBACK
         self.set_armed(arm=request.arm)
 
         response.message_sent = True
@@ -349,6 +399,7 @@ class MavlinkManualControlNode(Node):
         joy_state : JoystickState
             The state of the joystick buttons and axes
         """
+        # MARK: PROC ARM BUTTONS
         buttons = joy_state.buttons
 
         if buttons[self.profile.disarm_button] == PRESSED:
@@ -366,19 +417,21 @@ class MavlinkManualControlNode(Node):
         joy_state : JoystickState
             The state of the joystick buttons and axess
         """
+        # MARK: PROC CAM BUTTONS
         # Camera switching uses the DPAD, currently not remapable with the controller profile system
         # because DPADs are presented as axes not buttons and using any other axis is non-sensible
         if joy_state.buttons[self.profile.cam_front_button]:
-            # TODO: Message camera manager and gui to swap cameras
-            self.invert_controls = False
+            self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=0))
+            self.back_cam_mode = False
         elif joy_state.buttons[self.profile.cam_back_button]:
-            # TODO: Message camera manager and gui to swap cameras
-            self.invert_controls = True
+            self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=1))
+            self.back_cam_mode = True
 
     def poll_mavlink(self) -> None:
         """Check for incoming mavlink messages from the vehicle and send state updates if
         the vehicle state has changed.
         """
+        # MARK: POLL MAVLINK
         new_state = self.poll_mavlink_for_new_state()
 
         # Check pi timeeout
@@ -408,6 +461,7 @@ class MavlinkManualControlNode(Node):
         VehicleState
             The updated state of the vehicle
         """
+        # MARK: POLL MAV NEW STATE
         new_state = VehicleState(
             pi_connected=self.vehicle_state.pi_connected,
             ardusub_connected=self.vehicle_state.ardusub_connected,
@@ -451,6 +505,7 @@ class MavlinkManualControlNode(Node):
         _ : Heartbeat
             The heartbeat message
         """
+        # MARK: PI HEARTBEAT
         self.last_pi_heartbeat = time.time()
 
         if not self.vehicle_state.pi_connected:
@@ -462,6 +517,7 @@ class MavlinkManualControlNode(Node):
         """Check for ros subsribers to our vehicle state topic, and send a state update whenever
         a new one subscribes.
         """
+        # MARK: POLL SUBSCRIBERS
         # Whenever a node subscribes to vehicle state updates, send the current state
         subscriber_count = self.state_publisher.get_subscription_count()
         if subscriber_count > self.last_state_subscriber_count:
@@ -471,6 +527,7 @@ class MavlinkManualControlNode(Node):
 
     def handle_pygame_events(self) -> None:
         """Poll pygame for joystick connection and disconnection events."""
+        # MARK: HANDLE PYGAME
         for event in pygame.event.get():
             if event.type == pygame.JOYDEVICEADDED:
                 new_joy = joystick.Joystick(event.device_index)
@@ -492,6 +549,7 @@ class MavlinkManualControlNode(Node):
 
     def poll_joystick(self) -> None:
         """Read the current state of the joystick and send a mavlink message."""
+        # MARK: POLL JOYSTICK
         self.handle_pygame_events()
 
         if self.current_joystick_id is not None:
