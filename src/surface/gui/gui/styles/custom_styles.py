@@ -22,7 +22,7 @@ class IndicatorMixin(QWidget):
         # Stylesheet for when a component is disabled, not expected to have any effect or perform
         # its function because of some external factor, either another widget or something
         # external to the gui. For example, a the arm button when the pi is not connected
-        WidgetState.INACTIVE: 'QWidget { background-color: silver; }',
+        WidgetState.INACTIVE: 'QWidget { background-color: #31363b; }',
         WidgetState.NONE: '',
     }
 

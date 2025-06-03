@@ -4,6 +4,7 @@ from threading import Thread
 
 import rclpy.utilities
 from PyQt6.QtWidgets import QApplication, QWidget
+from PyQt6.QtCore import QDir
 from rclpy.executors import MultiThreadedExecutor
 
 from gui.gui_node import GUINode
@@ -41,6 +42,10 @@ class App(QWidget):
         #         custom_styles += theme_file.read()
 
         # qdarktheme.setup_theme(base_theme, additional_qss=custom_styles)
+
+        with open('/home/user/Documents/Code/cwrubotix/scratch/dark_cyan.qss', 'r') as file:
+            self.app.setStyleSheet(file.read())
+        QDir.addSearchPath('icon', '/home/user/Documents/Code/cwrubotix/scratch/theme')
 
         executor = MultiThreadedExecutor()
         executor.add_node(self.node)

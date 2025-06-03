@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QGridLayout, QLabel, QPushButton, QWidget
+from PyQt6.QtWidgets import QGridLayout, QLabel, QPushButton, QWidget, QLCDNumber
 from rclpy.duration import Duration
 
 from gui.gui_node import GUINode
@@ -10,7 +10,7 @@ from rov_msgs.srv import MissionTimerSet
 RESET_SECONDS = 15 * 60  # The number of seconds to set the timer to when reset is clicked
 
 
-class TimerDisplay(QLabel):
+class TimerDisplay(QLCDNumber):
     """Widget which displays in real time the time left on a ROS countdown timer."""
 
     mission_timer_signal = pyqtSignal(MissionTimerTick)
@@ -28,9 +28,9 @@ class TimerDisplay(QLabel):
 
         self.running = False
 
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setFont(QFont('Arial', 36))
-        self.setText('--:--')
+        self.setMinimumSize(40, 40)
+        self.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
+        self.display('--:--')
 
     def update_label(self, seconds_left: int) -> None:
         """
@@ -43,7 +43,7 @@ class TimerDisplay(QLabel):
         """
         minutes = seconds_left // 60
         seconds = seconds_left % 60
-        self.setText(f'{minutes:02d}:{seconds:02d}')
+        self.display(f'{minutes:02d}:{seconds:02d}')
 
     @pyqtSlot(MissionTimerTick)
     def mission_timer_callback(self, msg: MissionTimerTick) -> None:
