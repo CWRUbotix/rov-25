@@ -42,6 +42,7 @@ MAVLINK_CONNECTION_STRING = 'udpin:0.0.0.0:14550'
 VEHICLE_COMPONENT_ID = 1
 MANUAL_CONTROL_EXTENSIONS_CODE = 0b00000011
 
+SERVO_OUTPUT_PIN = 12
 SERVO_CENTER = 1500
 SERVO_MIN = 500
 SERVO_MAX = 2500
@@ -268,7 +269,7 @@ class MavlinkManualControlNode(Node):
             self.mavlink.target_component,
             mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
             0,
-            12,
+            SERVO_OUTPUT_PIN,
             self.servo_pwm,
             0,0,0,0,0
         )
