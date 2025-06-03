@@ -5,7 +5,7 @@ from typing import TypeGuard, override
 
 from PyQt6.QtCore import QEvent, QObject, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont, QKeyEvent, QMouseEvent
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
 from gui.gui_node import GUINode
 from gui.widgets.video_widget import (
@@ -132,10 +132,16 @@ class ShipwreckTab(QWidget):
         data_layout.addLayout(row_1)
         data_layout.addLayout(row_2)
 
-        root_layout = QVBoxLayout()
-        root_layout.addLayout(cam_layout)
-        root_layout.addLayout(data_layout)
+        scroll_layout = QVBoxLayout()
+        scroll_layout.addLayout(cam_layout)
+        scroll_layout.addLayout(data_layout)
 
+        scroll = QScrollArea()
+        scroll.setLayout(scroll_layout)
+        scroll.setWidgetResizable(True)
+
+        root_layout = QVBoxLayout()
+        root_layout.addWidget(scroll)
         self.setLayout(root_layout)
 
         self.img_points = KeyPoints[Point2D | None]([None, None], [None, None])
