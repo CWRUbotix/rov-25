@@ -24,13 +24,23 @@ class FloatComm(QWidget):
         self.handle_data_signal.connect(self.handle_data)
         self.handle_serial_signal.connect(self.handle_serial)
         self.handle_data_single_signal.connect(self.handle_single)
-        GUINode().create_signal_subscription(FloatData, 'transceiver_data', self.handle_data_signal,
-                                             qos_profile=QoSPresetProfiles.SENSOR_DATA.value)
-        GUINode().create_signal_subscription(FloatSerial, 'float_serial', self.handle_serial_signal,
-                                             qos_profile=QoSPresetProfiles.SENSOR_DATA.value)
         GUINode().create_signal_subscription(
-            FloatSingle, 'transceiver_single', self.handle_data_single_signal,
-            qos_profile=QoSPresetProfiles.SENSOR_DATA.value
+            FloatData,
+            'transceiver_data',
+            self.handle_data_signal,
+            qos_profile=QoSPresetProfiles.SENSOR_DATA.value,
+        )
+        GUINode().create_signal_subscription(
+            FloatSerial,
+            'float_serial',
+            self.handle_serial_signal,
+            qos_profile=QoSPresetProfiles.SENSOR_DATA.value,
+        )
+        GUINode().create_signal_subscription(
+            FloatSingle,
+            'transceiver_single',
+            self.handle_data_single_signal,
+            qos_profile=QoSPresetProfiles.SENSOR_DATA.value,
         )
 
         info_layout = QVBoxLayout()
