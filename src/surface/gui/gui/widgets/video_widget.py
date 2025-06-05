@@ -147,6 +147,9 @@ class VideoWidget(QWidget):
         return self.video_frame_label.pixmap()
 
     def set_pixmap(self, pixmap: QPixmap) -> None:
+        if pixmap.isNull():
+            return
+
         self.video_frame_label.setPixmap(pixmap)
         self.video_frame_label.setFixedSize(pixmap.size())
 
@@ -246,10 +249,13 @@ class SwitchableVideoWidget(VideoWidget):
         self.button.setText(new_cam_description.label)
 
         # Updates text for info when no frame received.
+        last_pixmap = self.get_pixmap()
         self.video_frame_label.setText(f'This topic had no frame: {new_cam_description.topic}')
         self.label.setText(new_cam_description.label)
 
         self.camera_description = new_cam_description
+
+        self.set_pixmap(last_pixmap)
 
 
 class PauseableVideoWidget(VideoWidget):

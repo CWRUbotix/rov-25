@@ -1,11 +1,11 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from enum import IntEnum
+from enum import Enum, IntEnum
 from math import sqrt
 from typing import TypeGuard, override
 
 from PyQt6.QtCore import QEvent, QObject, QRect, Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QFont, QKeyEvent, QMouseEvent
+from PyQt6.QtGui import QColor, QFont, QKeyEvent, QMouseEvent, QPainter
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -32,8 +32,8 @@ from rov_msgs.srv import CameraManage
 FRAME_WIDTH = 821
 FRAME_HEIGHT = 791
 
-ZOOMED_FRAME_WIDTH = 411
-ZOOMED_FRAME_HEIGHT = 411
+ZOOMED_WIDGET_SIZE = 400
+ZOOMED_VIEWPORT_SIZE = 100
 
 POINTS_PER_EYE = 2
 
@@ -43,10 +43,21 @@ class Eye(IntEnum):
     LEFT = 0
     RIGHT = 1
 
+class Crosshair(Enum):
+    Empty = 0
+    Dot = 1
+
+KEYS_TO_POINT_IDX = {
+    Qt.Key.Key_1: (Eye.LEFT, 0),
+    Qt.Key.Key_2: (Eye.LEFT, 1),
+    Qt.Key.Key_3: (Eye.RIGHT, 0),
+    Qt.Key.Key_4: (Eye.RIGHT, 1),
+}
+
 @dataclass
-class Point2D:
-    x: float
-    y: float
+class Point2D[T: (int, float)]:
+    x: T
+    y: T
 
     @override
     def __str__(self) -> str:
@@ -62,8 +73,8 @@ class Point3D:
     def __str__(self) -> str:
         return f'({round(self.x, 3)}, {round(self.y, 3)}, {round(self.z, 3)})'
 
-def has_all_points[T: Point2D | None](key_points: dict[Eye, list[T]]) -> \
-    TypeGuard['dict[Eye, list[Point2D]]']:
+def has_all_points[T: Point2D[int] | None](key_points: dict[Eye, list[T]]) -> \
+    TypeGuard['dict[Eye, list[Point2D[int]]]']:
     return all(len(key_points[eye]) == POINTS_PER_EYE and
                 all(point is not None for point in key_points[eye])
                 for eye in Eye)
@@ -78,23 +89,60 @@ class ShipwreckTab(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
+        self.img_points: dict[Eye, list[Point2D[int] | None]] = {
+            Eye.LEFT: [None, None],
+            Eye.RIGHT: [None, None]
+        }
+        self.world_points: list[Point3D] = []
+
+        self.keys: dict[int, bool] = {
+            Qt.Key.Key_1.value: False,
+            Qt.Key.Key_2.value: False,
+            Qt.Key.Key_3.value: False,
+            Qt.Key.Key_4.value: False,
+        }
+
+        self.intrinsics_left: Intrinsics | None = None
+        self.intrinsics_right: Intrinsics | None = None
+
+        self.crosshair = Crosshair.Dot
+        self.viewport_zoom_level = 0
+
+        tabs = QTabWidget()
+        tabs.addTab(self.make_coarse_tab(), 'Coarse')
+        tabs.addTab(self.make_fine_tab(), 'Fine')
+
+        root_layout = QVBoxLayout()
+        root_layout.addWidget(tabs)
+        self.setLayout(root_layout)
+
+        GUINode().create_signal_subscription(Intrinsics, 'luxonis_left_intrinsics',
+                                             self.intrinsics_left_signal)
+        GUINode().create_signal_subscription(Intrinsics, 'luxonis_right_intrinsics',
+                                             self.intrinsics_right_signal)
+
+        self.intrinsics_left_signal.connect(self.intrinsics_left_slot)
+        self.intrinsics_right_signal.connect(self.intrinsics_right_slot)
+
+    def make_coarse_tab(self) -> QWidget:
         self.click_left_signal.connect(self.click_left_slot)
         self.click_right_signal.connect(self.click_right_slot)
 
         cam_layout = QHBoxLayout()
 
+        # TODO: RESET THIS TO ACTUAL LUXONIS CAM ONCE IT'S WORKING AGAIN
         self.eye_widgets = {
             Eye.LEFT: SwitchableVideoWidget(
                 (
                     CameraDescription(CameraType.DEPTH, 'rect_left/image_raw', 'Stream stopped',
                                     FRAME_WIDTH, FRAME_HEIGHT),
                     CameraDescription(
-                        CameraType.DEPTH,
-                        'rect_left/image_raw',
+                        CameraType.ETHERNET,
+                        'cam0/image_raw',
                         'Dual Left Eye',
                         FRAME_WIDTH,
                         FRAME_HEIGHT,
-                        CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT_RECT),
+                        # CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT_RECT),
                     ),
                 ),
                 'switch_rect_stream',
@@ -105,12 +153,12 @@ class ShipwreckTab(QWidget):
                     CameraDescription(CameraType.DEPTH, 'rect_right/image_raw', 'Stream stopped',
                                     FRAME_WIDTH, FRAME_HEIGHT),
                     CameraDescription(
-                        CameraType.DEPTH,
-                        'rect_right/image_raw',
+                        CameraType.ETHERNET,
+                        'cam1/image_raw',
                         'Dual Right Eye',
                         FRAME_WIDTH,
                         FRAME_HEIGHT,
-                        CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT_RECT),
+                        # CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT_RECT),
                     ),
                 ),
                 'switch_rect_stream',
@@ -121,45 +169,47 @@ class ShipwreckTab(QWidget):
         for eye_widget in self.eye_widgets.values():
             cam_layout.addWidget(eye_widget)
 
-        zoom_indicator_toggle = QPushButton('Toggle indicator')
+        coarse_tab = QWidget()
+        coarse_tab.setLayout(cam_layout)
+
+        return coarse_tab
+
+    def make_fine_tab(self) -> QWidget:
         self.zoomed_eye_widgets = {
             Eye.LEFT: (
                 VideoWidget(CameraDescription(
                     CameraType.QPIXMAP,
                     '', 'Left 1',
-                    ZOOMED_FRAME_WIDTH,
-                    ZOOMED_FRAME_HEIGHT,
+                    ZOOMED_WIDGET_SIZE,
+                    ZOOMED_VIEWPORT_SIZE,
                 )),
                 VideoWidget(CameraDescription(
                     CameraType.QPIXMAP,
                     '', 'Left 2',
-                    ZOOMED_FRAME_WIDTH,
-                    ZOOMED_FRAME_HEIGHT,
+                    ZOOMED_WIDGET_SIZE,
+                    ZOOMED_VIEWPORT_SIZE,
                 )),
             ),
             Eye.RIGHT: (
                 VideoWidget(CameraDescription(
                     CameraType.QPIXMAP,
                     '', 'Right 1',
-                    ZOOMED_FRAME_WIDTH,
-                    ZOOMED_FRAME_HEIGHT,
+                    ZOOMED_WIDGET_SIZE,
+                    ZOOMED_VIEWPORT_SIZE,
                 )),
                 VideoWidget(CameraDescription(
                     CameraType.QPIXMAP,
                     '', 'Right 2',
-                    ZOOMED_FRAME_WIDTH,
-                    ZOOMED_FRAME_HEIGHT,
+                    ZOOMED_WIDGET_SIZE,
+                    ZOOMED_VIEWPORT_SIZE,
                 ))
             )
         }
 
-        zoom_layout = QVBoxLayout()
-        zoom_frames_layout = QHBoxLayout()
+        zoom_layout = QHBoxLayout()
         for widget_pair in self.zoomed_eye_widgets.values():
             for widget in widget_pair:
-                zoom_frames_layout.addWidget(widget)
-        zoom_layout.addLayout(zoom_frames_layout)
-        zoom_layout.addWidget(zoom_indicator_toggle)
+                zoom_layout.addWidget(widget)
 
         data_layout = QVBoxLayout()
         row_1 = QHBoxLayout()
@@ -180,44 +230,13 @@ class ShipwreckTab(QWidget):
         data_layout.addLayout(row_1)
         data_layout.addLayout(row_2)
 
-        coarse_tab = QWidget()
-        coarse_tab.setLayout(cam_layout)
-
         fine_tab = QWidget()
         fine_tab_layout = QVBoxLayout()
         fine_tab_layout.addLayout(zoom_layout)
         fine_tab_layout.addLayout(data_layout)
         fine_tab.setLayout(fine_tab_layout)
 
-        tabs = QTabWidget()
-        tabs.addTab(coarse_tab, 'Coarse')
-        tabs.addTab(fine_tab, 'Fine')
-
-        root_layout = QVBoxLayout()
-        root_layout.addWidget(tabs)
-        self.setLayout(root_layout)
-
-        self.img_points: dict[Eye, list[Point2D | None]] = {
-            Eye.LEFT: [None, None],
-            Eye.RIGHT: [None, None]
-        }
-        self.world_points: list[Point3D] = []
-
-        self.keys: dict[int, bool] = {
-            Qt.Key.Key_1.value: False,
-            Qt.Key.Key_2.value: False,
-        }
-
-        GUINode().create_signal_subscription(Intrinsics, 'luxonis_left_intrinsics',
-                                             self.intrinsics_left_signal)
-        GUINode().create_signal_subscription(Intrinsics, 'luxonis_right_intrinsics',
-                                             self.intrinsics_right_signal)
-
-        self.intrinsics_left_signal.connect(self.intrinsics_left_slot)
-        self.intrinsics_right_signal.connect(self.intrinsics_right_slot)
-
-        self.intrinsics_left: Intrinsics | None = None
-        self.intrinsics_right: Intrinsics | None = None
+        return fine_tab
 
     @staticmethod
     def px_to_mm(px: float) -> float:
@@ -254,31 +273,83 @@ class ShipwreckTab(QWidget):
         self.click_eye(event, Eye.RIGHT)
 
     def click_eye(self, event: QMouseEvent, eye: Eye) -> None:
-        if self.keys[Qt.Key.Key_2]:
-            point_idx = 1
-        elif self.keys[Qt.Key.Key_1]:
-            point_idx = 0
-        else:
-            return  # No key pressed, don't register point
-
         x = event.pos().x()
         y = event.pos().y()
-        point = Point2D(x, y)
 
-        self.img_points[eye][point_idx] = point
-        rect = QRect(
-            max(x - 50, 0),
-            max(y - 50, 0),
-            100,
-            100
-        )
-        cropped = self.eye_widgets[eye].get_pixmap().copy(rect).scaledToWidth(ZOOMED_FRAME_WIDTH)
-        self.zoomed_eye_widgets[eye][point_idx].set_pixmap(cropped)
+        self.set_point(x, y, eye_override=eye)
+
+    def set_point(self, x: int, y: int, eye_override: Eye | None = None,
+                  *, relative: bool = False) -> None:
+        eye_and_idx = self.get_key_point_eye_idx()
+
+        if eye_and_idx is None:
+            return  # No number key pressed, don't register point
+
+        eye, idx = eye_and_idx
+
+        if eye_override is not None and eye != eye_override:
+            return  # Clicked the wrong image, ignore
+
+        if relative:
+            point = self.img_points[eye][idx]
+            if point is None:
+                return  # No point exists yet, can't move it
+            point.x += x
+            point.y += y
+        else:
+            point = Point2D(x, y)
+
+        self.img_points[eye][idx] = point
+
+        self.reload_zoomed_views(eyes=eye, idxs=idx)
 
         self.img_points_label.setText(f'2D (px): {
             ", ".join(["-".join([str(p) for p in pnts]) for pnts in self.img_points.values()])}')
 
         self.calc_world_points()
+
+    def reload_zoomed_views(self, eyes: Eye | Iterable[Eye] = Eye,
+                            idxs: int | Iterable[int] = (0, 1)) -> None:
+        if isinstance(eyes, Eye):
+            eyes = (eyes,)
+        if isinstance(idxs, int):
+            idxs = (idxs,)
+
+        for eye in eyes:
+            for idx in idxs:
+                point = self.img_points[eye][idx]
+
+                if point is None:
+                    continue
+
+                rect = QRect(
+                    max(point.x - 50, 0),
+                    max(point.y - 50, 0),
+                    ZOOMED_VIEWPORT_SIZE * (2 ** self.viewport_zoom_level),
+                    ZOOMED_VIEWPORT_SIZE * (2 ** self.viewport_zoom_level)
+                )
+                viewport = self.eye_widgets[eye].get_pixmap().copy(rect)
+                viewport = viewport.scaledToWidth(ZOOMED_WIDGET_SIZE)
+
+                painter = QPainter(viewport)
+                painter.setPen(QColor(255, 0, 0, 127))
+
+                pixel_size = ZOOMED_WIDGET_SIZE // ZOOMED_VIEWPORT_SIZE
+                if self.crosshair == Crosshair.Dot:
+                    painter.drawRect(
+                        ZOOMED_WIDGET_SIZE // 2 - pixel_size,
+                        ZOOMED_WIDGET_SIZE // 2 - pixel_size,
+                        pixel_size,
+                        pixel_size
+                    )
+
+                self.zoomed_eye_widgets[eye][idx].set_pixmap(viewport)
+
+    def get_key_point_eye_idx(self) -> tuple[Eye, int] | None:
+        for key, eye_and_idx in KEYS_TO_POINT_IDX.items():
+            if self.keys[key]:
+                return eye_and_idx
+        return None
 
     def calc_world_points(self) -> None:
         if (not has_all_points(self.img_points) or
@@ -311,6 +382,31 @@ class ShipwreckTab(QWidget):
 
     def keyPressEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
         self.handle_key_event(event, target_value=True)
+
+        # Shouldn't ever happen, just type narrowing
+        if event is None:
+            return
+
+        if event.key() == Qt.Key.Key_Left:
+            self.set_point(-1, 0, relative=True)
+        elif event.key() == Qt.Key.Key_Right:
+            self.set_point(1, 0, relative=True)
+        elif event.key() == Qt.Key.Key_Up:
+            self.set_point(0, -1, relative=True)
+        elif event.key() == Qt.Key.Key_Down:
+            self.set_point(0, 1, relative=True)
+        elif event.key() == Qt.Key.Key_Period:
+            self.crosshair = Crosshair.Dot if self.crosshair == Crosshair.Empty else Crosshair.Empty
+            self.reload_zoomed_views()
+        elif event.key() == Qt.Key.Key_Minus:
+            self.viewport_zoom_level -= 1
+            self.reload_zoomed_views()
+        elif event.key() == Qt.Key.Key_Plus:
+            self.viewport_zoom_level += 1
+            self.reload_zoomed_views()
+        elif event.key() == Qt.Key.Key_Equal:
+            self.viewport_zoom_level = 0
+            self.reload_zoomed_views()
 
     def keyReleaseEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
         self.handle_key_event(event, target_value=False)
