@@ -73,7 +73,7 @@ int surfacePressureIndex = 0;
 RHSoftwareSPI softwareSPI;
 
 PicoEncoder encoder;
-const long COUNTS_PER_REV = 64 * 30 * 4 * 64; // Encoder advertises 64 CPR, 30:1 gearbox, PicoEncoder lib multiplies by 4 * 64;
+const long COUNTS_PER_REV = 64 * 100 * 4 * 64; // Encoder advertises 64 CPR, 30:1 gearbox, PicoEncoder lib multiplies by 4 * 64;
 const long EMPTY_ANGLE = 58;
 const long NEUTRAL_BOUYANCY_ANGLE = 29;
 
@@ -595,6 +595,8 @@ void hover() {
   }
 
   float targetAngle = DEPTH_P * depthErr + DEPTH_I * depthErrAcc + DEPTH_D * -velMean + NEUTRAL_BOUYANCY_ANGLE;
+
+  // targetAngle = NEUTRAL_BOUYANCY_ANGLE;
 
   float motorSetpoint = MOT_P * targetAngle;  // From -1 to 1, positive is suck (increase depth)
 
