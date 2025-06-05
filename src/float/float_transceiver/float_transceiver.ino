@@ -77,6 +77,7 @@ const long COUNTS_PER_REV = 64 * 100 * 4 * 64; // Encoder advertises 64 CPR, 30:
 const long EMPTY_ANGLE = 58;
 const long NEUTRAL_BOUYANCY_ANGLE = 29;
 
+const uint16_t RADIO_FREQ = 917;  // Hz, anything between 902 and 928 is legal. Must match surface transciever
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
 MS5837 pressureSensor;
 
@@ -785,14 +786,14 @@ void initRadio() {
   }
   Serial.println("RFM95 radio init OK!");
 
-  if (!rf95.setFrequency(RF95_FREQ)) {
+  if (!rf95.setFrequency(RADIO_FREQ)) {
     Serial.println("setFrequency failed");
   }
 
   rf95.setTxPower(23, false);
 
   Serial.print("RFM95 radio @ MHz: ");
-  Serial.println(RF95_FREQ);
+  Serial.println(RADIO_FREQ);
 }
 
 void initPressureSensor() {

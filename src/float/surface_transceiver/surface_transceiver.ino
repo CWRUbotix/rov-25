@@ -11,6 +11,8 @@
 
 #include "rov_common.hpp"
 
+const uint16_t RADIO_FREQ = 917;  // Hz, anything between 902 and 928 is legal. Must match float.
+
 const uint8_t COMMAND_SPAM_TIMES = 5;
 const uint32_t COMMAND_SPAM_DELAY = 500;
 const uint32_t SURFACE_PKT_RX_TIMEOUT = 1000;
@@ -51,7 +53,7 @@ void setup() {
   // Defaults after init are: 434.0MHz, modulation GFSK_Rb250Fd250
   // +13dbM (for low power module), no encryption
   // But we override frequency
-  if (!rf95.setFrequency(RF95_FREQ)) {
+  if (!rf95.setFrequency(RADIO_FREQ)) {
     Serial.println("setFrequency failed");
     while (1) {}
   }
@@ -61,7 +63,7 @@ void setup() {
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
 
-  serialPrintf("RFM95 radio @ %d MHz\n", static_cast<int>(RF95_FREQ));
+  serialPrintf("RFM95 radio @ %d MHz\n", static_cast<int>(RADIO_FREQ));
 }
 
 void loop() {
