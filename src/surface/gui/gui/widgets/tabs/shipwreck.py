@@ -137,12 +137,12 @@ class ShipwreckTab(QWidget):
                     CameraDescription(CameraType.DEPTH, 'rect_left/image_raw', 'Stream stopped',
                                     FRAME_WIDTH, FRAME_HEIGHT),
                     CameraDescription(
-                        CameraType.ETHERNET,
-                        'cam0/image_raw',
+                        CameraType.DEPTH,
+                        'rect_left/image_raw',
                         'Dual Left Eye',
                         FRAME_WIDTH,
                         FRAME_HEIGHT,
-                        # CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT_RECT),
+                        CameraManager('manage_luxonis', CameraManage.Request.LUX_LEFT_RECT),
                     ),
                 ),
                 'switch_rect_stream',
@@ -153,12 +153,12 @@ class ShipwreckTab(QWidget):
                     CameraDescription(CameraType.DEPTH, 'rect_right/image_raw', 'Stream stopped',
                                     FRAME_WIDTH, FRAME_HEIGHT),
                     CameraDescription(
-                        CameraType.ETHERNET,
-                        'cam1/image_raw',
+                        CameraType.DEPTH,
+                        'rect_right/image_raw',
                         'Dual Right Eye',
                         FRAME_WIDTH,
                         FRAME_HEIGHT,
-                        # CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT_RECT),
+                        CameraManager('manage_luxonis', CameraManage.Request.LUX_RIGHT_RECT),
                     ),
                 ),
                 'switch_rect_stream',
@@ -342,6 +342,8 @@ class ShipwreckTab(QWidget):
                         pixel_size,
                         pixel_size
                     )
+
+                painter.end()
 
                 self.zoomed_eye_widgets[eye][idx].set_pixmap(viewport)
 
