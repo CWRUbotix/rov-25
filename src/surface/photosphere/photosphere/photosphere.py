@@ -139,7 +139,7 @@ class Photosphere(Node):
         print("frames saved")
         projection = convert_with_matrix(self.fisheye_frames[0], self.fisheye_frames[1])
         print("projection created")
-        cv2.imwrite('src/surface/photosphere/photosphere/projection.png', projection)
+        cv2.imwrite('src/photosphere/display/projection.jpg', projection)
         print("projection saved")
         # fisheye_image1 = cv2.imread('src/surface/photosphere/photosphere/frame1.png')
         # fisheye_image2 = cv2.imread('src/surface/photosphere/photosphere/frame2.png')
