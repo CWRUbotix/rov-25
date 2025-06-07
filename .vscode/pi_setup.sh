@@ -51,6 +51,7 @@ source ~/.bashrc
 # Install only Pi dependencies
 # Installs ROS dependencies
 source /opt/ros/jazzy/setup.sh && export PIP_BREAK_SYSTEM_PACKAGES=1 && rosdep install --from-paths src/pi --ignore-src -r -y
+source /opt/ros/jazzy/lib/mavros/install_geographiclib_datasets.sh
 
 # Add setup.bash to .bashrc
 source "$(pwd)/.vscode/rov_setup.sh"
