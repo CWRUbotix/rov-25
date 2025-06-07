@@ -1,17 +1,14 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, IntEnum
 from math import sqrt
 from typing import TypeGuard, override
 
-from PyQt6.QtCore import QEvent, QObject, QRect, Qt, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QRect, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QColor, QFont, QImage, QKeyEvent, QMouseEvent, QPainter, QPixmap
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
-    QPushButton,
-    QScrollArea,
-    QSizePolicy,
     QTabWidget,
     QVBoxLayout,
     QWidget,
@@ -48,13 +45,16 @@ DIVISION_SAFETY = 0.0001
 
 BLACK = QColor(Qt.GlobalColor.black)
 
+
 class Eye(IntEnum):
     LEFT = 0
     RIGHT = 1
 
+
 class Crosshair(Enum):
     Empty = 0
     Dot = 1
+
 
 KEYS_TO_POINT_IDX = {
     Qt.Key.Key_1: (Eye.LEFT, 0),
@@ -62,6 +62,7 @@ KEYS_TO_POINT_IDX = {
     Qt.Key.Key_3: (Eye.RIGHT, 0),
     Qt.Key.Key_4: (Eye.RIGHT, 1),
 }
+
 
 @dataclass
 class Point2D[T: (int, float)]:
@@ -71,6 +72,7 @@ class Point2D[T: (int, float)]:
     @override
     def __str__(self) -> str:
         return f'({round(self.x, 3)}, {round(self.y, 3)})'
+
 
 @dataclass
 class Point3D:
@@ -82,11 +84,16 @@ class Point3D:
     def __str__(self) -> str:
         return f'({round(self.x, 3)}, {round(self.y, 3)}, {round(self.z, 3)})'
 
-def has_all_points[T: Point2D[int] | None](key_points: dict[Eye, list[T]]) -> \
-    TypeGuard['dict[Eye, list[Point2D[int]]]']:
-    return all(len(key_points[eye]) == POINTS_PER_EYE and
-                all(point is not None for point in key_points[eye])
-                for eye in Eye)
+
+def has_all_points[T: Point2D[int] | None](
+    key_points: dict[Eye, list[T]],
+) -> TypeGuard['dict[Eye, list[Point2D[int]]]']:
+    return all(
+        len(key_points[eye]) == POINTS_PER_EYE
+        and all(point is not None for point in key_points[eye])
+        for eye in Eye
+    )
+
 
 class ShipwreckTab(QWidget):
     click_left_signal = pyqtSignal(QMouseEvent)
@@ -100,7 +107,7 @@ class ShipwreckTab(QWidget):
 
         self.img_points: dict[Eye, list[Point2D[int] | None]] = {
             Eye.LEFT: [None, None],
-            Eye.RIGHT: [None, None]
+            Eye.RIGHT: [None, None],
         }
         self.world_points: list[Point3D] = []
 
@@ -125,10 +132,12 @@ class ShipwreckTab(QWidget):
         root_layout.addWidget(tabs)
         self.setLayout(root_layout)
 
-        GUINode().create_signal_subscription(Intrinsics, 'luxonis_left_intrinsics',
-                                             self.intrinsics_left_signal)
-        GUINode().create_signal_subscription(Intrinsics, 'luxonis_right_intrinsics',
-                                             self.intrinsics_right_signal)
+        GUINode().create_signal_subscription(
+            Intrinsics, 'luxonis_left_intrinsics', self.intrinsics_left_signal
+        )
+        GUINode().create_signal_subscription(
+            Intrinsics, 'luxonis_right_intrinsics', self.intrinsics_right_signal
+        )
 
         self.intrinsics_left_signal.connect(self.intrinsics_left_slot)
         self.intrinsics_right_signal.connect(self.intrinsics_right_slot)
@@ -143,8 +152,13 @@ class ShipwreckTab(QWidget):
         self.eye_widgets = {
             Eye.LEFT: SwitchableVideoWidget(
                 (
-                    CameraDescription(CameraType.DEPTH, 'rect_left/image_raw', 'Stream stopped',
-                                    FRAME_WIDTH, FRAME_HEIGHT),
+                    CameraDescription(
+                        CameraType.DEPTH,
+                        'rect_left/image_raw',
+                        'Stream stopped',
+                        FRAME_WIDTH,
+                        FRAME_HEIGHT,
+                    ),
                     CameraDescription(
                         CameraType.DEPTH,
                         'rect_left/image_raw',
@@ -155,12 +169,17 @@ class ShipwreckTab(QWidget):
                     ),
                 ),
                 'switch_rect_stream',
-                make_label=lambda: ClickableLabel(self.click_left_signal)
+                make_label=lambda: ClickableLabel(self.click_left_signal),
             ),
             Eye.RIGHT: SwitchableVideoWidget(
                 (
-                    CameraDescription(CameraType.DEPTH, 'rect_right/image_raw', 'Stream stopped',
-                                    FRAME_WIDTH, FRAME_HEIGHT),
+                    CameraDescription(
+                        CameraType.DEPTH,
+                        'rect_right/image_raw',
+                        'Stream stopped',
+                        FRAME_WIDTH,
+                        FRAME_HEIGHT,
+                    ),
                     CameraDescription(
                         CameraType.DEPTH,
                         'rect_right/image_raw',
@@ -171,8 +190,8 @@ class ShipwreckTab(QWidget):
                     ),
                 ),
                 'switch_rect_stream',
-                make_label=lambda: ClickableLabel(self.click_right_signal)
-            )
+                make_label=lambda: ClickableLabel(self.click_right_signal),
+            ),
         }
 
         for eye_widget in self.eye_widgets.values():
@@ -186,33 +205,45 @@ class ShipwreckTab(QWidget):
     def make_fine_tab(self) -> QWidget:
         self.zoomed_eye_widgets = {
             Eye.LEFT: (
-                VideoWidget(CameraDescription(
-                    CameraType.QPIXMAP,
-                    '', 'Left 1',
-                    ZOOMED_WIDGET_SIZE,
-                    ZOOMED_WIDGET_SIZE,
-                )),
-                VideoWidget(CameraDescription(
-                    CameraType.QPIXMAP,
-                    '', 'Left 2',
-                    ZOOMED_WIDGET_SIZE,
-                    ZOOMED_WIDGET_SIZE,
-                )),
+                VideoWidget(
+                    CameraDescription(
+                        CameraType.QPIXMAP,
+                        '',
+                        'Left 1',
+                        ZOOMED_WIDGET_SIZE,
+                        ZOOMED_WIDGET_SIZE,
+                    )
+                ),
+                VideoWidget(
+                    CameraDescription(
+                        CameraType.QPIXMAP,
+                        '',
+                        'Left 2',
+                        ZOOMED_WIDGET_SIZE,
+                        ZOOMED_WIDGET_SIZE,
+                    )
+                ),
             ),
             Eye.RIGHT: (
-                VideoWidget(CameraDescription(
-                    CameraType.QPIXMAP,
-                    '', 'Right 1',
-                    ZOOMED_WIDGET_SIZE,
-                    ZOOMED_WIDGET_SIZE,
-                )),
-                VideoWidget(CameraDescription(
-                    CameraType.QPIXMAP,
-                    '', 'Right 2',
-                    ZOOMED_WIDGET_SIZE,
-                    ZOOMED_WIDGET_SIZE,
-                ))
-            )
+                VideoWidget(
+                    CameraDescription(
+                        CameraType.QPIXMAP,
+                        '',
+                        'Right 1',
+                        ZOOMED_WIDGET_SIZE,
+                        ZOOMED_WIDGET_SIZE,
+                    )
+                ),
+                VideoWidget(
+                    CameraDescription(
+                        CameraType.QPIXMAP,
+                        '',
+                        'Right 2',
+                        ZOOMED_WIDGET_SIZE,
+                        ZOOMED_WIDGET_SIZE,
+                    )
+                ),
+            ),
         }
 
         zoom_layout = QHBoxLayout()
@@ -267,10 +298,14 @@ class ShipwreckTab(QWidget):
         if self.intrinsics_left is None or self.intrinsics_right is None:
             return
 
-        focal_left_mm = Point2D(ShipwreckTab.px_to_mm(self.intrinsics_left.fx),
-                                ShipwreckTab.px_to_mm(self.intrinsics_left.fy))
-        focal_right_mm = Point2D(ShipwreckTab.px_to_mm(self.intrinsics_right.fx),
-                                 ShipwreckTab.px_to_mm(self.intrinsics_right.fy))
+        focal_left_mm = Point2D(
+            ShipwreckTab.px_to_mm(self.intrinsics_left.fx),
+            ShipwreckTab.px_to_mm(self.intrinsics_left.fy),
+        )
+        focal_right_mm = Point2D(
+            ShipwreckTab.px_to_mm(self.intrinsics_right.fx),
+            ShipwreckTab.px_to_mm(self.intrinsics_right.fy),
+        )
         self.focal_length_label.setText(f'Focal lens (mm): {focal_left_mm} \t {focal_right_mm}')
 
     @pyqtSlot(QMouseEvent)
@@ -287,8 +322,9 @@ class ShipwreckTab(QWidget):
 
         self.set_point(x, y, eye_override=eye)
 
-    def set_point(self, x: int, y: int, eye_override: Eye | None = None,
-                  *, relative: bool = False) -> None:
+    def set_point(
+        self, x: int, y: int, eye_override: Eye | None = None, *, relative: bool = False
+    ) -> None:
         eye_and_idx = self.get_key_point_eye_idx()
 
         if eye_and_idx is None:
@@ -315,13 +351,17 @@ class ShipwreckTab(QWidget):
 
         self.reload_zoomed_views(eyes=eye, idxs=idx)
 
-        self.img_points_label.setText(f'2D (px): {
-            ", ".join(["-".join([str(p) for p in pnts]) for pnts in self.img_points.values()])}')
+        self.img_points_label.setText(
+            f'2D (px): {
+                ", ".join(["-".join([str(p) for p in pnts]) for pnts in self.img_points.values()])
+            }'
+        )
 
         self.calc_world_points()
 
-    def reload_zoomed_views(self, eyes: Eye | Iterable[Eye] = (Eye.LEFT, Eye.RIGHT),
-                            idxs: int | Iterable[int] = (0, 1)) -> None:
+    def reload_zoomed_views(
+        self, eyes: Eye | Iterable[Eye] = (Eye.LEFT, Eye.RIGHT), idxs: int | Iterable[int] = (0, 1)
+    ) -> None:
         if isinstance(eyes, Eye):
             eyes = (eyes,)
         if isinstance(idxs, int):
@@ -339,7 +379,7 @@ class ShipwreckTab(QWidget):
                     max(point.x + PADDING - (viewport_size // 2), 0),
                     max(point.y + PADDING - (viewport_size // 2), 0),
                     viewport_size,
-                    viewport_size
+                    viewport_size,
                 )
                 pixmap = self.eye_widgets[eye].get_pixmap()
                 viewport = ShipwreckTab.add_padding_to_pixmap(pixmap, PADDING).copy(rect)
@@ -354,7 +394,7 @@ class ShipwreckTab(QWidget):
                         ZOOMED_WIDGET_SIZE // 2 - pixel_size // 2,
                         ZOOMED_WIDGET_SIZE // 2 - pixel_size // 2,
                         pixel_size,
-                        pixel_size
+                        pixel_size,
                     )
 
                 painter.end()
@@ -382,8 +422,11 @@ class ShipwreckTab(QWidget):
         return None
 
     def calc_world_points(self) -> None:
-        if (not has_all_points(self.img_points) or
-            self.intrinsics_left is None or self.intrinsics_right is None):
+        if (
+            not has_all_points(self.img_points)
+            or self.intrinsics_left is None
+            or self.intrinsics_right is None
+        ):
             return
 
         # TODO: using x focal len of left eye for both rn
@@ -402,12 +445,15 @@ class ShipwreckTab(QWidget):
             ys.append(left_point.y * zs[i] / f)
 
         self.world_points = [Point3D(x, y, z) for x, y, z in zip(xs, ys, zs, strict=True)]
-        self.world_points_label.setText(f'3D (mm): {'\t'.join(
-            [str(point) for point in self.world_points])}')
+        self.world_points_label.setText(
+            f'3D (mm): {"\t".join([str(point) for point in self.world_points])}'
+        )
 
-        length = sqrt((self.world_points[0].x - self.world_points[1].x) ** 2 +
-                      (self.world_points[0].y - self.world_points[1].y) ** 2 +
-                      (self.world_points[0].z - self.world_points[1].z) ** 2)
+        length = sqrt(
+            (self.world_points[0].x - self.world_points[1].x) ** 2
+            + (self.world_points[0].y - self.world_points[1].y) ** 2
+            + (self.world_points[0].z - self.world_points[1].z) ** 2
+        )
         self.length_label.setText(f'Length (mm): {length}')
 
     def keyPressEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
@@ -429,8 +475,9 @@ class ShipwreckTab(QWidget):
             self.crosshair = Crosshair.Dot if self.crosshair == Crosshair.Empty else Crosshair.Empty
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Minus:
-            self.viewport_zoom_level = min(self.viewport_zoom_level + 1,
-                                           len(ZOOMED_VIEWPORT_SIZES) - 1)
+            self.viewport_zoom_level = min(
+                self.viewport_zoom_level + 1, len(ZOOMED_VIEWPORT_SIZES) - 1
+            )
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Plus:
             self.viewport_zoom_level = max(self.viewport_zoom_level - 1, 0)
@@ -447,6 +494,9 @@ class ShipwreckTab(QWidget):
         if event is None:
             return
 
-        if (not event.isAutoRepeat() and event.key() in self.keys
-            and self.keys[event.key()] != target_value):
+        if (
+            not event.isAutoRepeat()
+            and event.key() in self.keys
+            and self.keys[event.key()] != target_value
+        ):
             self.keys[event.key()] = target_value

@@ -1,8 +1,7 @@
-from PyQt6.QtCore import QModelIndex, pyqtBoundSignal, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QHBoxLayout, QTabWidget, QVBoxLayout, QWidget
 
 from gui.app import App
-from gui.gui_node import GUINode
 from gui.widgets.float_comm import FloatComm
 from gui.widgets.flood_warning import FloodWarning
 from gui.widgets.heartbeat import HeartbeatWidget
@@ -15,8 +14,8 @@ from gui.widgets.timer import InteractiveTimer
 
 SHIPWRECK_TEXT = 'Shipwreck'
 
-class OperatorApp(App):
 
+class OperatorApp(App):
     changed_tabs = pyqtSignal(int)
 
     def __init__(self) -> None:

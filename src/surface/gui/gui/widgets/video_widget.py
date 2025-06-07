@@ -7,9 +7,9 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge
 from numpy.typing import NDArray
-from PyQt6.QtCore import QSize, Qt, pyqtBoundSignal, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtBoundSignal, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage, QMouseEvent, QPixmap
-from PyQt6.QtWidgets import QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 from rclpy.qos import qos_profile_default
 from sensor_msgs.msg import Image
 
@@ -89,6 +89,7 @@ class CameraDescription(NamedTuple):
     height: int = HEIGHT
     manager: CameraManager | None = None
 
+
 class ClickableLabel(QLabel):
     def __init__(self, signal: pyqtBoundSignal) -> None:
         super().__init__()
@@ -100,14 +101,18 @@ class ClickableLabel(QLabel):
 
         return super().mousePressEvent(event)
 
+
 class VideoWidget(QWidget):
     """A single video stream widget."""
 
     update_big_video_signal = pyqtSignal(QWidget)
     handle_frame_signal = pyqtSignal(Image)
 
-    def __init__(self, camera_description: CameraDescription,
-                 make_label: Callable[[], QLabel] = lambda: QLabel()) -> None:
+    def __init__(
+        self,
+        camera_description: CameraDescription,
+        make_label: Callable[[], QLabel] = lambda: QLabel(),
+    ) -> None:
         super().__init__()
 
         self.camera_description = camera_description
@@ -192,7 +197,7 @@ class SwitchableVideoWidget(VideoWidget):
         camera_descriptions: Sequence[CameraDescription],
         controller_button_topic: str,
         default_cam_num: int = 0,
-        make_label: Callable[[], QLabel] = lambda: QLabel()
+        make_label: Callable[[], QLabel] = lambda: QLabel(),
     ) -> None:
         self.camera_descriptions = camera_descriptions
         self.active_cam = default_cam_num

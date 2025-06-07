@@ -30,6 +30,7 @@ MISSED_SENDS_RESET_THRESHOLD = 5
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 400
 
+
 class StreamTopic(StrEnum):
     LUX_RAW = 'lux_raw/image_raw'
     RECT_LEFT = 'rect_left/image_raw'
@@ -229,7 +230,7 @@ class LuxonisCamDriverNode(Node):
             ),
             self.create_publisher(
                 Intrinsics, 'luxonis_right_intrinsics', QoSPresetProfiles.DEFAULT.value
-            )
+            ),
         )
 
         self.deploy_pipeline()
@@ -409,7 +410,7 @@ while True:
                     fy=intrinsics[1][1],
                     x0=intrinsics[0][2],
                     y0=intrinsics[1][2],
-                    s=intrinsics[0][1]
+                    s=intrinsics[0][1],
                 )
             )
 
@@ -417,7 +418,9 @@ while True:
             # TODO: only send toggles when we actually need to change state?
             for cam_id, output_queue in self.frame_output_queues.items():
                 if self.stream_metas[cam_id].enabled:
-                    self.frame_publishers.try_get_publish(self.stream_metas[cam_id].topic, output_queue)
+                    self.frame_publishers.try_get_publish(
+                        self.stream_metas[cam_id].topic, output_queue
+                    )
 
             enable_stereo = False
             for cam_id in STREAMS_THAT_NEED_STEREO:
@@ -441,8 +444,9 @@ while True:
             self.get_logger().warn('Missed a dual cam spin')
 
         if self.missed_sends >= MISSED_SENDS_RESET_THRESHOLD:
-            self.get_logger().error(f'Missed >={MISSED_SENDS_RESET_THRESHOLD}'
-                                    'dual cam spins, redeploying')
+            self.get_logger().error(
+                f'Missed >={MISSED_SENDS_RESET_THRESHOLD}dual cam spins, redeploying'
+            )
             self.deploy_pipeline()
             self.missed_sends = 0
 
