@@ -269,7 +269,7 @@ class MavlinkManualControlNode(Node):
             )
         self.servo_pwm = max(min(self.servo_pwm, SERVO_MAX), SERVO_MIN)
 
-        if last_servo_pwm != self.servo_pwm:
+        if self.servo_pwm != last_servo_pwm:
             self.mavlink.mav.command_long_send(
                 self.mavlink.target_system,
                 self.mavlink.target_component,
