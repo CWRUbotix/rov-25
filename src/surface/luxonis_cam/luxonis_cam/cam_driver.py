@@ -25,6 +25,11 @@ RIGHT_CAM_SOCKET = depthai.CameraBoardSocket.CAM_D
 
 MISSED_SENDS_RESET_THRESHOLD = 5
 
+# FRAME_WIDTH = 1280
+# FRAME_HEIGHT = 800
+FRAME_WIDTH = 640
+FRAME_HEIGHT = 400
+
 class StreamTopic(StrEnum):
     LUX_RAW = 'lux_raw/image_raw'
     RECT_LEFT = 'rect_left/image_raw'
@@ -306,7 +311,7 @@ while True:
             strict=True,
         ):
             # Camera frame reader -> script [script_input_name]
-            node.setPreviewSize(640, 400)
+            node.setPreviewSize(FRAME_WIDTH, FRAME_HEIGHT)
             node.setInterleaved(False)
             node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
             node.preview.link(script.inputs[meta.script_topics.script_input_name])

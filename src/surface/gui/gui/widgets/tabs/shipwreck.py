@@ -29,20 +29,24 @@ from gui.widgets.video_widget import (
 from rov_msgs.msg import Intrinsics
 from rov_msgs.srv import CameraManage
 
-FRAME_WIDTH = 821
-FRAME_HEIGHT = 791
+FRAME_WIDTH = 816
+FRAME_HEIGHT = 510
+# FRAME_WIDTH = 1280
+# FRAME_HEIGHT = 800
 
-ZOOMED_WIDGET_SIZE = 400
-ZOOMED_VIEWPORT_SIZE = 100
+ZOOMED_WIDGET_SIZE = 405
+ZOOM_DEFAULT_IDX = 2
+ZOOMED_VIEWPORT_SIZES = (27, 45, 81, 135, 405)  # Odd factors of 405
 
-MIN_ZOOM_LEVEL = -2
-MAX_ZOOM_LEVEL = 2
+PADDING = 200
 
 POINTS_PER_EYE = 2
 
 BASELINE_MM = 60.6
 
 DIVISION_SAFETY = 0.0001
+
+BLACK = QColor(Qt.GlobalColor.black)
 
 class Eye(IntEnum):
     LEFT = 0
@@ -111,7 +115,7 @@ class ShipwreckTab(QWidget):
         self.intrinsics_right: Intrinsics | None = None
 
         self.crosshair = Crosshair.Dot
-        self.viewport_zoom_level = 0
+        self.viewport_zoom_level = ZOOM_DEFAULT_IDX
 
         tabs = QTabWidget()
         tabs.addTab(self.make_coarse_tab(), 'Coarse')
@@ -304,6 +308,9 @@ class ShipwreckTab(QWidget):
         else:
             point = Point2D(x, y)
 
+        point.x = min(max(point.x, 0), FRAME_WIDTH - 1)
+        point.y = min(max(point.y, 0), FRAME_HEIGHT - 1)
+
         self.img_points[eye][idx] = point
 
         self.reload_zoomed_views(eyes=eye, idxs=idx)
@@ -327,26 +334,25 @@ class ShipwreckTab(QWidget):
                 if point is None:
                     continue
 
-                padding = 200
-
-                viewport_size = int(ZOOMED_VIEWPORT_SIZE * (2 ** self.viewport_zoom_level))
+                viewport_size = ZOOMED_VIEWPORT_SIZES[self.viewport_zoom_level]
                 rect = QRect(
-                    max(point.x - (viewport_size // 2), 0),
-                    max(point.y - (viewport_size // 2), 0),
+                    max(point.x + PADDING - (viewport_size // 2), 0),
+                    max(point.y + PADDING - (viewport_size // 2), 0),
                     viewport_size,
                     viewport_size
                 )
-                viewport = self.eye_widgets[eye].get_pixmap().copy(rect)
+                pixmap = self.eye_widgets[eye].get_pixmap()
+                viewport = ShipwreckTab.add_padding_to_pixmap(pixmap, PADDING).copy(rect)
                 viewport = viewport.scaledToWidth(ZOOMED_WIDGET_SIZE)
 
                 painter = QPainter(viewport)
                 painter.setPen(QColor(255, 0, 0, 127))
 
-                pixel_size = ZOOMED_WIDGET_SIZE // ZOOMED_VIEWPORT_SIZE
+                pixel_size = ZOOMED_WIDGET_SIZE // viewport_size
                 if self.crosshair == Crosshair.Dot:
                     painter.drawRect(
-                        ZOOMED_WIDGET_SIZE // 2 - pixel_size,
-                        ZOOMED_WIDGET_SIZE // 2 - pixel_size,
+                        ZOOMED_WIDGET_SIZE // 2 - pixel_size // 2,
+                        ZOOMED_WIDGET_SIZE // 2 - pixel_size // 2,
                         pixel_size,
                         pixel_size
                     )
@@ -356,7 +362,7 @@ class ShipwreckTab(QWidget):
                 self.zoomed_eye_widgets[eye][idx].set_pixmap(viewport)
 
     @staticmethod
-    def add_padding_to_pixmap(pixmap: QPixmap, padding: int, color: QColor = QColor.black) -> QPixmap:
+    def add_padding_to_pixmap(pixmap: QPixmap, padding: int, color: QColor = BLACK) -> QPixmap:
         new_width = pixmap.width() + 2 * padding
         new_height = pixmap.height() + 2 * padding
 
@@ -389,9 +395,8 @@ class ShipwreckTab(QWidget):
         ys = []
 
         for i in (0, 1):
-            zs.append(f * BASELINE_MM / (self.img_points[Eye.LEFT][i].x -
-                                         self.img_points[Eye.RIGHT][i].x +
-                                         DIVISION_SAFETY))
+            disparity = self.img_points[Eye.LEFT][i].x - self.img_points[Eye.RIGHT][i].x
+            zs.append(f * BASELINE_MM / (disparity if disparity != 0 else DIVISION_SAFETY))
             left_point = self.img_points[Eye.LEFT][i]
             xs.append(left_point.x * zs[i] / f)
             ys.append(left_point.y * zs[i] / f)
@@ -424,13 +429,14 @@ class ShipwreckTab(QWidget):
             self.crosshair = Crosshair.Dot if self.crosshair == Crosshair.Empty else Crosshair.Empty
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Minus:
-            self.viewport_zoom_level = min(self.viewport_zoom_level + 1, MAX_ZOOM_LEVEL)
+            self.viewport_zoom_level = min(self.viewport_zoom_level + 1,
+                                           len(ZOOMED_VIEWPORT_SIZES) - 1)
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Plus:
-            self.viewport_zoom_level = max(self.viewport_zoom_level - 1, MIN_ZOOM_LEVEL)
+            self.viewport_zoom_level = max(self.viewport_zoom_level - 1, 0)
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Equal:
-            self.viewport_zoom_level = 0
+            self.viewport_zoom_level = ZOOM_DEFAULT_IDX
             self.reload_zoomed_views()
 
     def keyReleaseEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
@@ -444,4 +450,3 @@ class ShipwreckTab(QWidget):
         if (not event.isAutoRepeat() and event.key() in self.keys
             and self.keys[event.key()] != target_value):
             self.keys[event.key()] = target_value
-            GUINode().get_logger().info(str(self.keys))
