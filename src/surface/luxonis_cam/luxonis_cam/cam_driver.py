@@ -23,6 +23,8 @@ Matlike = NDArray[generic]
 LEFT_CAM_SOCKET = depthai.CameraBoardSocket.CAM_A
 RIGHT_CAM_SOCKET = depthai.CameraBoardSocket.CAM_D
 
+MISSED_SENDS_RESET_THRESHOLD = 5
+
 class StreamTopic(StrEnum):
     LUX_RAW = 'lux_raw/image_raw'
     RECT_LEFT = 'rect_left/image_raw'
@@ -225,11 +227,13 @@ class LuxonisCamDriverNode(Node):
             )
         )
 
-        self.create_pipeline()
+        self.deploy_pipeline()
 
         self.frame_publishers = FramePublishers(self)
 
         self.get_logger().info('Pipeline created')
+
+        self.missed_sends = 0
 
     def cam_manage_callback(
         self, request: CameraManage.Request, response: CameraManage.Response
@@ -261,7 +265,7 @@ class LuxonisCamDriverNode(Node):
 
         return response
 
-    def create_pipeline(self) -> None:
+    def deploy_pipeline(self) -> None:
         """Create a depthai pipeline and deploy it to the camera."""
         pipeline = depthai.Pipeline()
 
@@ -356,7 +360,7 @@ while True:
                 )
                 # Uncomment to get more details about errors
                 # These are usually just "the cam is disconnected", but can be other things
-                # self.get_logger().warning(e)
+                # self.get_logger().warning(str(e))
                 continue
             break
 
@@ -404,26 +408,38 @@ while True:
                 )
             )
 
-        # TODO: only send toggles when we actually need to change state?
-        for cam_id, output_queue in self.frame_output_queues.items():
-            if self.stream_metas[cam_id].enabled:
-                self.frame_publishers.try_get_publish(self.stream_metas[cam_id].topic, output_queue)
+        try:
+            # TODO: only send toggles when we actually need to change state?
+            for cam_id, output_queue in self.frame_output_queues.items():
+                if self.stream_metas[cam_id].enabled:
+                    self.frame_publishers.try_get_publish(self.stream_metas[cam_id].topic, output_queue)
 
-        enable_stereo = False
-        for cam_id in STREAMS_THAT_NEED_STEREO:
-            if self.stream_metas[cam_id].enabled:
-                enable_stereo = True
-                break
+            enable_stereo = False
+            for cam_id in STREAMS_THAT_NEED_STEREO:
+                if self.stream_metas[cam_id].enabled:
+                    enable_stereo = True
+                    break
 
-        buf = depthai.Buffer()  # TODO: can we create this once and reuse?
-        buf.setData([1 if enable_stereo else 0])
-        self.left_stereo_toggle_queue.send(buf)
-        self.right_stereo_toggle_queue.send(buf)
+            buf = depthai.Buffer()  # TODO: can we create this once and reuse?
+            buf.setData([1 if enable_stereo else 0])
+            self.left_stereo_toggle_queue.send(buf)
+            self.right_stereo_toggle_queue.send(buf)
 
-        for cam_id, toggle_queue in self.toggle_queues.items():
-            buf = depthai.Buffer()
-            buf.setData([1 if self.stream_metas[cam_id].enabled else 0])
-            toggle_queue.send(buf)
+            for cam_id, toggle_queue in self.toggle_queues.items():
+                buf = depthai.Buffer()
+                buf.setData([1 if self.stream_metas[cam_id].enabled else 0])
+                toggle_queue.send(buf)
+
+            self.missed_sends = 0
+        except RuntimeError:
+            self.missed_sends += 1
+            self.get_logger().warn('Missed a dual cam spin')
+
+        if self.missed_sends >= MISSED_SENDS_RESET_THRESHOLD:
+            self.get_logger().error(f'Missed >={MISSED_SENDS_RESET_THRESHOLD}'
+                                    'dual cam spins, redeploying')
+            self.deploy_pipeline()
+            self.missed_sends = 0
 
         # disparity_frame = self.disparity_queue.tryGet()
 

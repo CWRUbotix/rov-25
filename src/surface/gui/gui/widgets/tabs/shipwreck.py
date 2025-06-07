@@ -5,7 +5,7 @@ from math import sqrt
 from typing import TypeGuard, override
 
 from PyQt6.QtCore import QEvent, QObject, QRect, Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QColor, QFont, QKeyEvent, QMouseEvent, QPainter
+from PyQt6.QtGui import QColor, QFont, QImage, QKeyEvent, QMouseEvent, QPainter, QPixmap
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -35,9 +35,14 @@ FRAME_HEIGHT = 791
 ZOOMED_WIDGET_SIZE = 400
 ZOOMED_VIEWPORT_SIZE = 100
 
+MIN_ZOOM_LEVEL = -2
+MAX_ZOOM_LEVEL = 2
+
 POINTS_PER_EYE = 2
 
 BASELINE_MM = 60.6
+
+DIVISION_SAFETY = 0.0001
 
 class Eye(IntEnum):
     LEFT = 0
@@ -181,13 +186,13 @@ class ShipwreckTab(QWidget):
                     CameraType.QPIXMAP,
                     '', 'Left 1',
                     ZOOMED_WIDGET_SIZE,
-                    ZOOMED_VIEWPORT_SIZE,
+                    ZOOMED_WIDGET_SIZE,
                 )),
                 VideoWidget(CameraDescription(
                     CameraType.QPIXMAP,
                     '', 'Left 2',
                     ZOOMED_WIDGET_SIZE,
-                    ZOOMED_VIEWPORT_SIZE,
+                    ZOOMED_WIDGET_SIZE,
                 )),
             ),
             Eye.RIGHT: (
@@ -195,13 +200,13 @@ class ShipwreckTab(QWidget):
                     CameraType.QPIXMAP,
                     '', 'Right 1',
                     ZOOMED_WIDGET_SIZE,
-                    ZOOMED_VIEWPORT_SIZE,
+                    ZOOMED_WIDGET_SIZE,
                 )),
                 VideoWidget(CameraDescription(
                     CameraType.QPIXMAP,
                     '', 'Right 2',
                     ZOOMED_WIDGET_SIZE,
-                    ZOOMED_VIEWPORT_SIZE,
+                    ZOOMED_WIDGET_SIZE,
                 ))
             )
         }
@@ -308,7 +313,7 @@ class ShipwreckTab(QWidget):
 
         self.calc_world_points()
 
-    def reload_zoomed_views(self, eyes: Eye | Iterable[Eye] = Eye,
+    def reload_zoomed_views(self, eyes: Eye | Iterable[Eye] = (Eye.LEFT, Eye.RIGHT),
                             idxs: int | Iterable[int] = (0, 1)) -> None:
         if isinstance(eyes, Eye):
             eyes = (eyes,)
@@ -322,11 +327,14 @@ class ShipwreckTab(QWidget):
                 if point is None:
                     continue
 
+                padding = 200
+
+                viewport_size = int(ZOOMED_VIEWPORT_SIZE * (2 ** self.viewport_zoom_level))
                 rect = QRect(
-                    max(point.x - 50, 0),
-                    max(point.y - 50, 0),
-                    ZOOMED_VIEWPORT_SIZE * (2 ** self.viewport_zoom_level),
-                    ZOOMED_VIEWPORT_SIZE * (2 ** self.viewport_zoom_level)
+                    max(point.x - (viewport_size // 2), 0),
+                    max(point.y - (viewport_size // 2), 0),
+                    viewport_size,
+                    viewport_size
                 )
                 viewport = self.eye_widgets[eye].get_pixmap().copy(rect)
                 viewport = viewport.scaledToWidth(ZOOMED_WIDGET_SIZE)
@@ -346,6 +354,20 @@ class ShipwreckTab(QWidget):
                 painter.end()
 
                 self.zoomed_eye_widgets[eye][idx].set_pixmap(viewport)
+
+    @staticmethod
+    def add_padding_to_pixmap(pixmap: QPixmap, padding: int, color: QColor = QColor.black) -> QPixmap:
+        new_width = pixmap.width() + 2 * padding
+        new_height = pixmap.height() + 2 * padding
+
+        padded_image = QImage(new_width, new_height, QImage.Format.Format_ARGB32)
+        padded_image.fill(color)
+
+        painter = QPainter(padded_image)
+        painter.drawPixmap(padding, padding, pixmap)
+        painter.end()
+
+        return QPixmap.fromImage(padded_image)
 
     def get_key_point_eye_idx(self) -> tuple[Eye, int] | None:
         for key, eye_and_idx in KEYS_TO_POINT_IDX.items():
@@ -368,7 +390,8 @@ class ShipwreckTab(QWidget):
 
         for i in (0, 1):
             zs.append(f * BASELINE_MM / (self.img_points[Eye.LEFT][i].x -
-                                         self.img_points[Eye.RIGHT][i].x))
+                                         self.img_points[Eye.RIGHT][i].x +
+                                         DIVISION_SAFETY))
             left_point = self.img_points[Eye.LEFT][i]
             xs.append(left_point.x * zs[i] / f)
             ys.append(left_point.y * zs[i] / f)
@@ -401,10 +424,10 @@ class ShipwreckTab(QWidget):
             self.crosshair = Crosshair.Dot if self.crosshair == Crosshair.Empty else Crosshair.Empty
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Minus:
-            self.viewport_zoom_level -= 1
+            self.viewport_zoom_level = min(self.viewport_zoom_level + 1, MAX_ZOOM_LEVEL)
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Plus:
-            self.viewport_zoom_level += 1
+            self.viewport_zoom_level = max(self.viewport_zoom_level - 1, MIN_ZOOM_LEVEL)
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Equal:
             self.viewport_zoom_level = 0
