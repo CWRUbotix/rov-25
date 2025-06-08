@@ -1,0 +1,29 @@
+<html>
+    <head>
+        <!-- for optimal display on high DPI devices -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <link rel="stylesheet" href="/index.min.css" />
+    </head>
+
+    <!-- the viewer container must have a defined size -->
+    <div id="viewer" style="width: 500px; height: 500px;"></div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "/three.module.js",
+                "@photo-sphere-viewer/core": "/index.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { Viewer } from '@photo-sphere-viewer/core';
+
+        const viewer = new Viewer({
+            container: document.querySelector('#viewer'),
+            panorama: 'projection.jpg',
+        });
+    </script>
+</html>

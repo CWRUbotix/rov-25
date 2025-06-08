@@ -5,7 +5,8 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 from numpy import generic
-from photosphere.projection_matrix import get_matrix
+# from photosphere.projection_matrix import get_matrix
+from projection_matrix import get_matrix
 import time
 Matlike = NDArray[generic]
 
@@ -501,7 +502,7 @@ if __name__ == '__main__':
     finish_projection_time = time.time()
 
     projection = convert_with_matrix(fisheye_image1, fisheye_image2)
-    cv2.imwrite('src/surface/photosphere/photosphere/projection.png', projection)
+    cv2.imwrite('src/photosphere/display/projection.jpg', projection)
 
     finish_map = time.time()
     projection = equirectangular_projection_original(fisheye_image1, fisheye_image2)
