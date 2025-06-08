@@ -11,7 +11,7 @@
   <depend>rov_msgs</depend>
 
 
-  <exec_depend>python3-serial</exec_depend>
+  <exec_depend>python3-paramiko</exec_depend>
 
   <test_depend>ament_mypy</test_depend>
   <test_depend>python3-pre-commit</test_depend>

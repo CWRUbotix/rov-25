@@ -27,6 +27,7 @@ setup(
     entry_points={
         'console_scripts': [
             'run_photosphere = photosphere.photosphere:main',
+            'photosphere_driver = photosphere.photosphere_driver_node:main',
         ],
     },
 )
