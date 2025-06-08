@@ -1,12 +1,15 @@
 import paramiko
 import os
 
+import cv2
+import numpy as np
+from cv_bridge import CvBridge
+
 import rclpy
-import rclpy.utilities
-from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 from std_srvs.srv import Trigger
+from sensor_msgs.msg import Image
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -23,12 +26,23 @@ class PhotosphereDriverNode(Node):
     def __init__(self) -> None:
         super().__init__('photosphere_driver_node')
 
+        self.cv_bridge = CvBridge()
+
         self.arming_service = self.create_service(
             Trigger, 'take_photos', callback=self.take_photos_callback
         )
 
+        self.image_publisher_1 = self.create_publisher(
+            Image, 'image_1', qos_profile_system_default
+        )
+
+        self.image_publisher_2 = self.create_publisher(
+            Image, 'image_2', qos_profile_system_default
+        )
+
         self.local_images_path = os.path.join(get_package_share_directory("photosphere").split("rov-25")[0], "rov-25", LOCAL_PATH)
-        print(self.local_images_path)
+
+        self.get_logger().info("Ready to download photosphere images")
 
     def take_photos_callback(
             self, request: Trigger.Request, response: Trigger.Response
@@ -64,6 +78,14 @@ class PhotosphereDriverNode(Node):
         ftp_client.get(os.path.join(REMOTE_PATH, "cam1.jpg"), os.path.join(self.local_images_path, "cam1.jpg"))
 
         self.get_logger().info("Images downloaded from Calamari")
+
+        img_1 = cv2.imread(os.path.join(self.local_images_path, "cam0.jpg"))
+        img_msg_1 = self.cv_bridge.cv2_to_imgmsg(img_1)
+        self.image_publisher_1.publish(img_msg_1)
+
+        img_2 = cv2.imread(os.path.join(self.local_images_path, "cam1.jpg"))
+        img_msg_2 = self.cv_bridge.cv2_to_imgmsg(img_2)
+        self.image_publisher_2.publish(img_msg_2)
 
         response = Trigger.Response()
         response.success = True
