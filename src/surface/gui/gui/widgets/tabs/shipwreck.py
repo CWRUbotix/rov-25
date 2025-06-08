@@ -471,7 +471,7 @@ class ShipwreckTab(QWidget):
             self.set_point(0, -1, relative=True)
         elif event.key() == Qt.Key.Key_Down:
             self.set_point(0, 1, relative=True)
-        elif event.key() == Qt.Key.Key_Period:
+        elif event.key() == Qt.Key.Key_Space:
             self.crosshair = Crosshair.Dot if self.crosshair == Crosshair.Empty else Crosshair.Empty
             self.reload_zoomed_views()
         elif event.key() == Qt.Key.Key_Minus:

@@ -235,6 +235,16 @@ class LuxonisCamDriverNode(Node):
 
         self.deploy_pipeline()
 
+        calib_data = self.device.readCalibration()
+        focal_lengths_mm = [0.0, 0.0]
+        self.intrinsics: list[list[list[float]]] = []
+        for i, cam in enumerate((LEFT_CAM_SOCKET, RIGHT_CAM_SOCKET)):
+            # 3um/px (https://docs.luxonis.com/hardware/sensors/OV9782)
+            # / 1000 to get mm
+            self.intrinsics.append(calib_data.getCameraIntrinsics(cam))
+            focal_lengths_mm[i] = self.intrinsics[-1][0][0] * 3 / 1000
+        self.get_logger().info(f'Focal lengths: {focal_lengths_mm}')
+
         self.frame_publishers = FramePublishers(self)
 
         self.get_logger().info('Pipeline created')
@@ -303,7 +313,7 @@ while True:
         if frame is not None and enabled_flags[i]:
             node.io[frame_output].send(frame)
 """
-        self.get_logger().info('\nScript:\n"""' + script_str + '"""\n')
+        # self.get_logger().info('\nScript:\n"""' + script_str + '"""\n')
         script.setScript(script_str)
 
         for node, meta in zip(
@@ -383,24 +393,6 @@ while True:
 
         self.get_logger().info('Pipeline deployed')
 
-        calib_data = self.device.readCalibration()
-        focal_lengths_mm = [0.0, 0.0]
-        self.intrinsics: list[list[list[float]]] = []
-        for i, cam in enumerate((LEFT_CAM_SOCKET, RIGHT_CAM_SOCKET)):
-            # 3um/px (https://docs.luxonis.com/hardware/sensors/OV9782)
-            # / 1000 to get mm
-            self.intrinsics.append(calib_data.getCameraIntrinsics(cam))
-            focal_lengths_mm[i] = self.intrinsics[-1][0][0] * 3 / 1000
-        self.get_logger().info(f'focal lengths: {focal_lengths_mm}')
-
-        # intrinsics = calib_data.getCameraIntrinsics(depthai.CameraBoardSocket.CAM_A)
-        # self.get_logger().info(f'CAM_A focal length in pixels: {intrinsics[0][0]}')
-        # # self.get_logger().info(f'CAM_A intrinsics: {intrinsics}')
-
-        # intrinsics = calib_data.getCameraIntrinsics(depthai.CameraBoardSocket.CAM_D)
-        # self.get_logger().info(f'CAM_D focal length in pixels: {intrinsics[0][0]}')
-        # # self.get_logger().info(f'CAM_D intrinsics: {intrinsics}')
-
     def spin(self) -> None:
         """Run one iteration of I/O with the Luxonis cam."""
         for intrinsics, publisher in zip(self.intrinsics, self.intrinsics_publishers, strict=True):
@@ -445,7 +437,7 @@ while True:
 
         if self.missed_sends >= MISSED_SENDS_RESET_THRESHOLD:
             self.get_logger().error(
-                f'Missed >={MISSED_SENDS_RESET_THRESHOLD}dual cam spins, redeploying'
+                f'Missed >={MISSED_SENDS_RESET_THRESHOLD} dual cam spins, redeploying'
             )
             self.deploy_pipeline()
             self.missed_sends = 0
