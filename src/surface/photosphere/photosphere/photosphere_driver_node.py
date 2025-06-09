@@ -16,6 +16,7 @@ from ament_index_python.packages import get_package_share_directory
 HOST = "192.168.2.5"
 USER = "rov"
 PASSWORD = "rov12345"
+CONNECT_TIMEOUT = 8  # Seconds to log in
 
 TAKE_PICS_CMD = "bash /home/rov/rov-25/src/photosphere/take_images.sh"
 LOCAL_PATH = "src/surface/photosphere/images"  # relative the rov-25 repo
@@ -64,7 +65,15 @@ class PhotosphereDriverNode(Node):
 
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_client.connect(HOST, username=USER, password=PASSWORD)
+
+        try:
+            ssh_client.connect(HOST, username=USER, password=PASSWORD, timeout=CONNECT_TIMEOUT)
+        except TimeoutError:
+            self.get_logger().error("Failed to connect to photosphere sensor")
+            response = Trigger.Response()
+            response.success = True
+            return response
+
         self.get_logger().info("Connected to Calamari")
 
         _, ssh_stdout, _ = ssh_client.exec_command(TAKE_PICS_CMD)

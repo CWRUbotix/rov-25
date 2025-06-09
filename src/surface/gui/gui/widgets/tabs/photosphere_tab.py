@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QLab
 from gui.widgets.logger import Logger
 from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
 from gui.gui_node import GUINode
-from rclpy.qos import qos_profile_default
+from gui.styles.custom_styles import ButtonIndicator, WidgetState
 from rov_msgs.srv import GeneratePhotosphere
 from std_srvs.srv import Trigger
 
@@ -42,18 +42,20 @@ class PhotosphereTab(QWidget):
 
         button_pane = QHBoxLayout()
 
-        self.take_photos_button = QPushButton("Take Photos")
+        self.take_photos_button = ButtonIndicator("Take Photos")
         self.take_photos_button.setMinimumHeight(60)
-        self.take_photos_button.setMinimumWidth(120)
+        self.take_photos_button.setMinimumWidth(150)
         self.take_photos_button.clicked.connect(self.take_photos_clicked)
 
-        self.generate_button = QPushButton('Generate Photosphere')
+        self.generate_button = ButtonIndicator('Generate Photosphere')
         self.generate_button.setMinimumHeight(60)
-        self.generate_button.setMinimumWidth(120)
+        self.generate_button.setMinimumWidth(150)
+        self.generate_button.set_state(WidgetState.INACTIVE)
         self.generate_button.clicked.connect(self.generate_clicked)
 
         button_pane.addWidget(self.take_photos_button)
         button_pane.addWidget(self.generate_button)
+        button_pane.addStretch()
 
         root_layout = QVBoxLayout()
         root_layout.addLayout(video_pane)
@@ -71,6 +73,7 @@ class PhotosphereTab(QWidget):
         self.setLayout(root_layout)
 
     def take_photos_clicked(self) -> None:
+        self.take_photos_button.set_state(WidgetState.INACTIVE)
         GUINode().send_request_multithreaded(self.take_photos_client, Trigger.Request(), self.take_photos_response_signal)
 
     def generate_clicked(self) -> None:
@@ -80,10 +83,17 @@ class PhotosphereTab(QWidget):
     def generate_response_handler(self, res: GeneratePhotosphere.Response) -> None:
         if not res or not res.generated:
             self.photosphere_status_label.setText('Failed to generate photosphere')
+            self.generate_button.set_state(WidgetState.OFF)
         else:
             self.photosphere_status_label.setText('Photosphere generated')
+            self.generate_button.set_state(WidgetState.ON)
 
     @pyqtSlot(Trigger.Response)
     def take_photos_response_handler(self, res: Trigger.Response) -> None:
-        pass
+        if res and res.success:
+            self.take_photos_button.set_state(WidgetState.ON)
+            if self.generate_button.current_state == WidgetState.INACTIVE:
+                self.generate_button.set_state(WidgetState.NONE)
+        else:
+            self.take_photos_button.set_state(WidgetState.OFF)
     
