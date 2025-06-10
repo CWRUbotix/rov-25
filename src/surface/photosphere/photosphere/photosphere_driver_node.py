@@ -71,7 +71,7 @@ class PhotosphereDriverNode(Node):
         except (TimeoutError, paramiko.ssh_exception.NoValidConnectionsError):
             self.get_logger().error("Failed to connect to photosphere sensor")
             response = Trigger.Response()
-            response.success = True
+            response.success = False
             return response
 
         self.get_logger().info("Connected to Calamari")
