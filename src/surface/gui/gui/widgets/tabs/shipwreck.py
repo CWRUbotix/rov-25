@@ -436,9 +436,9 @@ class ShipwreckTab(QWidget):
         # Don't use focal lengths in real-world units unless
         #  you convert image space x/y to real world units too
 
-        world_points, length = self.solve_stereo_projection(self.intrinsics_left.fx,
-                                                            (BASELINE_MM, BASELINE_MM),
-                                                            self.img_points)
+        world_points, length = self.solve_stereo_projection(
+            self.intrinsics_left.fx, (BASELINE_MM, BASELINE_MM), self.img_points
+        )
         self.world_points_label.setText(
             f'3D (mm): {"\t".join([str(point) for point in world_points])}'
         )
@@ -451,33 +451,42 @@ class ShipwreckTab(QWidget):
 
         for i in (0, 1):
             for eye in (Eye.LEFT, Eye.RIGHT):
-                Ds[eye].append((TUBE_RADIUS_MM / self.intrinsics_left.fx) * self.img_points[eye][i].x)
+                Ds[eye].append(
+                    (TUBE_RADIUS_MM / self.intrinsics_left.fx) * self.img_points[eye][i].x
+                )
                 thetas[eye].append(atan(self.img_points[eye][i].x / self.intrinsics_left.fx))
                 # ys are unaffected by distortion
-                uw_img_points[eye].append(Point2D(
-                    self.intrinsics_left.fx * tan(thetas[eye][i]),
-                    float(self.img_points[eye][i].y)))
+                uw_img_points[eye].append(
+                    Point2D(
+                        self.intrinsics_left.fx * tan(thetas[eye][i]),
+                        float(self.img_points[eye][i].y),
+                    )
+                )
             uw_baselines.append(BASELINE_MM + Ds[Eye.LEFT][i] - Ds[Eye.RIGHT][i])
 
-        uw_world_points, uw_length = self.solve_stereo_projection(self.intrinsics_left.fx,
-                                                                  uw_baselines,
-                                                                  uw_img_points)
+        uw_world_points, uw_length = self.solve_stereo_projection(
+            self.intrinsics_left.fx, uw_baselines, uw_img_points
+        )
         self.underwater_world_points_label.setText(
             f'3D (mm): {"\t".join([str(point) for point in uw_world_points])}'
         )
         self.underwater_length_label.setText(f'Length (mm): {uw_length}')
 
-
-    def solve_stereo_projection(self, f_px: float, baselines_mm: Sequence[float],
-                                img_points: dict[Eye, list[Point2D[int]]] | \
-                                    dict[Eye, list[Point2D[float]]]) \
-                                        -> tuple[list[Point3D], float]:
-        if len(baselines_mm) != len(img_points[Eye.LEFT]) or \
-            len(img_points[Eye.LEFT]) != len(img_points[Eye.RIGHT]):
-            raise IndexError('Failed to solve stereo projection, lengths not the same: '
-                            f'{len(baselines_mm)} != {len(img_points[Eye.LEFT])} or '
-                            f'{len(img_points[Eye.LEFT])} != '
-                            '{len(img_points[Eye.RIGHT])}')
+    def solve_stereo_projection(
+        self,
+        f_px: float,
+        baselines_mm: Sequence[float],
+        img_points: dict[Eye, list[Point2D[int]]] | dict[Eye, list[Point2D[float]]],
+    ) -> tuple[list[Point3D], float]:
+        if len(baselines_mm) != len(img_points[Eye.LEFT]) or len(img_points[Eye.LEFT]) != len(
+            img_points[Eye.RIGHT]
+        ):
+            raise IndexError(
+                'Failed to solve stereo projection, lengths not the same: '
+                f'{len(baselines_mm)} != {len(img_points[Eye.LEFT])} or '
+                f'{len(img_points[Eye.LEFT])} != '
+                '{len(img_points[Eye.RIGHT])}'
+            )
 
         zs = []
         xs = []
@@ -499,7 +508,6 @@ class ShipwreckTab(QWidget):
         )
 
         return (world_points, length)
-
 
     def keyPressEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
         self.handle_key_event(event, target_value=True)
