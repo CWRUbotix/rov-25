@@ -1,55 +1,59 @@
-import enum
-from rov_msgs.srv import CameraManage
-
-# CAM0_TOPIC = 'cam0/image_raw'
-# CAM1_TOPIC = 'cam1/image_raw'
-
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import Image
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
-from cv_bridge import CvBridge
-import cv2
 import os
+import time
 
-SAVE_PATH = "/home/rov/camera_recordings/luxonis_frames" 
-os.makedirs(SAVE_PATH, exist_ok=True)
+import cv2
+import rclpy
+from ament_index_python.packages import get_package_share_directory
+from cv_bridge import CvBridge
+from rclpy.node import Node
+from rclpy.qos import qos_profile_system_default
+from sensor_msgs.msg import Image
 
-class RecordCam(Node):
-    def __init__(self):
-        super().__init__('record_cam')
-        qos = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=1
+RECORD_FRAMERATE = 5
+
+
+class RecordCamNode(Node):
+    def __init__(self) -> None:
+        super().__init__('record_cam_node', parameter_overrides=[])
+
+        self.get_logger().info('Recording luxonis cam...')
+
+        self.image_sub = self.create_subscription(
+            Image, '/surface/lux_raw/image_raw', self.image_callback, qos_profile_system_default
         )
 
-        self.subscription = self.create_subscription(
-            Image,
-            'cam1/image_raw',  # <-- Replace with your topic if different
-            self.listener_callback,
-            qos
-        )
+        self.cv_bridge = CvBridge()
 
-        self.bridge = CvBridge()
-        self.counter = 0
+        self.image_count = 0
+        self.last_record_time: float | None = None
 
-    def listener_callback(self, msg):
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
-            filename = os.path.join(SAVE_PATH, f"frame_{self.counter:06d}.jpg")
-            cv2.imwrite(filename, cv_image)
-            self.get_logger().info(f"Saved: {filename}")
-            self.counter += 1
-        except Exception as e:
-            self.get_logger().error(f"Failed to save image: {e}")
+        self.image_dir = os.path.join(get_package_share_directory('luxonis_cam').split('rov-25')[0],
+                                      'rov-25/src/surface/luxonis_cam/recorded_images')
+        self.record_period = 1 / RECORD_FRAMERATE
 
-def main():
+
+    def image_callback(self, msg: Image) -> None:
+        now = time.time()
+        if self.last_record_time is not None and now - self.last_record_time < self.record_period:
+            return
+
+        self.get_logger().info('Recording image')
+
+        cv2.imwrite(os.path.join(self.image_dir, f'{self.image_count:04}.jpg'),
+                    self.cv_bridge.imgmsg_to_cv2(msg))
+
+        if self.last_record_time is None:
+            self.last_record_time = now
+        else:
+            self.last_record_time = max(self.last_record_time + self.record_period, now)
+        self.image_count += 1
+
+
+def main() -> None:
     rclpy.init()
-    node = RecordCam()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    record_node = RecordCamNode()
+
+    rclpy.spin(record_node)
 
 if __name__ == '__main__':
     main()
