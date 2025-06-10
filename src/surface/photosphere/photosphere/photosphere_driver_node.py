@@ -68,7 +68,7 @@ class PhotosphereDriverNode(Node):
 
         try:
             ssh_client.connect(HOST, username=USER, password=PASSWORD, timeout=CONNECT_TIMEOUT)
-        except TimeoutError:
+        except (TimeoutError, paramiko.ssh_exception.NoValidConnectionsError):
             self.get_logger().error("Failed to connect to photosphere sensor")
             response = Trigger.Response()
             response.success = True
