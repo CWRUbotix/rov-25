@@ -11,5 +11,13 @@ def generate_launch_description() -> LaunchDescription:
         emulate_tty=True,
         output='screen',
     )
+    record_cam = Node(
+        package='luxonis_cam',
+        executable='record_cam',
+        name='record_cam',
+        exec_name='record_cam',
+        emulate_tty=True,
+        output='screen',
+    )
 
-    return LaunchDescription([dual_cam])
+    return LaunchDescription([dual_cam, record_cam])
