@@ -137,7 +137,7 @@ float velVar;
 float depthVelCovar;
 uint32_t lastKalmanUpdate;
 
-const float DEPTH_SENSOR_VAR = 1e-5;  // std dev of 3mm
+const float DEPTH_SENSOR_VAR = 5e-5;  // std dev of 3mm
 const float VEL_PROCESS_NOISE = 1e-3;
 
 const float TARGET_DEPTH = 2.5;  // meters
@@ -814,6 +814,6 @@ void initPressureSensor() {
     errorAndStop("Pressure sensor init failed", PRESSURE_SENSOR_INIT);
   }
 
-  pressureSensor.setModel(MS5837::MS5837_02BA);
+  pressureSensor.setModel(MS5837::MS5837_30BA);
   pressureSensor.setFluidDensity(997);
 }
