@@ -298,6 +298,8 @@ class MavlinkManualControlNode(Node):
         )
 
         # Control servo
+        last_servo_pwm = self.servo_pwm
+
         if SERVO_USE_PRESETS:
             if buttons[self.profile.servo_up]:
                 self.servo_pwm = SERVO_PRESET_UP
@@ -310,19 +312,21 @@ class MavlinkManualControlNode(Node):
                 / JOYSTICK_POLL_RATE
             )
         self.servo_pwm = max(min(self.servo_pwm, SERVO_MAX), SERVO_MIN)
-        self.mavlink.mav.command_long_send(
-            self.mavlink.target_system,
-            self.mavlink.target_component,
-            mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
-            0,
-            SERVO_OUTPUT_PIN,
-            self.servo_pwm,
-            0,
-            0,
-            0,
-            0,
-            0,
-        )
+
+        if self.servo_pwm != last_servo_pwm:
+            self.mavlink.mav.command_long_send(
+                self.mavlink.target_system,
+                self.mavlink.target_component,
+                mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
+                0,
+                SERVO_OUTPUT_PIN,
+                self.servo_pwm,
+                0,
+                0,
+                0,
+                0,
+                0,
+            )
 
     def manip_callback(self, joy_state: JoystickState) -> None:
         """Process a joystick state and send a ros message to open or close a manipulator if
