@@ -27,7 +27,7 @@ void loop() {
   encoder.update();
   Serial.println(encoder.position);
 
-  travelTo(-500000);
+  travelTo(64 * 100 * 64);
 }
 
 // Instruct the motor to travel to a position

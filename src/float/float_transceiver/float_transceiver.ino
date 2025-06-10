@@ -29,7 +29,7 @@
 #define PIN_LED_RED   9
 #define PIN_LED_BLUE  6
 #define PIN_LED_GREEN 12
-
+  
 // The encoder requires two adjacent pins on the PIO
 #define PIN_ENCODER 4
 
@@ -73,9 +73,9 @@ int surfacePressureIndex = 0;
 RHSoftwareSPI softwareSPI;
 
 PicoEncoder encoder;
-const long COUNTS_PER_REV = 64 * 100 * 4 * 64; // Encoder advertises 64 CPR, 30:1 gearbox, PicoEncoder lib multiplies by 4 * 64;
-const long EMPTY_ANGLE = 58;
-const long NEUTRAL_BOUYANCY_ANGLE = 29;
+const long COUNTS_PER_REV = 64 * 100 * 64; // Encoder advertises 64 CPR, 100:1 gearbox, PicoEncoder lib multiplies by 64;
+const long EMPTY_ANGLE = 232;
+const long NEUTRAL_BOUYANCY_ANGLE = 116;
 
 const uint16_t RADIO_FREQ = 917;  // Hz, anything between 902 and 928 is legal. Must match surface transciever
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
