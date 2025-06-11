@@ -1,6 +1,9 @@
 # Ignore Arduino libraries
 libraries/
 
+# Luxonis cam
+.cache/
+
 # Python
 __pycache__/
 *.py[cod]

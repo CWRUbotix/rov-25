@@ -1,19 +1,16 @@
-"""setup.py for pixhawk_communication module."""
-
 from pathlib import Path
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
-PACKAGE_NAME = 'pixhawk_communication'
+PACKAGE_NAME = 'luxonis_cam'
 
 setup(
     name=PACKAGE_NAME,
-    version='1.2.0',
-    packages=[PACKAGE_NAME],
+    version='0.0.0',
+    packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
         ('share/' + PACKAGE_NAME, ['package.xml']),
-        # Include all launch files.
         (
             str(Path('share') / PACKAGE_NAME / 'launch'),
             [str(path) for path in Path('launch').glob('*launch.[pxy][yma]*')],
@@ -21,12 +18,12 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='Michael Carlstrom',
-    maintainer_email='rmc@carlstrom.com',
-    description='PI to Pixhawk Communication',
+    maintainer='noah',
+    maintainer_email='noah@mollerstuen.com',
+    description='Driver for Luxonis stereo camera',
     license='Apache License 2.0',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': [],
+        'console_scripts': ['luxonis_cam_driver = luxonis_cam.cam_driver:main'],
     },
 )

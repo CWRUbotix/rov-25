@@ -121,7 +121,7 @@ class GUINode(Node):
             )
 
     def send_request_multithreaded(
-        self, client: Client, request: SrvTypeRequest, signal: pyqtBoundSignal
+        self, client: Client, request: SrvTypeRequest, signal: pyqtBoundSignal | None = None
     ) -> None:
         """Send a request from the given client on a separate thread.
         Emit the result to the given signal.
@@ -137,7 +137,9 @@ class GUINode(Node):
         """
 
         def wrapper(request: SrvTypeRequest) -> None:
-            signal.emit(client.call(request))
+            response: SrvTypeRequest | None = client.call(request)
+            if signal is not None:
+                signal.emit(response)
 
         Thread(
             target=wrapper,

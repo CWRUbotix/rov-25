@@ -5,7 +5,6 @@ from gui.widgets.arm import Arm
 from gui.widgets.heartbeat import HeartbeatWidget
 from gui.widgets.ip_widget import IPWidget
 from gui.widgets.logger import Logger
-from gui.widgets.thruster_tester import ThrusterTester
 
 
 class GeneralDebugTab(QWidget):
@@ -22,7 +21,8 @@ class GeneralDebugTab(QWidget):
         )
 
         right_bar = QVBoxLayout()
-        right_bar.addWidget(ThrusterTester())
+        # TODO: Update ThrusterTester to use Mavlink instead of Mavros
+        # right_bar.addWidget(ThrusterTester())
         right_bar.addWidget(Arm())
         right_bar.setAlignment(Qt.AlignmentFlag.AlignRight)
 

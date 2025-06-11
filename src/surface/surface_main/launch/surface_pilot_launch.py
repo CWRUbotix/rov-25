@@ -11,7 +11,7 @@ from launch_ros.actions import Node, PushRosNamespace
 
 def generate_launch_description() -> LaunchDescription:
     gui_path = get_package_share_directory('gui')
-    controller_path = get_package_share_directory('ps5_controller')
+    luxonis_path = get_package_share_directory('luxonis_cam')
     # flir_path: str = get_package_share_directory('rov_flir')
 
     simulation_configuration = LaunchConfiguration('simulation', default=False)
@@ -19,13 +19,6 @@ def generate_launch_description() -> LaunchDescription:
     # Launches Gui
     gui_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([str(Path(gui_path) / 'launch' / 'pilot_launch.py')]),
-    )
-
-    # Launches Controller
-    controller_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [str(Path(controller_path) / 'launch' / 'controller_launch.py')]
-        ),
     )
 
     # Launches flir
@@ -47,8 +40,12 @@ def generate_launch_description() -> LaunchDescription:
         condition=UnlessCondition(simulation_configuration),
     )
 
+    luxonis_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([str(Path(luxonis_path) / 'launch' / 'luxonis_launch.py')]),
+    )
+
     namespace_launch = GroupAction(
-        actions=[PushRosNamespace('surface'), gui_launch, controller_launch, flir_watchdog]
+        actions=[PushRosNamespace('surface'), gui_launch, flir_watchdog, luxonis_launch]
     )
 
     return LaunchDescription([namespace_launch])
