@@ -10,13 +10,10 @@ strict = true
 ignore_missing_imports = true
 # Done because some calls inside rclpy are not typed
 disallow_untyped_calls = false
-# Done because rclpy Node has type Any
-disallow_subclassing_any = false
 
 # For pre-commit CI
 [tool.ruff]
 format.quote-style = 'single'
-exclude = ["src/surface/ros2_video_streamer"]
 
 # Done to sort imports
 line-length = 100
@@ -24,7 +21,7 @@ line-length = 100
 flake8-quotes.inline-quotes='single'
 extend-select = ["ALL"]
 fixable = ["ALL"]
-ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "T201", "FIX002", "TD003", "TD002", "TRY003", "EM101", "EM102", "RET504", "D211", "COM812", "ISC001", "ERA001", "S602", "S603", "D205"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "T201", "FIX002", "TD003", "TD002", "TRY003", "EM101", "EM102", "RET504", "D211", "COM812", "ISC001", "ERA001", "S602", "S603", "D205", "UP040"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

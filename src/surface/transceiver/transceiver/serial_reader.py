@@ -125,8 +125,7 @@ class SerialReaderPacketHandler:
 
         if len(packet_sections) != PACKET_SECTIONS:
             raise ValueError(
-                f'Packet expected {PACKET_SECTIONS} sections, '
-                f'found {len(packet_sections)} sections'
+                f'Packet expected {PACKET_SECTIONS} sections, found {len(packet_sections)} sections'
             )
 
         header = packet_sections[1].split(COMMA_SEPARATOR)
@@ -134,7 +133,7 @@ class SerialReaderPacketHandler:
 
         if len(header) != HEADER_LENGTH:
             raise ValueError(
-                f'Packet header length of {HEADER_LENGTH} expected ' f'found {len(header)} instead'
+                f'Packet header length of {HEADER_LENGTH} expected found {len(header)} instead'
             )
 
         msg.team_number = int(header[0])

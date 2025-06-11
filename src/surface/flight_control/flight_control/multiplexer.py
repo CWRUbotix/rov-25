@@ -1,43 +1,148 @@
-from collections.abc import Callable
+from typing import Final
 
 import rclpy
-from mavros_msgs.msg import OverrideRCIn
+from mavros_msgs.msg import CommandCode, ManualControl
+from mavros_msgs.srv import CommandLong
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 
-from rov_msgs.msg import PixhawkInstruction
+from flight_control.pixhawk_instruction_utils import (
+    apply_function,
+    pixhawk_instruction_to_tuple,
+    tuple_to_pixhawk_instruction,
+)
+from rov_msgs.msg import PixhawkInstruction, ValveManip
 from rov_msgs.srv import AutonomousFlight
 
 # Brown out protection
-SPEED_THROTTLE = 0.85
+SPEED_THROTTLE: Final = 0.65
 
 # Joystick curve
-JOYSTICK_EXPONENT = 3
+JOYSTICK_EXPONENT: Final = 3
 
 # Range of values Pixhawk takes
 # In microseconds
-ZERO_SPEED = 1500
-MAX_RANGE_SPEED = 400
-RANGE_SPEED = MAX_RANGE_SPEED * SPEED_THROTTLE
+ZERO_SPEED: Final = 0
+Z_ZERO_SPEED: Final = 500
+MAX_RANGE_SPEED: Final = 2000
+Z_MAX_RANGE_SPEED: Final = 1000
+RANGE_SPEED: Final = MAX_RANGE_SPEED * SPEED_THROTTLE
+Z_RANGE_SPEED: Final = Z_MAX_RANGE_SPEED * SPEED_THROTTLE
 
-# Channels for RC command
-MAX_CHANNEL = 8
-MIN_CHANNEL = 1
+EXTENSIONS_CODE: Final = 0b00000011
 
-FORWARD_CHANNEL = 4  # X
-THROTTLE_CHANNEL = 2  # Z (vertical)
-LATERAL_CHANNEL = 5  # Y (left & right)
-PITCH_CHANNEL = 0  # Pitch
-YAW_CHANNEL = 3  # Yaw
-ROLL_CHANNEL = 1  # Roll
+NEXT_INSTR_FRAC: Final = 0.05
+PREV_INSTR_FRAC: Final = 1 - NEXT_INSTR_FRAC
+INSTR_EPSILON: Final = 0.05
 
 
 def joystick_map(raw: float) -> float:
+    """
+    Convert the provided joystick position to a
+    float in [-1.0, 1.0] for use in a PixhawkInstruction.
+
+    Parameters
+    ----------
+    raw : float
+        The joystick position to convert
+
+    Returns
+    -------
+    float
+        A float in [-1.0, 1.0] to act as a PixhawkInstruction dimension
+    """
     mapped = abs(raw) ** JOYSTICK_EXPONENT
     if raw < 0:
         mapped *= -1
     return mapped
+
+
+def manual_control_map(value: float) -> float:
+    """
+    Convert the provided float in [-1.0, 1.0] to a ManualControl dimension.
+
+    Parameters
+    ----------
+    value : float
+        The float in [-1.0, 1.0] to convert to a ManualControl dimension
+
+    Returns
+    -------
+    float
+        The resulting ManualControl dimension
+    """
+    return RANGE_SPEED * value + ZERO_SPEED
+
+
+def smooth_value(prev_value: float, next_value: float) -> float:
+    """
+    Get a value that interpolates prev_value & next_value.
+
+    Parameters
+    ----------
+    prev_value : float
+        The previous value, affects the result based on PREV_INSTR_FRAC
+    next_value : float
+        The next value, affects the result based on NEXT_INSTR_FRAC
+
+    Returns
+    -------
+    float
+        The resulting value between prev_value & next_value
+    """
+    smoothed_value = PREV_INSTR_FRAC * prev_value + NEXT_INSTR_FRAC * next_value
+
+    # If close to target value, snap to it
+    # (we want to get there eventually, not approach in the limit)
+    if next_value - INSTR_EPSILON <= smoothed_value <= next_value + INSTR_EPSILON:
+        return next_value
+
+    return smoothed_value
+
+
+def to_manual_control(msg: PixhawkInstruction) -> ManualControl:
+    """
+    Convert the provided PixhawkInstruction to a ManualControl message.
+
+    Parameters
+    ----------
+    msg : PixhawkInstruction
+        The PixhawkInstruction to convert
+
+    Returns
+    -------
+    ManualControl
+        The resulting ManualControl message
+    """
+    mc_msg = ManualControl()
+
+    # Maps to PWM
+    mapped_msg = apply_function(msg, manual_control_map)
+
+    # To account for different z limits
+    mapped_msg.vertical = Z_RANGE_SPEED * msg.vertical + Z_ZERO_SPEED
+
+    mc_msg.x = mapped_msg.forward
+    mc_msg.z = mapped_msg.vertical
+    mc_msg.y = mapped_msg.lateral
+    mc_msg.r = mapped_msg.yaw
+    mc_msg.enabled_extensions = EXTENSIONS_CODE
+    mc_msg.s = mapped_msg.pitch
+    mc_msg.t = mapped_msg.roll
+
+    return mc_msg
+
+
+def to_command_long(msg: ValveManip) -> CommandLong.Request:
+    cl_msg = CommandLong.Request()
+
+    cl_msg.command = CommandCode.DO_SET_SERVO
+    cl_msg.confirmation = 0
+    cl_msg.param1 = float(9)
+    cl_msg.param2 = float(msg.pwm)
+
+    return cl_msg
 
 
 class MultiplexerNode(Node):
@@ -57,36 +162,34 @@ class MultiplexerNode(Node):
             QoSPresetProfiles.DEFAULT.value,
         )
 
-        self.rc_pub = self.create_publisher(
-            OverrideRCIn, 'mavros/rc/override', QoSPresetProfiles.DEFAULT.value
+        self.valve_subscription = self.create_subscription(
+            ValveManip, 'valve_manipulator', self.valve_callback, QoSPresetProfiles.DEFAULT.value
         )
 
-    @staticmethod
-    def apply(msg: PixhawkInstruction, function_to_apply: Callable[[float], float]) -> None:
-        """Apply a function to each dimension of this PixhawkInstruction."""
-        msg.forward = function_to_apply(msg.forward)
-        msg.vertical = function_to_apply(msg.vertical)
-        msg.lateral = function_to_apply(msg.lateral)
-        msg.pitch = function_to_apply(msg.pitch)
-        msg.yaw = function_to_apply(msg.yaw)
-        msg.roll = function_to_apply(msg.roll)
+        self.mc_pub = self.create_publisher(
+            ManualControl, 'mavros/manual_control/send', QoSPresetProfiles.DEFAULT.value
+        )
 
-    @staticmethod
-    def to_override_rc_in(msg: PixhawkInstruction) -> OverrideRCIn:
-        """Convert this PixhawkInstruction to an rc_msg with the appropriate channels array."""
-        rc_msg = OverrideRCIn()
+        self.cmd_client = self.create_client(CommandLong, 'mavros/cmd/command')
 
-        # Maps to PWM
-        MultiplexerNode.apply(msg, lambda value: int(RANGE_SPEED * value) + ZERO_SPEED)
+        self.previous_instruction_tuple: tuple[float, ...] = pixhawk_instruction_to_tuple(
+            PixhawkInstruction()
+        )
 
-        rc_msg.channels[FORWARD_CHANNEL] = msg.forward
-        rc_msg.channels[THROTTLE_CHANNEL] = msg.vertical
-        rc_msg.channels[LATERAL_CHANNEL] = msg.lateral
-        rc_msg.channels[PITCH_CHANNEL] = msg.pitch
-        rc_msg.channels[YAW_CHANNEL] = msg.yaw
-        rc_msg.channels[ROLL_CHANNEL] = msg.roll
+    def smooth_pixhawk_instruction(self, msg: PixhawkInstruction) -> PixhawkInstruction:
+        instruction_tuple = pixhawk_instruction_to_tuple(msg)
 
-        return rc_msg
+        smoothed_tuple = tuple(
+            smooth_value(previous_value, value)
+            for (previous_value, value) in zip(
+                self.previous_instruction_tuple, instruction_tuple, strict=True
+            )
+        )
+        smoothed_instruction = tuple_to_pixhawk_instruction(smoothed_tuple, msg.author)
+
+        self.previous_instruction_tuple = smoothed_tuple
+
+        return smoothed_instruction
 
     def state_control(
         self, req: AutonomousFlight.Request, res: AutonomousFlight.Response
@@ -102,18 +205,23 @@ class MultiplexerNode(Node):
         ):
             # Smooth out adjustments
             # TODO: look into maybe doing inheritance on a PixhawkInstruction
-            MultiplexerNode.apply(msg, joystick_map)
+            msg = apply_function(msg, joystick_map)
         elif (
             msg.author == PixhawkInstruction.KEYBOARD_CONTROL
             and self.state == AutonomousFlight.Request.STOP
-            or msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL
+        ) or (
+            msg.author == PixhawkInstruction.AUTONOMOUS_CONTROL
             and self.state == AutonomousFlight.Request.START
         ):
             pass
         else:
             return
 
-        self.rc_pub.publish(msg=self.to_override_rc_in(msg))
+        smoothed_instruction = self.smooth_pixhawk_instruction(msg)
+        self.mc_pub.publish(to_manual_control(smoothed_instruction))
+
+    def valve_callback(self, msg: ValveManip) -> None:
+        self.cmd_client.call_async(to_command_long(msg))
 
 
 def main() -> None:

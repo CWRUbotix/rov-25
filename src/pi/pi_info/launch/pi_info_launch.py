@@ -3,15 +3,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description() -> LaunchDescription:
-    """
-    Generate LaunchDescription for pi_info.
-
-    Returns
-    -------
-    LaunchDescription
-        Launches heartbeat and ip_publisher nodes.
-
-    """
     # Launches the heartbeat_node
     heartbeat_node = Node(
         package='pi_info',
