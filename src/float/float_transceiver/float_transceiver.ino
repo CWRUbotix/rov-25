@@ -599,7 +599,7 @@ void hover() {
 
   // targetAngle = NEUTRAL_BOUYANCY_ANGLE;
 
-  float motorSetpoint = MOT_P * targetAngle;  // From -1 to 1, positive is suck (increase depth)
+  float motorSetpoint = MOT_P * (targetAngle - getMotorAngle());  // From -1 to 1, positive is suck (increase depth)
 
   if ((motorSetpoint > 0 && !digitalRead(PIN_LIMIT_NO)) || (motorSetpoint < 0 && isEmpty())) {
     motorStop();
