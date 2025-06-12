@@ -29,7 +29,7 @@
 #define PIN_LED_RED   9
 #define PIN_LED_BLUE  6
 #define PIN_LED_GREEN 12
-  
+
 // The encoder requires two adjacent pins on the PIO
 #define PIN_ENCODER 4
 
@@ -63,7 +63,7 @@ const uint32_t HOLD_TIME = 0;
 
 // Distance from the pressure sensor to the bottom of the float (m)
 const float MBAR_TO_METER_OF_HEAD = 0.010199773339984;
-const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0; // 0.62 to measure to bottom of float;
+const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0;  // 0.62 to measure to bottom of float;
 const int AVERAGE_PRESSURE_LEN = 10;
 
 float surfacePressures[AVERAGE_PRESSURE_LEN];
@@ -73,11 +73,13 @@ int surfacePressureIndex = 0;
 RHSoftwareSPI softwareSPI;
 
 PicoEncoder encoder;
-const long COUNTS_PER_REV = 64 * 100 * 64; // Encoder advertises 64 CPR, 100:1 gearbox, PicoEncoder lib multiplies by 64;
+const long COUNTS_PER_REV =
+  64 * 100 * 64;  // Encoder advertises 64 CPR, 100:1 gearbox, PicoEncoder lib multiplies by 64;
 const long EMPTY_ANGLE = 232;
 const long NEUTRAL_BOUYANCY_ANGLE = 116;
 
-const uint16_t RADIO_FREQ = 917;  // Hz, anything between 902 and 928 is legal. Must match surface transciever
+const uint16_t RADIO_FREQ =
+  917;  // Hz, anything between 902 and 928 is legal. Must match surface transciever
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
 MS5837 pressureSensor;
 
@@ -140,8 +142,8 @@ uint32_t lastKalmanUpdate;
 const float DEPTH_SENSOR_VAR = 5e-5;  // std dev of 3mm
 const float VEL_PROCESS_NOISE = 1e-3;
 
-const float TARGET_DEPTH = 2.5;  // meters
-const float DEPTH_TOLERANCE = 0.5; // 0.5 m in either direction of target, i.e. 2m to 3m
+const float TARGET_DEPTH = 2.5;     // meters
+const float DEPTH_TOLERANCE = 0.5;  // 0.5 m in either direction of target, i.e. 2m to 3m
 
 const float DEPTH_P = 15;
 const float DEPTH_I = 2;
@@ -205,7 +207,8 @@ void setup() {
   initPressureSensor();
 
   if (encoder.begin(PIN_ENCODER) != 0) {
-    errorAndStop("Encoder init failed", ENCODER_INIT);  pinMode(PIN_MOTOR_PUMP, OUTPUT);
+    errorAndStop("Encoder init failed", ENCODER_INIT);
+    pinMode(PIN_MOTOR_PUMP, OUTPUT);
     pinMode(PIN_MOTOR_SUCK, OUTPUT);
     digitalWrite(PIN_MOTOR_PUMP, LOW);
     digitalWrite(PIN_MOTOR_SUCK, LOW);
@@ -295,7 +298,7 @@ void loop() {
     case StageType::Ascending:
       // Check for stage completion
       if (millis() > stageTimeout || getDepth() < PRESSURE_SENSOR_VERTICAL_OFFSET + 0.01) {
-        startStageWaitWaitTransmitting();        
+        startStageWaitWaitTransmitting();
       }
       break;
 
@@ -303,7 +306,7 @@ void loop() {
       // Check for submerge command to start next profile
       if (millis() > stageTimeout || shouldSubmerge) {
         taskTransmitPackets.disable();
-        
+
         startStageDescending();
       }
       break;
@@ -335,7 +338,7 @@ void startStageDeployPump() {
   Serial.println("Stage: DeployPump");
   stage = StageType::DeployPump;
   stageTimeout = millis() + PUMP_MAX;
-  
+
   setLedColor(COLOR_INITIALIZING);
   motorPump();
 }
@@ -354,7 +357,7 @@ void startStageDescending() {
   Serial.println("Stage: Descending");
   stage = StageType::Descending;
   stageTimeout = millis() + DESCEND_TIME + HOLD_TIME;
-  
+
   setLedColor(COLOR_DESCENDING);
 
   // Set up pressure logging
@@ -432,8 +435,7 @@ float getDepth() {
     return pressureSensor.depth();
   }
   else {
-    return (pressure - surfaceAverage) * MBAR_TO_METER_OF_HEAD +
-           PRESSURE_SENSOR_VERTICAL_OFFSET;
+    return (pressure - surfaceAverage) * MBAR_TO_METER_OF_HEAD + PRESSURE_SENSOR_VERTICAL_OFFSET;
   }
 }
 
@@ -497,7 +499,6 @@ void transmitSurfacePressureCallback() {
   surfaceAverage /= totalReadings;
 }
 
-
 // Motor control functions
 void motorPump() {
   Serial.println("PUMPING");
@@ -523,7 +524,8 @@ void motorStop() {
 void setMotorSpeed(float setpoint) {
   if (setpoint < -1) {
     setpoint = -1;
-  } else if (setpoint > 1) {
+  }
+  else if (setpoint > 1) {
     setpoint = 1;
   }
 
@@ -531,11 +533,13 @@ void setMotorSpeed(float setpoint) {
     // Suck
     digitalWrite(PIN_MOTOR_PUMP, LOW);
     digitalWrite(PIN_MOTOR_SUCK, setpoint * 255);
-  } else if (setpoint < 0) {
+  }
+  else if (setpoint < 0) {
     // Pump
     digitalWrite(PIN_MOTOR_PUMP, -setpoint * 255);
     digitalWrite(PIN_MOTOR_SUCK, LOW);
-  } else {
+  }
+  else {
     motorStop();
   }
   motorState = MotorState::SpeedControl;
@@ -589,21 +593,25 @@ void hover() {
   float depthErr = TARGET_DEPTH - depthMean;
 
   depthErrAcc += depthErr * deltaTime;
-    if (depthErrAcc > DEPTH_ACC_MAX) {
+  if (depthErrAcc > DEPTH_ACC_MAX) {
     depthErr = DEPTH_ACC_MAX;
-  } else if (depthErrAcc < - DEPTH_ACC_MAX) {
+  }
+  else if (depthErrAcc < -DEPTH_ACC_MAX) {
     depthErrAcc = -DEPTH_ACC_MAX;
   }
 
-  float targetAngle = DEPTH_P * depthErr + DEPTH_I * depthErrAcc + DEPTH_D * -velMean + NEUTRAL_BOUYANCY_ANGLE;
+  float targetAngle =
+    DEPTH_P * depthErr + DEPTH_I * depthErrAcc + DEPTH_D * -velMean + NEUTRAL_BOUYANCY_ANGLE;
 
   // targetAngle = NEUTRAL_BOUYANCY_ANGLE;
 
-  float motorSetpoint = MOT_P * (targetAngle - getMotorAngle());  // From -1 to 1, positive is suck (increase depth)
+  float motorSetpoint =
+    MOT_P * (targetAngle - getMotorAngle());  // From -1 to 1, positive is suck (increase depth)
 
   if ((motorSetpoint > 0 && !digitalRead(PIN_LIMIT_NO)) || (motorSetpoint < 0 && isEmpty())) {
     motorStop();
-  } else {
+  }
+  else {
     setMotorSpeed(motorSetpoint);
   }
 }
@@ -711,9 +719,7 @@ void handleOverride() {
 }
 
 // Utility functions
-float getMotorAngle() {
-  return -encoder.position * TWO_PI / COUNTS_PER_REV;
-}
+float getMotorAngle() { return -encoder.position * TWO_PI / COUNTS_PER_REV; }
 
 bool isEmpty() { return getMotorAngle() > EMPTY_ANGLE; }
 
@@ -801,7 +807,7 @@ void initPressureSensor() {
   bool init_success = false;
 
   Wire.begin();
-  
+
   for (int i = 0; i < 5; i++) {
     if (pressureSensor.init()) {
       init_success = true;
