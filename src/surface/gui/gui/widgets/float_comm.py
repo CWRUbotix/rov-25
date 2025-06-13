@@ -2,12 +2,11 @@ from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
-from pyqtgraph import PlotWidget, PlotItem, mkBrush, mkPen
+from pyqtgraph import PlotItem, PlotWidget, mkBrush, mkPen
 from rclpy.qos import QoSPresetProfiles, qos_profile_default
 
 from gui.gui_node import GUINode
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
-
 
 TARGET_DEPTH_MIN = 2
 TARGET_DEPTH_MAX = 3
@@ -140,9 +139,9 @@ class FloatComm(QWidget):
         button_layout.addWidget(stop_button)
 
         return button_layout
-    
+
     def plot_float_data(self, plot: PlotItem, times: list[float], depths: list[float]) -> None:
-        points = zip(times, depths)
+        points = zip(times, depths, strict=False)
 
         valid_points = []
         invalid_points = []
@@ -155,13 +154,12 @@ class FloatComm(QWidget):
 
         plot.plot(times, depths)
 
-        plot.scatterPlot(*zip(*valid_points), brush=mkBrush('g'))
-        plot.scatterPlot(*zip(*invalid_points), brush=mkBrush('r'))
+        plot.scatterPlot(*zip(*valid_points, strict=False), brush=mkBrush('g'))
+        plot.scatterPlot(*zip(*invalid_points, strict=False), brush=mkBrush('r'))
 
         target_lines_pen = mkPen(0.5, style=QtCore.Qt.PenStyle.DashLine)
         plot.plot(times, [TARGET_DEPTH_MIN] * len(times), pen=target_lines_pen)
         plot.plot(times, [TARGET_DEPTH_MAX] * len(times), pen=target_lines_pen)
-
 
     @pyqtSlot(FloatData)
     def handle_data(self, msg: FloatData) -> None:
