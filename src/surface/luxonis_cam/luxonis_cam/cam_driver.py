@@ -4,7 +4,6 @@ from enum import StrEnum
 import cv2
 import depthai
 import rclpy
-from builtin_interfaces.msg import Time
 from cv_bridge import CvBridge
 from numpy import generic
 from numpy.typing import NDArray
@@ -12,6 +11,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.publisher import Publisher
 from rclpy.qos import QoSPresetProfiles
+from rclpy.time import Time
 from sensor_msgs.msg import Image
 
 from rov_msgs.msg import Intrinsics
@@ -33,10 +33,11 @@ FRAME_HEIGHT = 400
 
 class StreamTopic(StrEnum):
     LUX_RAW = 'lux_raw/image_raw'
+    LUX_RAW2 = 'lux_raw2/image_raw'
     RECT_LEFT = 'rect_left/image_raw'
     RECT_RIGHT = 'rect_right/image_raw'
-    DISPARITY = 'disparity/image_raw'
-    DEPTH = 'depth/image_raw'
+    # DISPARITY = 'disparity/image_raw'
+    # DEPTH = 'depth/image_raw'
 
 
 @dataclass
@@ -158,6 +159,9 @@ class FramePublishers:
             return
 
         time_msg = self.node.get_clock().now().to_msg()
+        timestamp = video_frame.getTimestamp()
+        time_msg = Time(seconds=timestamp.seconds, nanoseconds=timestamp.microseconds * 1000).to_msg()
+        # self.node.get_logger().warn(str(video_frame.getTimestamp().seconds))
 
         if video_frame is not None:
             img_msg = self.get_image_msg(video_frame.getCvFrame(), time_msg)
@@ -193,8 +197,8 @@ class FramePublishers:
 STREAMS_THAT_NEED_STEREO = [
     CAM_IDS.LUX_LEFT_RECT,
     CAM_IDS.LUX_RIGHT_RECT,
-    CAM_IDS.LUX_DISPARITY,
-    CAM_IDS.LUX_DEPTH,
+    # CAM_IDS.LUX_DISPARITY,
+    # CAM_IDS.LUX_DEPTH,
 ]
 
 
@@ -203,14 +207,14 @@ class LuxonisCamDriverNode(Node):
         super().__init__('luxonis_cam_driver', parameter_overrides=[])
 
         self.stream_metas = {
-            CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.LUX_RAW, enabled=False),
+            CAM_IDS.LUX_LEFT: StreamMeta.of('left', StreamTopic.LUX_RAW2, enabled=False),
             CAM_IDS.LUX_RIGHT: StreamMeta.of('right', StreamTopic.LUX_RAW, enabled=False),
             CAM_IDS.LUX_LEFT_RECT: StreamMeta.of('left_rect', StreamTopic.RECT_LEFT, enabled=False),
             CAM_IDS.LUX_RIGHT_RECT: StreamMeta.of(
                 'right_rect', StreamTopic.RECT_RIGHT, enabled=False
             ),
-            CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, enabled=False),
-            CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, enabled=False),
+            # CAM_IDS.LUX_DISPARITY: StreamMeta.of('disparity', StreamTopic.DISPARITY, enabled=False),
+            # CAM_IDS.LUX_DEPTH: StreamMeta.of('depth', StreamTopic.DEPTH, enabled=False),
         }
 
         self.left_stereo_script_topics = StreamScriptTopicSet.of('left_stereo')
@@ -351,12 +355,12 @@ while True:
         stereo_node.rectifiedRight.link(
             script.inputs[self.stream_metas[CAM_IDS.LUX_RIGHT_RECT].script_topics.script_input_name]
         )
-        stereo_node.disparity.link(
-            script.inputs[self.stream_metas[CAM_IDS.LUX_DISPARITY].script_topics.script_input_name]
-        )
-        stereo_node.depth.link(
-            script.inputs[self.stream_metas[CAM_IDS.LUX_DEPTH].script_topics.script_input_name]
-        )
+        # stereo_node.disparity.link(
+        #     script.inputs[self.stream_metas[CAM_IDS.LUX_DISPARITY].script_topics.script_input_name]
+        # )
+        # stereo_node.depth.link(
+        #     script.inputs[self.stream_metas[CAM_IDS.LUX_DEPTH].script_topics.script_input_name]
+        # )
 
         for stream_meta in self.stream_metas.values():
             # script [script_output_name] -> cam_xout

@@ -48,7 +48,7 @@ SERVO_MIN = 500
 SERVO_MAX = 2500
 SERVO_TURN_RATE = 500
 SERVO_PRESET_UP = 970
-SERVO_PRESET_DOWN = 1750
+SERVO_PRESET_DOWN = 1550
 # If True each button corresponds to a preset
 # If false one button moves gradually up and one moves gradually down
 SERVO_USE_PRESETS = True
