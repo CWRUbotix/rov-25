@@ -1,4 +1,5 @@
 import os
+import subprocess
 import cv2
 import numpy as np
 from numpy import generic
@@ -15,6 +16,7 @@ from photosphere.fisheye_projection import convert_with_matrix
 from rov_msgs.srv import GeneratePhotosphere
 
 PROJECTION_PATH = "src/photosphere/display/projection.jpg"  # relative the rov-25 repo
+WEBSERVER_PATH = "src/photosphere/display/" # relative the rov-25 repo
 
 
 Matlike = NDArray[generic]
@@ -39,6 +41,8 @@ class Photosphere(Node):
         self.bridge = CvBridge()
 
         self.photosphere_service = self.create_service(GeneratePhotosphere, 'generate_photosphere', callback = self.photosphere_service_callback)
+
+        subprocess.Popen('python3 -m http.server -d ' + os.path.join(get_package_share_directory("photosphere").split("rov-25")[0], "rov-25", WEBSERVER_PATH), shell=True)
 
     def handle_frame_msg(self, msg: Image, index: int) -> None:
         """Handle a ros image message containing a frame from the photosphere
