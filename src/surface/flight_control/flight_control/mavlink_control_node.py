@@ -133,6 +133,7 @@ CONTROLLER_PROFILES = (
 
 CRITICAL_STATE_TRIGGER = 15
 
+
 class MavlinkManualControlNode(Node):
     def __init__(self) -> None:
         super().__init__('mavlink_control_node')
