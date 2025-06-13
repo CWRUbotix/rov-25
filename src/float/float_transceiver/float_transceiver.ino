@@ -596,7 +596,6 @@ void hover() {
   // From -1 to 1, positive is suck (increase depth)
   float motorSetpoint = controlTest();
 
-
   if ((motorSetpoint > 0 && !digitalRead(PIN_LIMIT_NO)) || (motorSetpoint < 0 && isEmpty())) {
     motorStop();
   }
@@ -605,9 +604,7 @@ void hover() {
   }
 }
 
-float controlTest() {
-  return sin(millis() / 1000.0);
-}
+float controlTest() { return sin(millis() / 1000.0); }
 
 float controlOriginal() {
   depthErrAcc += depthErr * deltaTime;
