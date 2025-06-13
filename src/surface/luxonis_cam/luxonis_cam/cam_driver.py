@@ -238,12 +238,15 @@ class LuxonisCamDriverNode(Node):
         calib_data = self.device.readCalibration()
         focal_lengths_mm = [0.0, 0.0]
         self.intrinsics: list[list[list[float]]] = []
-        for i, cam in enumerate((LEFT_CAM_SOCKET, RIGHT_CAM_SOCKET)):
-            # 3um/px (https://docs.luxonis.com/hardware/sensors/OV9782)
-            # / 1000 to get mm
-            self.intrinsics.append(calib_data.getCameraIntrinsics(cam))
-            focal_lengths_mm[i] = self.intrinsics[-1][0][0] * 3 / 1000
-        self.get_logger().info(f'Focal lengths: {focal_lengths_mm}')
+        try:
+            for i, cam in enumerate((LEFT_CAM_SOCKET, RIGHT_CAM_SOCKET)):
+                # 3um/px (https://docs.luxonis.com/hardware/sensors/OV9782)
+                # / 1000 to get mm
+                self.intrinsics.append(calib_data.getCameraIntrinsics(cam))
+                focal_lengths_mm[i] = self.intrinsics[-1][0][0] * 3 / 1000
+            self.get_logger().info(f'Focal lengths: {focal_lengths_mm}')
+        except IndexError:
+            self.get_logger().warn('Unable to get Luxonis intrinsics. Did you calibrate?')
 
         self.frame_publishers = FramePublishers(self)
 
@@ -395,16 +398,20 @@ while True:
 
     def spin(self) -> None:
         """Run one iteration of I/O with the Luxonis cam."""
-        for intrinsics, publisher in zip(self.intrinsics, self.intrinsics_publishers, strict=True):
-            publisher.publish(
-                Intrinsics(
-                    fx=intrinsics[0][0],
-                    fy=intrinsics[1][1],
-                    x0=intrinsics[0][2],
-                    y0=intrinsics[1][2],
-                    s=intrinsics[0][1],
+        if len(self.intrinsics) == len(self.intrinsics_publishers):
+            # Only publish intrinsics if they've been set (cam is calibrated)
+            for intrinsics, publisher in zip(
+                self.intrinsics, self.intrinsics_publishers, strict=True
+            ):
+                publisher.publish(
+                    Intrinsics(
+                        fx=intrinsics[0][0],
+                        fy=intrinsics[1][1],
+                        x0=intrinsics[0][2],
+                        y0=intrinsics[1][2],
+                        s=intrinsics[0][1],
+                    )
                 )
-            )
 
         try:
             # TODO: only send toggles when we actually need to change state?
@@ -437,7 +444,7 @@ while True:
 
         if self.missed_sends >= MISSED_SENDS_RESET_THRESHOLD:
             self.get_logger().error(
-                f'Missed >={MISSED_SENDS_RESET_THRESHOLD} dual cam spins, redeploying'
+                f'Missed >= {MISSED_SENDS_RESET_THRESHOLD} dual cam spins, redeploying'
             )
             self.deploy_pipeline()
             self.missed_sends = 0

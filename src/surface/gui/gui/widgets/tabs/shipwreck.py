@@ -1,12 +1,13 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from enum import Enum, IntEnum
-from math import sqrt
+from math import atan, sqrt, tan
 from typing import TypeGuard, override
 
 from PyQt6.QtCore import QRect, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QColor, QFont, QImage, QKeyEvent, QMouseEvent, QPainter, QPixmap
 from PyQt6.QtWidgets import (
+    QGridLayout,
     QHBoxLayout,
     QLabel,
     QTabWidget,
@@ -40,6 +41,7 @@ PADDING = 200
 POINTS_PER_EYE = 2
 
 BASELINE_MM = 60.6
+TUBE_RADIUS_MM = 40
 
 DIVISION_SAFETY = 0.0001
 
@@ -109,7 +111,6 @@ class ShipwreckTab(QWidget):
             Eye.LEFT: [None, None],
             Eye.RIGHT: [None, None],
         }
-        self.world_points: list[Point3D] = []
 
         self.keys: dict[int, bool] = {
             Qt.Key.Key_1.value: False,
@@ -251,24 +252,25 @@ class ShipwreckTab(QWidget):
             for widget in widget_pair:
                 zoom_layout.addWidget(widget)
 
-        data_layout = QVBoxLayout()
-        row_1 = QHBoxLayout()
-        row_2 = QHBoxLayout()
+        data_layout = QGridLayout()
 
         self.img_points_label = QLabel('No 2D points')
         self.focal_length_label = QLabel('No focal length')
         self.world_points_label = QLabel('No 3D points')
+        self.underwater_world_points_label = QLabel('No 3D underwater points')
         self.length_label = QLabel('No length')
+        self.underwater_length_label = QLabel('No underwater length')
         bold_font = QFont()
         bold_font.setBold(True)
         self.length_label.setFont(bold_font)
-        row_1.addWidget(self.img_points_label)
-        row_1.addWidget(self.length_label)
-        row_2.addWidget(self.focal_length_label)
-        row_2.addWidget(self.world_points_label)
+        self.underwater_length_label.setFont(bold_font)
 
-        data_layout.addLayout(row_1)
-        data_layout.addLayout(row_2)
+        data_layout.addWidget(self.img_points_label, 0, 0)
+        data_layout.addWidget(self.focal_length_label, 0, 1)
+        data_layout.addWidget(self.world_points_label, 1, 0)
+        data_layout.addWidget(self.length_label, 1, 1)
+        data_layout.addWidget(self.underwater_world_points_label, 2, 0)
+        data_layout.addWidget(self.underwater_length_label, 2, 1)
 
         fine_tab = QWidget()
         fine_tab_layout = QVBoxLayout()
@@ -426,35 +428,86 @@ class ShipwreckTab(QWidget):
             not has_all_points(self.img_points)
             or self.intrinsics_left is None
             or self.intrinsics_right is None
+            or not isinstance(self.intrinsics_left.fx, float)
         ):
             return
 
         # TODO: using x focal len of left eye for both rn
         # Don't use focal lengths in real-world units unless
         #  you convert image space x/y to real world units too
-        f = self.intrinsics_left.fx
+
+        world_points, length = self.solve_stereo_projection(
+            self.intrinsics_left.fx, (BASELINE_MM, BASELINE_MM), self.img_points
+        )
+        self.world_points_label.setText(
+            f'3D (mm): {"\t".join([str(point) for point in world_points])}'
+        )
+        self.length_label.setText(f'Length (mm): {length}')
+
+        Ds: dict[Eye, list[float]] = {Eye.LEFT: [], Eye.RIGHT: []}
+        thetas: dict[Eye, list[float]] = {Eye.LEFT: [], Eye.RIGHT: []}
+        uw_img_points: dict[Eye, list[Point2D[float]]] = {Eye.LEFT: [], Eye.RIGHT: []}
+        uw_baselines: list[float] = []
+
+        for i in (0, 1):
+            for eye in (Eye.LEFT, Eye.RIGHT):
+                Ds[eye].append(
+                    (TUBE_RADIUS_MM / self.intrinsics_left.fx) * self.img_points[eye][i].x
+                )
+                thetas[eye].append(atan(self.img_points[eye][i].x / self.intrinsics_left.fx))
+                # ys are unaffected by distortion
+                uw_img_points[eye].append(
+                    Point2D(
+                        self.intrinsics_left.fx * tan(thetas[eye][i]),
+                        float(self.img_points[eye][i].y),
+                    )
+                )
+            uw_baselines.append(BASELINE_MM + Ds[Eye.LEFT][i] - Ds[Eye.RIGHT][i])
+
+        uw_world_points, uw_length = self.solve_stereo_projection(
+            self.intrinsics_left.fx, uw_baselines, uw_img_points
+        )
+        self.underwater_world_points_label.setText(
+            f'3D (mm): {"\t".join([str(point) for point in uw_world_points])}'
+        )
+        self.underwater_length_label.setText(f'Length (mm): {uw_length}')
+
+    def solve_stereo_projection(
+        self,
+        f_px: float,
+        baselines_mm: Sequence[float],
+        img_points: dict[Eye, list[Point2D[int]]] | dict[Eye, list[Point2D[float]]],
+    ) -> tuple[list[Point3D], float]:
+        if len(baselines_mm) != len(img_points[Eye.LEFT]) or len(img_points[Eye.LEFT]) != len(
+            img_points[Eye.RIGHT]
+        ):
+            raise IndexError(
+                'Failed to solve stereo projection, lengths not the same: '
+                f'{len(baselines_mm)} != {len(img_points[Eye.LEFT])} or '
+                f'{len(img_points[Eye.LEFT])} != '
+                '{len(img_points[Eye.RIGHT])}'
+            )
+
         zs = []
         xs = []
         ys = []
 
-        for i in (0, 1):
-            disparity = self.img_points[Eye.LEFT][i].x - self.img_points[Eye.RIGHT][i].x
-            zs.append(f * BASELINE_MM / (disparity if disparity != 0 else DIVISION_SAFETY))
-            left_point = self.img_points[Eye.LEFT][i]
-            xs.append(left_point.x * zs[i] / f)
-            ys.append(left_point.y * zs[i] / f)
+        for i in range(len(img_points[Eye.LEFT])):
+            disparity = img_points[Eye.LEFT][i].x - img_points[Eye.RIGHT][i].x
+            zs.append(f_px * baselines_mm[i] / (disparity if disparity != 0 else DIVISION_SAFETY))
+            left_point = img_points[Eye.LEFT][i]
+            xs.append(left_point.x * zs[i] / f_px)
+            ys.append(left_point.y * zs[i] / f_px)
 
-        self.world_points = [Point3D(x, y, z) for x, y, z in zip(xs, ys, zs, strict=True)]
-        self.world_points_label.setText(
-            f'3D (mm): {"\t".join([str(point) for point in self.world_points])}'
-        )
+        world_points = [Point3D(x, y, z) for x, y, z in zip(xs, ys, zs, strict=True)]
 
         length = sqrt(
-            (self.world_points[0].x - self.world_points[1].x) ** 2
-            + (self.world_points[0].y - self.world_points[1].y) ** 2
-            + (self.world_points[0].z - self.world_points[1].z) ** 2
+            (world_points[0].x - world_points[1].x) ** 2
+            + (world_points[0].y - world_points[1].y) ** 2
+            + (world_points[0].z - world_points[1].z) ** 2
         )
-        self.length_label.setText(f'Length (mm): {length}')
+
+        return (world_points, length)
 
     def keyPressEvent(self, event: QKeyEvent | None) -> None:  # noqa: N802
         self.handle_key_event(event, target_value=True)
