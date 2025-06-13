@@ -1,4 +1,3 @@
-import sys
 import time
 from queue import Queue
 from threading import Thread
@@ -12,14 +11,8 @@ from serial.serialutil import SerialException
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
 
 MILLISECONDS_TO_SECONDS = 1 / 1000
-SECONDS_TO_MINUTES = 1 / 60
-MBAR_TO_METER_OF_HEAD = 0.010199773339984
-
 
 AMBIENT_PRESSURE_DEFAULT = 1013.25  # in (mbar)
-
-# Distance from the pressure sensor to the bottom of the float (m)
-PRESSURE_SENSOR_VERTICAL_OFFSET = 0.635
 
 AVERAGE_QUEUE_LEN = 5
 
@@ -53,11 +46,13 @@ class SerialReader(Node):
 
         self.serial_packet_handler = SerialReaderPacketHandler()
 
-        try:
-            self.serial = Serial('/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00', 115200)
-        except SerialException:
-            self.get_logger().error('Could not get serial device')
-            sys.exit(1)
+        while True:
+            try:
+                self.serial = Serial('/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00', 115200)
+                break
+            except SerialException:
+                self.get_logger().warn('Could not get serial device')
+                time.sleep(5)
 
         Thread(target=self.read_serial, daemon=True, name='Serial Reader').start()
 
@@ -148,19 +143,16 @@ class SerialReaderPacketHandler:
         time_data_list: list[float] = []
         depth_data_list: list[float] = []
 
-        for time_reading, pressure_reading in [
+        for time_reading, depth_reading in [
             data.split(COMMA_SEPARATOR) for data in data.split(DATA_SEPARATOR)
         ]:
             if int(time_reading) == 0:
                 continue
             # Starts out as uint32
-            time_data_list.append(int(time_reading) * MILLISECONDS_TO_SECONDS * SECONDS_TO_MINUTES)
+            time_data_list.append(int(time_reading) * MILLISECONDS_TO_SECONDS)
 
             # Starts out as float
-            depth_data_list.append(
-                (float(pressure_reading) - self.surface_pressure) * MBAR_TO_METER_OF_HEAD
-                + PRESSURE_SENSOR_VERTICAL_OFFSET
-            )
+            depth_data_list.append(float(depth_reading))
 
         msg.time_data = time_data_list
         msg.depth_data = depth_data_list
