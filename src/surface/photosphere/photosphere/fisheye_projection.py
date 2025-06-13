@@ -43,21 +43,35 @@ MAX_WIDTH = APERTURE / 2 / math.pi
 #         diameter=3050,
 #     ),
 # )
+# FISHEYE_META_DATA = (
+#     FisheyeMetaData(
+#         img_num=0,
+#         left=105,
+#         top=13,
+#         diameter=759,
+#     ),
+#     FisheyeMetaData(
+#         img_num=1,
+#         left=99,
+#         top=-4,
+#         diameter=762,
+#     ),
+# )
+
 FISHEYE_META_DATA = (
     FisheyeMetaData(
         img_num=0,
-        left=105,
-        top=13,
-        diameter=759,
+        left=448,
+        top=55,
+        diameter=3010,
     ),
     FisheyeMetaData(
         img_num=1,
-        left=99,
-        top=-4,
-        diameter=762,
+        left=390,
+        top=-20,
+        diameter=3060,
     ),
 )
-
 
 def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tuple[float, float]:
     """
@@ -497,15 +511,15 @@ if __name__ == '__main__':
     fisheye_image2 = cv2.imread('src/surface/photosphere/photosphere/frame2.png')
 
     start_time = time.time()
-    # projection = equirectangular_projection(fisheye_image1, fisheye_image2)
+    projection = equirectangular_projection(fisheye_image1, fisheye_image2)
     
     finish_projection_time = time.time()
 
-    projection = convert_with_matrix(fisheye_image1, fisheye_image2)
-    cv2.imwrite('src/photosphere/display/projection.jpg', projection)
+    # projection = convert_with_matrix(fisheye_image1, fisheye_image2)
+    # cv2.imwrite('src/photosphere/display/projection.jpg', projection)
 
     finish_map = time.time()
-    projection = equirectangular_projection_original(fisheye_image1, fisheye_image2)
+    # projection = equirectangular_projection_original(fisheye_image1, fisheye_image2)
 
     finish_original = time.time()
 
