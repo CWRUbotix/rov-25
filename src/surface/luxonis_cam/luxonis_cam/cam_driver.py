@@ -400,8 +400,9 @@ while True:
         """Run one iteration of I/O with the Luxonis cam."""
         if len(self.intrinsics) == len(self.intrinsics_publishers):
             # Only publish intrinsics if they've been set (cam is calibrated)
-            for intrinsics, publisher in zip(self.intrinsics, self.intrinsics_publishers,
-                                             strict=True):
+            for intrinsics, publisher in zip(
+                self.intrinsics, self.intrinsics_publishers, strict=True
+            ):
                 publisher.publish(
                     Intrinsics(
                         fx=intrinsics[0][0],
