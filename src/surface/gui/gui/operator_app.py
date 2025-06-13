@@ -9,7 +9,8 @@ from gui.widgets.logger import Logger
 from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.timer import InteractiveTimer
-from gui.widgets.tabs.photosphere_tab import PhotosphereTab
+from gui.widgets.tabs.photosphere_creation_tab import PhotosphereCreationTab
+from gui.widgets.tabs.photosphere_display_tab import PhotosphereDisplayTab
 
 
 class OperatorApp(App):
@@ -49,7 +50,8 @@ class OperatorApp(App):
         tabs = QTabWidget()
         tabs.addTab(main_tab, 'Main')
         tabs.addTab(GeneralDebugTab(), 'General Debug')
-        tabs.addTab(PhotosphereTab(), 'Photosphere')
+        tabs.addTab(PhotosphereCreationTab(), 'Generate Photosphere')
+        tabs.addTab(PhotosphereDisplayTab, 'Display Photosphere')
         root_layout.addWidget(tabs)
 
 
