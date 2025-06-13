@@ -78,8 +78,6 @@ const long COUNTS_PER_REV =
 const long EMPTY_ANGLE = 232;
 const long NEUTRAL_BOUYANCY_ANGLE = 116;
 
-const uint16_t RADIO_FREQ =
-  917;  // Hz, anything between 902 and 928 is legal. Must match surface transciever
 RH_RF95 rf95(RFM95_CS, RFM95_INT, softwareSPI);
 MS5837 pressureSensor;
 

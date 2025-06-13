@@ -68,7 +68,7 @@ const uint8_t PKT_IDX_PROFILE_HALF = 2;
 const uint8_t PKT_HEADER_LEN = 3;
 const uint8_t PKT_PAYLOAD_LEN = PKT_LEN - PKT_HEADER_LEN;
 
-const float RF95_FREQ = 877.0;
+const float RADIO_FREQ = 917.0;  // Hz, anything between 902 and 928 is legal
 
 // Define DO_DEBUGGING to enable some extra Serial.prints on the surface,
 //  some debug transmissions from the float, and faster profiling/measurement

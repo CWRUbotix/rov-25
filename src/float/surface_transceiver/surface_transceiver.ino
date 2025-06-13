@@ -11,8 +11,6 @@
 
 #include "rov_common.hpp"
 
-const uint16_t RADIO_FREQ = 917;  // Hz, anything between 902 and 928 is legal. Must match float.
-
 const uint8_t COMMAND_SPAM_TIMES = 5;
 const uint32_t COMMAND_SPAM_DELAY = 500;
 const uint32_t SURFACE_PKT_RX_TIMEOUT = 1000;
