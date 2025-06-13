@@ -530,11 +530,11 @@ void setMotorSpeed(float setpoint) {
   if (setpoint > 0) {
     // Suck
     digitalWrite(PIN_MOTOR_PUMP, LOW);
-    digitalWrite(PIN_MOTOR_SUCK, setpoint * 255);
+    analogWrite(PIN_MOTOR_SUCK, setpoint * 255);
   }
   else if (setpoint < 0) {
     // Pump
-    digitalWrite(PIN_MOTOR_PUMP, -setpoint * 255);
+    analogWrite(PIN_MOTOR_PUMP, -setpoint * 255);
     digitalWrite(PIN_MOTOR_SUCK, LOW);
   }
   else {
@@ -574,22 +574,42 @@ void updateKalmanFilter(float deltaTime, float measuredDepth, float measurementV
   depthVelCovar = newCov;
 }
 
+float deltaTime;
+float depthErr;
+
 void hover() {
   uint32_t updateTime = millis();
-  float deltaTime = (updateTime - lastKalmanUpdate) * 0.001;
+  deltaTime = (updateTime - lastKalmanUpdate) * 0.001;
   lastKalmanUpdate = updateTime;
 
   float raw_depth = getDepth();
 
   updateKalmanFilter(deltaTime, raw_depth, DEPTH_SENSOR_VAR);
 
-  Serial.print("Depth: ");
-  Serial.print(depthMean, 3);
-  Serial.print(" Vel: ");
-  Serial.println(velMean, 3);
+  // Serial.print("Depth: ");
+  // Serial.print(depthMean, 3);
+  // Serial.print(" Vel: ");
+  // Serial.println(velMean, 3);
 
-  float depthErr = TARGET_DEPTH - depthMean;
+  depthErr = TARGET_DEPTH - depthMean;
 
+  // From -1 to 1, positive is suck (increase depth)
+  float motorSetpoint = controlTest();
+
+
+  if ((motorSetpoint > 0 && !digitalRead(PIN_LIMIT_NO)) || (motorSetpoint < 0 && isEmpty())) {
+    motorStop();
+  }
+  else {
+    setMotorSpeed(motorSetpoint);
+  }
+}
+
+float controlTest() {
+  return sin(millis() / 1000.0);
+}
+
+float controlOriginal() {
   depthErrAcc += depthErr * deltaTime;
   if (depthErrAcc > DEPTH_ACC_MAX) {
     depthErr = DEPTH_ACC_MAX;
@@ -603,15 +623,36 @@ void hover() {
 
   // targetAngle = NEUTRAL_BOUYANCY_ANGLE;
 
-  float motorSetpoint =
-    MOT_P * (targetAngle - getMotorAngle());  // From -1 to 1, positive is suck (increase depth)
+  return MOT_P * (targetAngle - getMotorAngle());
+}
 
-  if ((motorSetpoint > 0 && !digitalRead(PIN_LIMIT_NO)) || (motorSetpoint < 0 && isEmpty())) {
-    motorStop();
+float controlVelocityBased() {
+  float MAX_DEPTH_ERR = 1;
+
+  float targetVelocity = constrain(depthErr, -MAX_DEPTH_ERR, MAX_DEPTH_ERR) * 0.1;
+
+  return targetVelocity * 10;
+}
+
+float controlBangBang() {
+  float tolerance = 0.1;
+
+  if (depthMean < TARGET_DEPTH - tolerance) {
+    return 1;
   }
-  else {
-    setMotorSpeed(motorSetpoint);
+  if (depthMean > TARGET_DEPTH + tolerance) {
+    return -1;
   }
+  return 0;
+}
+
+float controlPD() {
+  float k_P = 0.5;
+  float k_D = 20;
+
+  float p_contrib = k_P * depthErr;
+  p_contrib = constrain(p_contrib, -1, 1);
+  return p_contrib - velMean * k_D;
 }
 
 // Command processing
