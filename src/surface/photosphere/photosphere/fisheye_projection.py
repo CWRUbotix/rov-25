@@ -14,7 +14,7 @@ import numpy as np
 from numpy import generic
 from numpy.typing import NDArray
 
-from photosphere.projection_matrix import get_matrix
+from photosphere.projection_matrix.projection_matrix import get_matrix
 
 # from projection_matrix import get_matrix
 
