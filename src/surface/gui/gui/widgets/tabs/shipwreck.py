@@ -485,7 +485,6 @@ class ShipwreckTab(QWidget):
 
         self.scaled_length_label.setText(f'Length (mm): {uw_length * LENGTH_SCALE_FACTOR}')
 
-
     @staticmethod
     def solve_stereo_projection(
         f_px: float,
