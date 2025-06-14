@@ -201,7 +201,7 @@ def equirectangular_projection() -> Matlike:
     """
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
-    projection_matrix:list[list[list[int]]] = [
+    projection_matrix: list[list[list[int]]] = [
         [[] for col in range(OUTPUT_DIMENSION[0])] for row in range(OUTPUT_DIMENSION[1])
     ]
     print(len(projection_matrix))
