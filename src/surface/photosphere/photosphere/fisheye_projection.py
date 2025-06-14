@@ -395,7 +395,14 @@ def store_projection_matrix(projection_matrix: Matlike) -> None:
         matrix_strings.append('],')
     matrix_strings.append(']  # noqa: E501 COM819\n    return matrix\n')
 
-    with (Path('src') / 'surface' / 'photosphere' / 'photosphere' / 'projection_matrix' / 'projection_matrix.py').open('w') as file:
+    with (
+        Path('src')
+        / 'surface'
+        / 'photosphere'
+        / 'photosphere'
+        / 'projection_matrix'
+        / 'projection_matrix.py'
+    ).open('w') as file:
         file.writelines(matrix_strings)
 
 
