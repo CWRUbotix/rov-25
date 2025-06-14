@@ -190,7 +190,14 @@ class MavlinkManualControlNode(Node):
         self.vehicle_state = VehicleState(pi_connected=False, ardusub_connected=False, armed=False)
 
         self.wrote_params = False
-        self.param_path = Path(get_package_prefix('flight_control').split('install')[0]) / 'src' / 'surface' / 'flight_control' / 'params' / 'thrusters.params'
+        self.param_path = (
+            Path(get_package_prefix('flight_control').split('install')[0])
+            / 'src'
+            / 'surface'
+            / 'flight_control'
+            / 'params'
+            / 'thrusters.params'
+        )
 
         self.critical_state_count = CRITICAL_STATE_TRIGGER
 
@@ -440,8 +447,9 @@ class MavlinkManualControlNode(Node):
             )
         self.get_logger().info('Wrote mavlink parameters')
 
-
-    def parse_heartbeat_for_state(self, mavlink_msg: MAVLink_heartbeat_message, current_state: VehicleState) -> VehicleState:
+    def parse_heartbeat_for_state(
+        self, mavlink_msg: MAVLink_heartbeat_message, current_state: VehicleState
+    ) -> VehicleState:
         """Parse a single mavlink heartbeat message to find the vehicle state.
 
         Parameters
@@ -490,10 +498,6 @@ class MavlinkManualControlNode(Node):
             self.get_logger().warning(f'Unknown ardusub state: {mavlink_msg.system_status}')
 
         return new_state
-
-
-
-
 
     def poll_mavlink_for_new_state(self) -> VehicleState:
         """Read incoming mavlink messages to determine the state of the vehicle.
