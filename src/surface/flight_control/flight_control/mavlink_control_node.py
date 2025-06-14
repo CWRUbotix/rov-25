@@ -8,12 +8,13 @@ import rclpy.utilities
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
+from ament_index_python.packages import get_package_prefix
 
 from rov_msgs.msg import Heartbeat, Manip, VehicleState, VideoWidgetSwitch
 from rov_msgs.srv import VehicleArming
 
 os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
-from pymavlink import mavutil
+from pymavlink import mavutil, mavparm
 
 os.environ['SDL_VIDEODRIVER'] = 'dummy'
 os.environ['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1'
@@ -184,7 +185,10 @@ class MavlinkManualControlNode(Node):
 
         self.vehicle_state = VehicleState(pi_connected=False, ardusub_connected=False, armed=False)
 
-        self.timer = self.create_timer(1 / MAVLINK_POLL_RATE, self.poll_mavlink)
+        self.wrote_params = False
+        self.param_dict = mavparm.MAVParmDict()
+        self.param_path = os.path.join(get_package_prefix('flight_control').split('install')[0],
+                                       'src/surface/flight_control/params/thrusters.params')
 
     def controller_callback(self, joy_state: JoystickState) -> None:
         """Handle a joystick update.
@@ -413,6 +417,27 @@ class MavlinkManualControlNode(Node):
             self.vehicle_state = new_state
             self.state_publisher.publish(new_state)
 
+    def try_load_parameters(self) -> None:
+        try:
+            with open(self.param_path) as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            self.get_logger().warn('Could not load params file')
+
+        for line in lines:
+            stripped_line=line.strip()
+            if len(stripped_line) == 0 or stripped_line.startswith('#'):
+                continue
+            _, _, param_name, param_val, param_type = stripped_line.split('	')
+            print(param_name, param_val, param_type)
+            self.mavlink.param_set_send(
+                parm_name=param_name,
+                parm_value=float(param_val),
+                parm_type=int(param_type)
+            )
+        self.get_logger().info('Wrote mavlink parameters')
+
+
     def poll_mavlink_for_new_state(self) -> VehicleState:
         """Read incoming mavlink messages to determine the state of the vehicle.
 
@@ -437,6 +462,11 @@ class MavlinkManualControlNode(Node):
                 continue
 
             self.last_ardusub_heartbeat = time.time()
+
+            if not self.wrote_params:
+                # Upload params to ardusub
+                self.try_load_parameters()
+                self.wrote_params = True
 
             new_state.ardusub_connected = True
             if not self.vehicle_state.ardusub_connected:
