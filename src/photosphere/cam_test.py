@@ -1,10 +1,10 @@
 import cv2
 
 
+
 def set_dims(vid: cv2.VideoCapture, width: int, height: int) -> None:
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-
 
 # Size: Discrete 800x600
 #     Interval: Discrete 0.033s (30.000 fps)
@@ -45,3 +45,4 @@ while vid.isOpened():
 
     cv2.imshow('TRANSMITTING VIDEO', frame)
     key = cv2.waitKey(1) & 0xFF
+

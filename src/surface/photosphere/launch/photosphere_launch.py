@@ -1,5 +1,5 @@
-from launch.actions import GroupAction
 from launch.launch_description import LaunchDescription
+from launch.actions import GroupAction
 from launch_ros.actions import Node, PushRosNamespace
 
 
@@ -21,7 +21,7 @@ def generate_launch_description() -> LaunchDescription:
 
     namespace_launch = GroupAction(
         actions=[
-            PushRosNamespace('photosphere'),
+            PushRosNamespace("photosphere"),
             photosphere_node,
             driver_node,
         ]
