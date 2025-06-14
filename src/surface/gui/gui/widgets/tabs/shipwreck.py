@@ -144,6 +144,9 @@ class ShipwreckTab(QWidget):
         self.intrinsics_left_signal.connect(self.intrinsics_left_slot)
         self.intrinsics_right_signal.connect(self.intrinsics_right_slot)
 
+        # Make sure we can get keyboard
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
     def make_coarse_tab(self) -> QWidget:
         self.click_left_signal.connect(self.click_left_slot)
         self.click_right_signal.connect(self.click_right_slot)

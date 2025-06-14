@@ -1,4 +1,4 @@
-from PyQt6.QtCore import pyqtSignal, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QHBoxLayout, QTabWidget, QVBoxLayout, QWidget
 
 from gui.app import App
@@ -63,12 +63,9 @@ class OperatorApp(App):
 
     @pyqtSlot(int)
     def tab_change_slot(self, index: int) -> None:
-        # TODO: ? must switch tabs away from the shipwreck to regain keyboard
-        #       (prevent keyboard use in other apps)
         if self.tabs.tabText(index) == SHIPWRECK_TEXT:
-            self.shipwreck_tab.grabKeyboard()
-        else:
-            self.shipwreck_tab.releaseKeyboard()
+            # Allow keyboard events
+            self.shipwreck_tab.setFocus(Qt.FocusReason.TabFocusReason)
 
 
 def run_gui_operator() -> None:
