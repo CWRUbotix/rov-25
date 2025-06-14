@@ -68,6 +68,7 @@ KEYS_TO_POINT_IDX = {
 
 T = TypeVar('T', int, float)
 
+
 @dataclass
 class Point2D(Generic[T]):
     x: T
@@ -87,6 +88,7 @@ class Point3D:
     @override
     def __str__(self) -> str:
         return f'({round(self.x, 3)}, {round(self.y, 3)}, {round(self.z, 3)})'
+
 
 def has_all_points(
     key_points: dict[Eye, list[Point2D[int] | None]],
