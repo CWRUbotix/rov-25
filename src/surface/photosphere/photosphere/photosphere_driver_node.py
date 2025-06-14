@@ -80,8 +80,12 @@ class PhotosphereDriverNode(Node):
             self.get_logger().info(line.strip())
 
         ftp_client = ssh_client.open_sftp()
-        ftp_client.get((Path(REMOTE_PATH) / 'cam0.jpg'), (Path(self.local_images_path) / 'cam0.jpg'))
-        ftp_client.get((Path(REMOTE_PATH) / 'cam1.jpg'), (Path(self.local_images_path) / 'cam1.jpg'))
+        ftp_client.get(
+            (Path(REMOTE_PATH) / 'cam0.jpg'), (Path(self.local_images_path) / 'cam0.jpg')
+        )
+        ftp_client.get(
+            (Path(REMOTE_PATH) / 'cam1.jpg'), (Path(self.local_images_path) / 'cam1.jpg')
+        )
 
         self.get_logger().info('Images downloaded from Calamari')
 
