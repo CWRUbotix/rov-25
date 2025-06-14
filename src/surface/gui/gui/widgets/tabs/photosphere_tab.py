@@ -1,18 +1,20 @@
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from std_srvs.srv import Trigger
 
-from gui.gui_node import GUINode
-from gui.styles.custom_styles import ButtonIndicator, WidgetState
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QLabel
+
 from gui.widgets.logger import Logger
 from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
+from gui.gui_node import GUINode
+from gui.styles.custom_styles import ButtonIndicator, WidgetState
 from rov_msgs.srv import GeneratePhotosphere
+from std_srvs.srv import Trigger
+
 
 FISHEYE1_TOPIC = 'photosphere/image_1'
 FISHEYE2_TOPIC = 'photosphere/image_2'
 
-
 class PhotosphereTab(QWidget):
+
     take_photos_response_signal = pyqtSignal(Trigger.Response)
     generate_response_signal = pyqtSignal(GeneratePhotosphere.Response)
 
@@ -21,35 +23,26 @@ class PhotosphereTab(QWidget):
 
         video_pane = QHBoxLayout()
 
-        fisheye1_camera_description = CameraDescription(
-            CameraType.PHOTOSPHERE, FISHEYE1_TOPIC, 'Fisheye 1'
-        )
-        fisheye2_camera_description = CameraDescription(
-            CameraType.PHOTOSPHERE, FISHEYE2_TOPIC, 'Fisheye 2'
-        )
-
-        self.take_photos_client = GUINode().create_client_multithreaded(
-            Trigger, 'photosphere/take_photos'
-        )
-        self.generate_photosphere_client = GUINode().create_client_multithreaded(
-            GeneratePhotosphere, 'photosphere/generate_photosphere'
-        )
+        fisheye1_camera_description = CameraDescription(CameraType.PHOTOSPHERE, FISHEYE1_TOPIC, "Fisheye 1")
+        fisheye2_camera_description = CameraDescription(CameraType.PHOTOSPHERE, FISHEYE2_TOPIC, "Fisheye 2")
+        
+        
+        self.take_photos_client = GUINode().create_client_multithreaded(Trigger, 'photosphere/take_photos')
+        self.generate_photosphere_client = GUINode().create_client_multithreaded(GeneratePhotosphere, 'photosphere/generate_photosphere')
 
         self.generate_response_signal.connect(self.generate_response_handler)
         self.take_photos_response_signal.connect(self.take_photos_response_handler)
 
         video_pane.addWidget(
-            VideoWidget(fisheye1_camera_description),
-            alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft,
+            VideoWidget(fisheye1_camera_description), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
         )
         video_pane.addWidget(
-            VideoWidget(fisheye2_camera_description),
-            alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft,
+            VideoWidget(fisheye2_camera_description), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
         )
 
         button_pane = QHBoxLayout()
 
-        self.take_photos_button = ButtonIndicator('Take Photos')
+        self.take_photos_button = ButtonIndicator("Take Photos")
         self.take_photos_button.setMinimumHeight(60)
         self.take_photos_button.setMinimumWidth(150)
         self.take_photos_button.clicked.connect(self.take_photos_clicked)
@@ -68,6 +61,7 @@ class PhotosphereTab(QWidget):
         root_layout.addLayout(video_pane)
         root_layout.addLayout(button_pane)
 
+
         root_layout.addWidget(self.generate_button)
 
         self.photosphere_status_label = QLabel('No Photosphere Generated')
@@ -80,16 +74,10 @@ class PhotosphereTab(QWidget):
 
     def take_photos_clicked(self) -> None:
         self.take_photos_button.set_state(WidgetState.INACTIVE)
-        GUINode().send_request_multithreaded(
-            self.take_photos_client, Trigger.Request(), self.take_photos_response_signal
-        )
+        GUINode().send_request_multithreaded(self.take_photos_client, Trigger.Request(), self.take_photos_response_signal)
 
     def generate_clicked(self) -> None:
-        GUINode().send_request_multithreaded(
-            self.generate_photosphere_client,
-            GeneratePhotosphere.Request(),
-            self.generate_response_signal,
-        )
+        GUINode().send_request_multithreaded(self.generate_photosphere_client, GeneratePhotosphere.Request(), self.generate_response_signal)
 
     @pyqtSlot(GeneratePhotosphere.Response)
     def generate_response_handler(self, res: GeneratePhotosphere.Response) -> None:
@@ -108,3 +96,4 @@ class PhotosphereTab(QWidget):
                 self.generate_button.set_state(WidgetState.NONE)
         else:
             self.take_photos_button.set_state(WidgetState.OFF)
+    
