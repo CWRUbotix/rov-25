@@ -8,9 +8,9 @@ repos:
       - id: ruff
         args: [--fix]
         pass_filenames: false
-        exclude: src/surface/photosphere/photosphere/projection_matrix/*
       # Run the formatter.
       - id: ruff-format
+        exclude: src/surface/photosphere/photosphere/projection_matrix/*
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v20.1.5
     hooks:
