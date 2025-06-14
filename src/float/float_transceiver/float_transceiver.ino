@@ -46,6 +46,7 @@ const uint32_t PROFILE_SEGMENT = 10000;
 const uint32_t PRESSURE_READ_INTERVAL = 5000;
 const uint32_t PROFILE_SEGMENT = 60000;
 #endif
+const uint16_t VALID_PACKETS_NEEDED = 10;
 
 const uint32_t PRESSURE_TRANSMIT_INTERVAL = 1000;
 
@@ -140,7 +141,7 @@ uint32_t lastKalmanUpdate;
 const float DEPTH_SENSOR_VAR = 5e-5;  // std dev of 3mm
 const float VEL_PROCESS_NOISE = 1e-3;
 
-const float TARGET_DEPTH = 2.5;     // meters
+const float TARGET_DEPTH = 2.0;     // meters
 const float DEPTH_TOLERANCE = 0.5;  // 0.5 m in either direction of target, i.e. 2m to 3m
 
 const float DEPTH_P = 15;
@@ -277,7 +278,7 @@ void loop() {
       hover();
 
       // Check for stage completion
-      if (millis() > stageTimeout || countValidPackets() >= 10) {
+      if (millis() > stageTimeout || countValidPackets() >= VALID_PACKETS_NEEDED) {
         motorStop();
 
         startStagePump();
@@ -594,7 +595,7 @@ void hover() {
   depthErr = TARGET_DEPTH - depthMean;
 
   // From -1 to 1, positive is suck (increase depth)
-  float motorSetpoint = controlTest();
+  float motorSetpoint = controlVelocityBased();
 
 
   if ((motorSetpoint > 0 && !digitalRead(PIN_LIMIT_NO)) || (motorSetpoint < 0 && isEmpty())) {
@@ -629,9 +630,10 @@ float controlOriginal() {
 float controlVelocityBased() {
   float MAX_DEPTH_ERR = 1;
 
-  float targetVelocity = constrain(depthErr, -MAX_DEPTH_ERR, MAX_DEPTH_ERR) * 0.1;
+  float targetVelocity = constrain(depthErr, -MAX_DEPTH_ERR, MAX_DEPTH_ERR) * 0.05;
+  float velError = targetVelocity - velMean;
 
-  return targetVelocity * 10;
+  return velError * 50;
 }
 
 float controlBangBang() {
