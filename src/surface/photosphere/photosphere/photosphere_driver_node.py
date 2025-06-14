@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import cv2
 import paramiko
@@ -9,7 +10,6 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 from sensor_msgs.msg import Image
 from std_srvs.srv import Trigger
-from pathlib import Path
 
 HOST = '192.168.2.5'
 USER = 'rov'
@@ -36,7 +36,11 @@ class PhotosphereDriverNode(Node):
 
         self.image_publisher_2 = self.create_publisher(Image, 'image_2', qos_profile_system_default)
 
-        self.local_images_path = Path(get_package_share_directory('photosphere').split('rov-25')[0]) / 'rov-25' / LOCAL_PATH
+        self.local_images_path = (
+            Path(get_package_share_directory('photosphere').split('rov-25')[0])
+            / 'rov-25'
+            / LOCAL_PATH
+        )
 
         self.get_logger().info('Ready to download photosphere images')
 
