@@ -2,7 +2,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from enum import Enum, IntEnum
 from math import atan, sqrt, tan
-from typing import TypeGuard, override
+from typing import Generic, TypeGuard, TypeVar, override
 
 from PyQt6.QtCore import QRect, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QColor, QFont, QImage, QKeyEvent, QMouseEvent, QPainter, QPixmap
@@ -66,8 +66,10 @@ KEYS_TO_POINT_IDX = {
 }
 
 
+T = TypeVar('T', int, float)
+
 @dataclass
-class Point2D[T: (int, float)]:
+class Point2D(Generic[T]):
     x: T
     y: T
 
@@ -86,9 +88,8 @@ class Point3D:
     def __str__(self) -> str:
         return f'({round(self.x, 3)}, {round(self.y, 3)}, {round(self.z, 3)})'
 
-
-def has_all_points[T: Point2D[int] | None](
-    key_points: dict[Eye, list[T]],
+def has_all_points(
+    key_points: dict[Eye, list[Point2D[int] | None]],
 ) -> TypeGuard['dict[Eye, list[Point2D[int]]]']:
     return all(
         len(key_points[eye]) == POINTS_PER_EYE
@@ -444,14 +445,14 @@ class ShipwreckTab(QWidget):
         )
         self.length_label.setText(f'Length (mm): {length}')
 
-        Ds: dict[Eye, list[float]] = {Eye.LEFT: [], Eye.RIGHT: []}
+        ds: dict[Eye, list[float]] = {Eye.LEFT: [], Eye.RIGHT: []}
         thetas: dict[Eye, list[float]] = {Eye.LEFT: [], Eye.RIGHT: []}
         uw_img_points: dict[Eye, list[Point2D[float]]] = {Eye.LEFT: [], Eye.RIGHT: []}
         uw_baselines: list[float] = []
 
         for i in (0, 1):
             for eye in (Eye.LEFT, Eye.RIGHT):
-                Ds[eye].append(
+                ds[eye].append(
                     (TUBE_RADIUS_MM / self.intrinsics_left.fx) * self.img_points[eye][i].x
                 )
                 thetas[eye].append(atan(self.img_points[eye][i].x / self.intrinsics_left.fx))
@@ -462,9 +463,9 @@ class ShipwreckTab(QWidget):
                         float(self.img_points[eye][i].y),
                     )
                 )
-            uw_baselines.append(BASELINE_MM + Ds[Eye.LEFT][i] - Ds[Eye.RIGHT][i])
+            uw_baselines.append(BASELINE_MM + ds[Eye.LEFT][i] - ds[Eye.RIGHT][i])
 
-        uw_world_points, uw_length = self.solve_stereo_projection(
+        uw_world_points, uw_length = ShipwreckTab.solve_stereo_projection(
             self.intrinsics_left.fx, uw_baselines, uw_img_points
         )
         self.underwater_world_points_label.setText(
@@ -472,8 +473,8 @@ class ShipwreckTab(QWidget):
         )
         self.underwater_length_label.setText(f'Length (mm): {uw_length}')
 
+    @staticmethod
     def solve_stereo_projection(
-        self,
         f_px: float,
         baselines_mm: Sequence[float],
         img_points: dict[Eye, list[Point2D[int]]] | dict[Eye, list[Point2D[float]]],
