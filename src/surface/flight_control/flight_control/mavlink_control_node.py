@@ -48,11 +48,11 @@ SERVO_CENTER = 1500
 SERVO_MIN = 500
 SERVO_MAX = 2500
 SERVO_TURN_RATE = 500
-SERVO_PRESET_UP = 500
-SERVO_PRESET_DOWN = 1500
+SERVO_PRESET_UP = 970
+SERVO_PRESET_DOWN = 1550
 # If True each button corresponds to a preset
 # If false one button moves gradually up and one moves gradually down
-SERVO_USE_PRESETS = False
+SERVO_USE_PRESETS = True
 
 UNPRESSED = 0
 PRESSED = 1
@@ -132,6 +132,8 @@ CONTROLLER_PROFILES = (
     ),
 )
 
+CRITICAL_STATE_TRIGGER = 15
+
 
 class MavlinkManualControlNode(Node):
     def __init__(self) -> None:
@@ -189,6 +191,8 @@ class MavlinkManualControlNode(Node):
         self.param_dict = mavparm.MAVParmDict()
         self.param_path = os.path.join(get_package_prefix('flight_control').split('install')[0],
                                        'src/surface/flight_control/params/thrusters.params')
+
+        self.critical_state_count = CRITICAL_STATE_TRIGGER
 
     def controller_callback(self, joy_state: JoystickState) -> None:
         """Handle a joystick update.
@@ -480,6 +484,11 @@ class MavlinkManualControlNode(Node):
                 new_state.armed = False
                 if self.vehicle_state.armed:
                     self.get_logger().info('Vehicle disarmed')
+            elif mavlink_msg.system_status == mavutil.mavlink.MAV_STATE_CRITICAL:
+                self.critical_state_count += 1
+                if self.critical_state_count >= CRITICAL_STATE_TRIGGER:
+                    self.critical_state_count = 0
+                    self.get_logger().info('Vehicle in failsafe mode (no input received)')
             else:
                 self.get_logger().warning(f'Unknown ardusub state: {mavlink_msg.system_status}')
         return new_state
