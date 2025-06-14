@@ -1,29 +1,45 @@
 <html>
     <head>
-        <!-- for optimal display on high DPI devices -->
+        <title>CWRUbotix Photosphere</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
         <link rel="stylesheet" href="/index.min.css" />
-    </head>
 
-    <!-- the viewer container must have a defined size -->
-    <div id="viewer" style="width: 500px; height: 500px;"></div>
-
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "/three.module.js",
-                "@photo-sphere-viewer/core": "/index.module.js"
+        <style>
+            img {
+                height: 0.9em;
             }
-        }
-    </script>
 
-    <script type="module">
-        import { Viewer } from '@photo-sphere-viewer/core';
+            h1 {
+                font-size: 4em;
+                text-align: center;
+                /* color: #4178C1; */
+            }
+            div {
+                margin:auto;
+            }
+        </style>
+    </head>
+    <body>
+        <h1><img src="logo.png"/>CWRUbotix Photosphere</h1>
+        <div id="viewer" style="width: 500px; height: 500px;"></div>
 
-        const viewer = new Viewer({
-            container: document.querySelector('#viewer'),
-            panorama: 'projection.jpg',
-        });
-    </script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "/three.module.js",
+                    "@photo-sphere-viewer/core": "/index.module.js"
+                }
+            }
+        </script>
+
+        <script type="module">
+            import { Viewer } from '@photo-sphere-viewer/core';
+
+            const viewer = new Viewer({
+                container: document.querySelector('#viewer'),
+                panorama: 'projection.jpg',
+            });
+        </script>
+    </body>
 </html>

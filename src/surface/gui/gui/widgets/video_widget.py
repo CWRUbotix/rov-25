@@ -134,6 +134,9 @@ class VideoWidget(QWidget):
             # Switches ethernet's color profile from BayerBGR to BGR
             cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BAYER_BGGR2BGR)
 
+        if self.camera_description.type == CameraType.PHOTOSPHERE:
+            cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+
         # Color image
         if len(cv_img.shape) == COLOR:
             h, w, ch = cv_img.shape

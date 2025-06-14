@@ -1,13 +1,23 @@
+# To make a new matrix: adjust the meta data to the new values and run the equirectangular_projection function
+# To make an image using a matrix: use the convert_with_matrix function and give the fisheye images in the order of the metadata
+# To make an image without a matrix: adjust the metadata, then use the equirectangular_projection_original function
+# To adjust meta data: find the left side of the circle, diameter of the circle (right - left) then find the top
+# To find the top of the circle it may be necessary to find the bottom then subtract the diameter if the top is cut off
+# If using this file without ros, the imports will need to be changed to be from projection_matrix import get_matrix
+
 import math
+import time
 from dataclasses import dataclass
 
 import cv2
 import numpy as np
-from numpy.typing import NDArray
 from numpy import generic
+from numpy.typing import NDArray
+
 from photosphere.projection_matrix import get_matrix
+
 # from projection_matrix import get_matrix
-import time
+
 Matlike = NDArray[generic]
 
 @dataclass
@@ -23,55 +33,43 @@ class FisheyeMetaData:
 OUTPUT_DIMENSION = (1000, 500)
 
 # The APERTURE of the fisheyes in radians
-APERTURE = 195 * math.pi / 180
+APERTURE = 185 * math.pi / 180
 
 # The maximum width a single projection covers in unit coordinates
 MAX_WIDTH = APERTURE / 2 / math.pi
 
 # The meta data for the fisheye images
+# Meta data for the fisheye images that are resized to 960 x 758
+FISHEYE_META_DATA = (
+    FisheyeMetaData(
+        img_num=0,
+        left=105,
+        top=13,
+        diameter=759,
+    ),
+    FisheyeMetaData(
+        img_num=1,
+        left=99,
+        top=-4,
+        diameter=762,
+    ),
+)
+
+# The meta data for the full resolution images
 # FISHEYE_META_DATA = (
 #     FisheyeMetaData(
 #         img_num=0,
-#         left=420,
-#         top=37,
-#         diameter=3020,
+#         left=448,
+#         top=55,
+#         diameter=3010,
 #     ),
 #     FisheyeMetaData(
 #         img_num=1,
 #         left=390,
-#         top=-25,
-#         diameter=3050,
+#         top=-20,
+#         diameter=3060,
 #     ),
 # )
-# FISHEYE_META_DATA = (
-#     FisheyeMetaData(
-#         img_num=0,
-#         left=105,
-#         top=13,
-#         diameter=759,
-#     ),
-#     FisheyeMetaData(
-#         img_num=1,
-#         left=99,
-#         top=-4,
-#         diameter=762,
-#     ),
-# )
-
-FISHEYE_META_DATA = (
-    FisheyeMetaData(
-        img_num=0,
-        left=448,
-        top=55,
-        diameter=3010,
-    ),
-    FisheyeMetaData(
-        img_num=1,
-        left=390,
-        top=-20,
-        diameter=3060,
-    ),
-)
 
 def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tuple[float, float]:
     """
@@ -181,38 +179,22 @@ RIGHT_SEAM = (
     unit_to_normal_grid(MAX_WIDTH, OUTPUT_DIMENSION[0]),
 )
 
-def equirectangular_projection(
-    fisheye_image1: Matlike, fisheye_image2: Matlike
-) -> Matlike:
+def equirectangular_projection() -> Matlike:
     """
-    Create an equirectangular projection based on two fisheye images.
-
-    Parameters
-    ----------
-    fisheye_image1 : Matlike
-        the fisheye image for the center of the projection
-    fisheye_image2 : Matlike
-        the fisheye image for the edges of the projection
+    Create an equirectangular projection matrix based on two fisheye images.
 
     Returns
     -------
     Matlike
         the projection image
     """
-
-    # stored_matrix = ["["]
-
-    # Create the input fisheye images
-    # images = (fisheye_image1, fisheye_image2)
-
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
-    # projection_matrix = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 5), dtype = np.uint16)
     projection_matrix = [[[] for col in range(OUTPUT_DIMENSION[0])] for row in range(OUTPUT_DIMENSION[1])]
     print(len(projection_matrix))
     print(len(projection_matrix[0]))
-    print("blank prjection created")
-    
+    print('blank prjection created')
+
 
     # Loop through each output pixel and find its color from the fisheye
     for row_index, row in enumerate(projection):
@@ -243,30 +225,10 @@ def equirectangular_projection(
                     fisheye_unit_coord, FISHEYE_META_DATA[fisheye_num]
                 )
 
-                # set the pixel
-                # row[col_index] = images[fisheye_num][fisheye_normal_coord[0]][
-                #     fisheye_normal_coord[1]
-                # ]
                 if fisheye_num == 0:
-                    # print(row_index)
-                    # print(col_index)
                     projection_matrix[row_index][col_index].extend(fisheye_normal_coord)
-                    # projection_matrix[row_index][col_index][0] = fisheye_normal_coord[0]
-                    # projection_matrix[row_index][col_index][1] = fisheye_normal_coord[1]
-                    # projection_matrix[row_index][col_index][2] = 0
-                    # projection_matrix[row_index][col_index][3] = 0
-                    # projection_matrix[row_index][col_index][4] = 1
                 else:
-                    # print(row_index)
-                    # print(col_index)
                     projection_matrix[row_index][col_index].extend(fisheye_normal_coord)
-                    # projection_matrix[row_index][col_index][2] = fisheye_normal_coord[0]
-                    # projection_matrix[row_index][col_index][3] = fisheye_normal_coord[1]
-                    # projection_matrix[row_index][col_index][0] = 0
-                    # projection_matrix[row_index][col_index][1] = 0
-                    # projection_matrix[row_index][col_index][4] = 0
-
-                # stored_matrix.append("\t\t" + str(projection_matrix[row_index][col_index]) + ",")
 
 
             # if it is in the overlapping area calculate the blur
@@ -293,17 +255,6 @@ def equirectangular_projection(
                 else:
                     alpha = 1 - (col_index - RIGHT_SEAM[0]) / (RIGHT_SEAM[1] - RIGHT_SEAM[0])
 
-                    # alpha = 1 - (col_index - RIGHT_SEAM[0]) / (RIGHT_SEAM[1] - RIGHT_SEAM[0])
-
-                # Set the pixel using the alpha
-                # fisheye1_pixel = (
-                #     images[0][fisheye_normal_coord1[0]][fisheye_normal_coord1[1]] * alpha
-                # )
-                # fisheye2_pixel = images[1][fisheye_normal_coord2[0]][fisheye_normal_coord2[1]] * (
-                #     1 - alpha
-                # )
-                # row[col_index] = fisheye1_pixel + fisheye2_pixel
-
                 projection_pixel = [
                     fisheye_normal_coord1[0],
                     fisheye_normal_coord1[1],
@@ -313,18 +264,7 @@ def equirectangular_projection(
                 ]
                 projection_matrix[row_index][col_index] = projection_pixel
 
-                # projection_matrix[row_index][col_index][0] = fisheye_normal_coord1[0]
-                # projection_matrix[row_index][col_index][1] = fisheye_normal_coord1[1]
-                # projection_matrix[row_index][col_index][2] = fisheye_normal_coord2[0]
-                # projection_matrix[row_index][col_index][3] = fisheye_normal_coord2[1]
-                # projection_matrix[row_index][col_index][4] = alpha
-                # stored_matrix.append("\t\t" + str(projection_matrix[row_index][col_index]) + ",")
-        # stored_matrix.append("],")
-    # stored_matrix.append("]")
-
-
-    print("projection created, returning")
-    # print(stored_matrix)
+    print('projection created, returning')
     store_projection_matrix(projection_matrix)
     return projection
 
@@ -333,7 +273,7 @@ def equirectangular_projection_original(
     fisheye_image1: Matlike, fisheye_image2: Matlike
 ) -> Matlike:
     """
-    Create an equirectangular projection based on two fisheye images.
+    Create an equirectangular projection image based on two fisheye images.
 
     Parameters
     ----------
@@ -347,22 +287,17 @@ def equirectangular_projection_original(
     Matlike
         the projection image
     """
-
-    # stored_matrix = ["["]
-
     # Create the input fisheye images
     images = (fisheye_image1, fisheye_image2)
 
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
-    # projection_matrix = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 5), dtype = np.uint16)
-    
-    print("blank prjection created")
-    
+
+    print('blank prjection created')
+
 
     # Loop through each output pixel and find its color from the fisheye
     for row_index, row in enumerate(projection):
-        # stored_matrix.append("\t[")
         for col_index, _pixel in enumerate(row):
             # Calculate the unit coordinates of the current pixel
             projection_unit_coord = (
@@ -393,21 +328,6 @@ def equirectangular_projection_original(
                 row[col_index] = images[fisheye_num][fisheye_normal_coord[0]][
                     fisheye_normal_coord[1]
                 ]
-                # if fisheye_num == 0:
-                #     projection_matrix[row_index][col_index][0] = fisheye_normal_coord[0]
-                #     projection_matrix[row_index][col_index][1] = fisheye_normal_coord[1]
-                #     projection_matrix[row_index][col_index][2] = 0
-                #     projection_matrix[row_index][col_index][3] = 0
-                #     projection_matrix[row_index][col_index][4] = 1
-                # else:
-                #     projection_matrix[row_index][col_index][2] = fisheye_normal_coord[0]
-                #     projection_matrix[row_index][col_index][3] = fisheye_normal_coord[1]
-                #     projection_matrix[row_index][col_index][0] = 0
-                #     projection_matrix[row_index][col_index][1] = 0
-                #     projection_matrix[row_index][col_index][4] = 0
-
-                # stored_matrix.append("\t\t" + str(projection_matrix[row_index][col_index]) + ",")
-
 
             # if it is in the overlapping area calculate the blur
             else:
@@ -442,24 +362,12 @@ def equirectangular_projection_original(
                 )
                 row[col_index] = fisheye1_pixel + fisheye2_pixel
 
-                # projection_matrix[row_index][col_index][0] = fisheye_normal_coord1[0]
-                # projection_matrix[row_index][col_index][1] = fisheye_normal_coord1[1]
-                # projection_matrix[row_index][col_index][2] = fisheye_normal_coord2[0]
-                # projection_matrix[row_index][col_index][3] = fisheye_normal_coord2[1]
-                # projection_matrix[row_index][col_index][4] = alpha
-                # stored_matrix.append("\t\t" + str(projection_matrix[row_index][col_index]) + ",")
-        # stored_matrix.append("],")
-    # stored_matrix.append("]")
-
-
-    print("projection created, returning")
-    # print(stored_matrix)
-    # store_projection_matrix(projection_matrix)
+    print('projection created, returning')
     return projection
 
 def store_projection_matrix(projection_matrix: Matlike) -> None:
     """
-    Stores the given projection matrix in a file
+    Store the given projection matrix in a file.
 
     Parameters
     ----------
@@ -469,13 +377,13 @@ def store_projection_matrix(projection_matrix: Matlike) -> None:
     matrix_strings = ["""def get_matrix() -> list[list[list[int]]]:
     matrix = ["""]
     for row in projection_matrix:
-        matrix_strings.append("[")
+        matrix_strings.append('[')
         for col in row:
-            matrix_strings.append("["+",".join(str(num) for num in col)+"],")
-        matrix_strings.append("],")
-    matrix_strings.append("]\n    return matrix")
+            matrix_strings.append('['+','.join(str(num) for num in col)+'],')
+        matrix_strings.append('],')
+    matrix_strings.append(']\n    return matrix')
 
-    with open("src/surface/photosphere/photosphere/projection_matrix.py", "w") as file:
+    with open('src/surface/photosphere/photosphere/projection_matrix.py', 'w') as file:
         file.writelines(matrix_strings)
 
 def convert_with_matrix(fisheye_image1: Matlike, fisheye_image2: Matlike
@@ -486,10 +394,6 @@ def convert_with_matrix(fisheye_image1: Matlike, fisheye_image2: Matlike
 
     for row_index, row in enumerate(projection_matrix):
         for col_index, pixel in enumerate(row):
-            # if (
-            #     (LEFT_SEAM[0] <= col_index <= LEFT_SEAM[1])
-            #     or (RIGHT_SEAM[0] <= col_index <= RIGHT_SEAM[1])
-            # ):
             if len(pixel) == 5:
                 fisheye1_pixel = (
                     images[0][pixel[0]][pixel[1]] * (pixel[4] / 100.0)
@@ -502,17 +406,17 @@ def convert_with_matrix(fisheye_image1: Matlike, fisheye_image2: Matlike
             else:
                 projection_image[row_index][col_index] = images[0][pixel[0]][pixel[1]]
 
-    
+
     return projection_image
 
 
 if __name__ == '__main__':
-    fisheye_image1 = cv2.imread('src/surface/photosphere/photosphere/frame1.png')
-    fisheye_image2 = cv2.imread('src/surface/photosphere/photosphere/frame2.png')
+    fisheye_image1 = cv2.imread('src/surface/photosphere/photosphere/fisheye1.jpg')
+    fisheye_image2 = cv2.imread('src/surface/photosphere/photosphere/fisheye2.jpg')
 
     start_time = time.time()
-    projection = equirectangular_projection(fisheye_image1, fisheye_image2)
-    
+    projection = equirectangular_projection()
+
     finish_projection_time = time.time()
 
     # projection = convert_with_matrix(fisheye_image1, fisheye_image2)
@@ -520,6 +424,7 @@ if __name__ == '__main__':
 
     finish_map = time.time()
     # projection = equirectangular_projection_original(fisheye_image1, fisheye_image2)
+    # cv2.imwrite('src/photosphere/display/projection.jpg', projection)
 
     finish_original = time.time()
 

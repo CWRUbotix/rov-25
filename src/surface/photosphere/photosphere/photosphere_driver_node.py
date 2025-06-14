@@ -89,10 +89,12 @@ class PhotosphereDriverNode(Node):
         self.get_logger().info("Images downloaded from Calamari")
 
         img_1 = cv2.imread(os.path.join(self.local_images_path, "cam0.jpg"))
+        img_1 = cv2.rotate(img_1, cv2.ROTATE_180)
         img_msg_1 = self.cv_bridge.cv2_to_imgmsg(img_1)
         self.image_publisher_1.publish(img_msg_1)
 
         img_2 = cv2.imread(os.path.join(self.local_images_path, "cam1.jpg"))
+        img_2 = cv2.rotate(img_2, cv2.ROTATE_180)
         img_msg_2 = self.cv_bridge.cv2_to_imgmsg(img_2)
         self.image_publisher_2.publish(img_msg_2)
 
