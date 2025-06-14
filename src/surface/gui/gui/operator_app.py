@@ -8,6 +8,7 @@ from gui.widgets.heartbeat import HeartbeatWidget
 from gui.widgets.ip_widget import IPWidget
 from gui.widgets.logger import Logger
 from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
+from gui.widgets.tabs.photosphere_tab import PhotosphereTab
 from gui.widgets.tabs.shipwreck import ShipwreckTab
 from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.timer import InteractiveTimer
@@ -54,6 +55,7 @@ class OperatorApp(App):
         self.tabs = QTabWidget()
         self.tabs.addTab(main_tab, 'Main')
         self.tabs.addTab(GeneralDebugTab(), 'General Debug')
+        self.tabs.addTab(PhotosphereTab(), 'Photosphere')
         self.shipwreck_tab = ShipwreckTab()
         self.tabs.addTab(self.shipwreck_tab, SHIPWRECK_TEXT)
         self.tabs.currentChanged.connect(self.changed_tabs)
