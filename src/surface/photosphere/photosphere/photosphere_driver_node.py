@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import cv2
@@ -81,21 +80,17 @@ class PhotosphereDriverNode(Node):
             self.get_logger().info(line.strip())
 
         ftp_client = ssh_client.open_sftp()
-        ftp_client.get(
-            os.path.join(REMOTE_PATH, 'cam0.jpg'), os.path.join(self.local_images_path, 'cam0.jpg')
-        )
-        ftp_client.get(
-            os.path.join(REMOTE_PATH, 'cam1.jpg'), os.path.join(self.local_images_path, 'cam1.jpg')
-        )
+        ftp_client.get((Path(REMOTE_PATH) / 'cam0.jpg'), (Path(self.local_images_path) / 'cam0.jpg'))
+        ftp_client.get((Path(REMOTE_PATH) / 'cam1.jpg'), (Path(self.local_images_path) / 'cam1.jpg'))
 
         self.get_logger().info('Images downloaded from Calamari')
 
-        img_1 = cv2.imread(os.path.join(self.local_images_path, 'cam0.jpg'))
+        img_1 = cv2.imread(Path(self.local_images_path) / 'cam0.jpg')
         img_1 = cv2.rotate(img_1, cv2.ROTATE_180)
         img_msg_1 = self.cv_bridge.cv2_to_imgmsg(img_1)
         self.image_publisher_1.publish(img_msg_1)
 
-        img_2 = cv2.imread(os.path.join(self.local_images_path, 'cam1.jpg'))
+        img_2 = cv2.imread(Path(self.local_images_path) / 'cam1.jpg')
         img_2 = cv2.rotate(img_2, cv2.ROTATE_180)
         img_msg_2 = self.cv_bridge.cv2_to_imgmsg(img_2)
         self.image_publisher_2.publish(img_msg_2)
