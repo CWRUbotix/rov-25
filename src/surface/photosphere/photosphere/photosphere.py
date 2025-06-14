@@ -47,7 +47,7 @@ class Photosphere(Node):
 
         subprocess.Popen(
             'python3 -m http.server -d '
-            + (
+            + str(
                 Path(get_package_share_directory('photosphere').split('rov-25')[0])
                 / 'rov-25'
                 / WEBSERVER_PATH
@@ -89,7 +89,7 @@ class Photosphere(Node):
         projection = convert_with_matrix(self.fisheye_frames[0], self.fisheye_frames[1])
         self.get_logger().info('Projection created')
         cv2.imwrite(
-            (
+            str(
                 Path(get_package_share_directory('photosphere').split('rov-25')[0])
                 / 'rov-25'
                 / PROJECTION_PATH

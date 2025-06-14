@@ -23,7 +23,7 @@ from numpy.typing import NDArray
 
 from photosphere.projection_matrix.projection_matrix import get_matrix
 
-# from projection_matrix import get_matrix
+# from projection_matrix.projection_matrix import get_matrix
 
 Matlike = NDArray[generic]
 
@@ -48,36 +48,36 @@ MAX_WIDTH = APERTURE / 2 / math.pi
 
 # The meta data for the fisheye images
 # Meta data for the fisheye images that are resized to 960 x 758
-FISHEYE_META_DATA = (
-    FisheyeMetaData(
-        img_num=0,
-        left=105,
-        top=13,
-        diameter=759,
-    ),
-    FisheyeMetaData(
-        img_num=1,
-        left=99,
-        top=-4,
-        diameter=762,
-    ),
-)
-
-# The meta data for the full resolution images
 # FISHEYE_META_DATA = (
 #     FisheyeMetaData(
 #         img_num=0,
-#         left=448,
-#         top=55,
-#         diameter=3010,
+#         left=105,
+#         top=13,
+#         diameter=759,
 #     ),
 #     FisheyeMetaData(
 #         img_num=1,
-#         left=390,
-#         top=-20,
-#         diameter=3060,
+#         left=99,
+#         top=-4,
+#         diameter=762,
 #     ),
 # )
+
+# The meta data for the full resolution images
+FISHEYE_META_DATA = (
+    FisheyeMetaData(
+        img_num=0,
+        left=448,
+        top=55,
+        diameter=3010,
+    ),
+    FisheyeMetaData(
+        img_num=1,
+        left=390,
+        top=-20,
+        diameter=3060,
+    ),
+)
 
 
 def projection_to_fisheye(projection_coord: tuple[float, float], img: int) -> tuple[float, float]:
@@ -391,14 +391,11 @@ def store_projection_matrix(projection_matrix: Matlike) -> None:
     ]
     for row in projection_matrix:
         matrix_strings.append('[')
-        for col in row:
-            matrix_strings.append('[' + ','.join(str(num) for num in col) + '],')
+        matrix_strings.extend(('[' + ','.join(str(num) for num in col) + '],') for col in row)
         matrix_strings.append('],')
-    matrix_strings.append(']\n    return matrix')
+    matrix_strings.append(']  # noqa: E501 COM819\n    return matrix\n')
 
-    with (Path('src') / 'surface' / 'photosphere' / 'photosphere' / 'projection_matrix.py').open(
-        'w'
-    ) as file:
+    with (Path('src') / 'surface' / 'photosphere' / 'photosphere' / 'projection_matrix' / 'projection_matrix.py').open('w') as file:
         file.writelines(matrix_strings)
 
 
