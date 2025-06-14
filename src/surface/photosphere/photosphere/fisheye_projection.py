@@ -201,7 +201,7 @@ def equirectangular_projection() -> Matlike:
     """
     # The output projection image
     projection = np.zeros((OUTPUT_DIMENSION[1], OUTPUT_DIMENSION[0], 3), dtype=np.uint8)
-    projection_matrix = [
+    projection_matrix:list[list[list[int]]] = [
         [[] for col in range(OUTPUT_DIMENSION[0])] for row in range(OUTPUT_DIMENSION[1])
     ]
     print(len(projection_matrix))
@@ -376,13 +376,13 @@ def equirectangular_projection_original(
     return projection
 
 
-def store_projection_matrix(projection_matrix: Matlike) -> None:
+def store_projection_matrix(projection_matrix: list[list[list[int]]]) -> None:
     """
     Store the given projection matrix in a file.
 
     Parameters
     ----------
-    projection_matrix : Matlike
+    projection_matrix : list[list[list[int]]]
         the projection matrix to store
     """
     matrix_strings = [

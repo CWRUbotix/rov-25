@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import cv2
-import paramiko
+import paramiko  # type: ignore[import-untyped]
 import rclpy
 from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
