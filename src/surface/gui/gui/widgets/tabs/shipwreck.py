@@ -36,6 +36,8 @@ ZOOMED_WIDGET_SIZE = 405
 ZOOM_DEFAULT_IDX = 2
 ZOOMED_VIEWPORT_SIZES = (27, 45, 81, 135, 405)  # Odd factors of 405
 
+LENGTH_SCALE_FACTOR = 1.34
+
 PADDING = 200
 
 POINTS_PER_EYE = 2
@@ -266,10 +268,12 @@ class ShipwreckTab(QWidget):
         self.underwater_world_points_label = QLabel('No 3D underwater points')
         self.length_label = QLabel('No length')
         self.underwater_length_label = QLabel('No underwater length')
+        self.scaled_length_label = QLabel('No scaled length')
         bold_font = QFont()
         bold_font.setBold(True)
         self.length_label.setFont(bold_font)
         self.underwater_length_label.setFont(bold_font)
+        self.scaled_length_label.setFont(bold_font)
 
         data_layout.addWidget(self.img_points_label, 0, 0)
         data_layout.addWidget(self.focal_length_label, 0, 1)
@@ -277,6 +281,7 @@ class ShipwreckTab(QWidget):
         data_layout.addWidget(self.length_label, 1, 1)
         data_layout.addWidget(self.underwater_world_points_label, 2, 0)
         data_layout.addWidget(self.underwater_length_label, 2, 1)
+        data_layout.addWidget(self.scaled_length_label, 3, 1)
 
         fine_tab = QWidget()
         fine_tab_layout = QVBoxLayout()
@@ -477,6 +482,9 @@ class ShipwreckTab(QWidget):
             f'3D (mm): {"\t".join([str(point) for point in uw_world_points])}'
         )
         self.underwater_length_label.setText(f'Length (mm): {uw_length}')
+
+        self.scaled_length_label.setText(f'Length (mm): {uw_length * LENGTH_SCALE_FACTOR}')
+
 
     @staticmethod
     def solve_stereo_projection(
