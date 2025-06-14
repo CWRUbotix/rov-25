@@ -1,5 +1,4 @@
 import subprocess
-from pathlib import Path
 
 import cv2
 import numpy as np
@@ -14,6 +13,7 @@ from sensor_msgs.msg import Image
 
 from photosphere.fisheye_projection import convert_with_matrix
 from rov_msgs.srv import GeneratePhotosphere
+from pathlib import Path
 
 PROJECTION_PATH = 'src/photosphere/display/projection.jpg'  # relative the rov-25 repo
 WEBSERVER_PATH = 'src/photosphere/display/'  # relative the rov-25 repo
@@ -47,11 +47,7 @@ class Photosphere(Node):
 
         subprocess.Popen(
             'python3 -m http.server -d '
-            + (
-                Path(get_package_share_directory('photosphere').split('rov-25')[0])
-                / 'rov-25'
-                / WEBSERVER_PATH
-            ),
+            + (Path(get_package_share_directory('photosphere').split('rov-25')[0]) / 'rov-25' / WEBSERVER_PATH),
             shell=True,
         )
 
@@ -89,11 +85,7 @@ class Photosphere(Node):
         projection = convert_with_matrix(self.fisheye_frames[0], self.fisheye_frames[1])
         self.get_logger().info('Projection created')
         cv2.imwrite(
-            (
-                Path(get_package_share_directory('photosphere').split('rov-25')[0])
-                / 'rov-25'
-                / PROJECTION_PATH
-            ),
+            (Path(get_package_share_directory('photosphere').split('rov-25')[0]) / 'rov-25' / PROJECTION_PATH),
             projection,
         )
         self.get_logger().info('Projection saved')

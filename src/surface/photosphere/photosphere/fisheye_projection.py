@@ -14,7 +14,6 @@
 import math
 import time
 from dataclasses import dataclass
-from pathlib import Path
 
 import cv2
 import numpy as np
@@ -22,6 +21,7 @@ from numpy import generic
 from numpy.typing import NDArray
 
 from photosphere.projection_matrix.projection_matrix import get_matrix
+from pathlib import Path
 
 # from projection_matrix import get_matrix
 
@@ -396,14 +396,10 @@ def store_projection_matrix(projection_matrix: Matlike) -> None:
         matrix_strings.append('],')
     matrix_strings.append(']\n    return matrix')
 
-    with (Path('src') / 'surface' / 'photosphere' / 'photosphere' / 'projection_matrix.py').open(
-        'w'
-    ) as file:
+    with (Path('src') / 'surface' / 'photosphere' / 'photosphere' / 'projection_matrix.py').open('w') as file:
         file.writelines(matrix_strings)
 
-
 OVERLAP_ARRAY_LENGTH = 5
-
 
 def convert_with_matrix(fisheye_image1: Matlike, fisheye_image2: Matlike) -> Matlike:
     projection_matrix = get_matrix()
