@@ -1,25 +1,26 @@
 import os
 import subprocess
+
 import cv2
 import numpy as np
+import rclpy
+from ament_index_python.packages import get_package_share_directory
+from cv_bridge import CvBridge
 from numpy import generic
 from numpy.typing import NDArray
-
-import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_default
-from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from ament_index_python.packages import get_package_share_directory
 
 from photosphere.fisheye_projection import convert_with_matrix
 from rov_msgs.srv import GeneratePhotosphere
 
-PROJECTION_PATH = "src/photosphere/display/projection.jpg"  # relative the rov-25 repo
-WEBSERVER_PATH = "src/photosphere/display/" # relative the rov-25 repo
+PROJECTION_PATH = 'src/photosphere/display/projection.jpg'  # relative the rov-25 repo
+WEBSERVER_PATH = 'src/photosphere/display/'  # relative the rov-25 repo
 
 
 Matlike = NDArray[generic]
+
 
 class Photosphere(Node):
     def __init__(self) -> None:
@@ -35,14 +36,24 @@ class Photosphere(Node):
 
         self.fisheye_frames = [
             np.zeros((4000, 4000, 3), dtype=np.uint8),
-            np.zeros((4000, 4000, 3), dtype=np.uint8)
+            np.zeros((4000, 4000, 3), dtype=np.uint8),
         ]
 
         self.bridge = CvBridge()
 
-        self.photosphere_service = self.create_service(GeneratePhotosphere, 'generate_photosphere', callback = self.photosphere_service_callback)
+        self.photosphere_service = self.create_service(
+            GeneratePhotosphere, 'generate_photosphere', callback=self.photosphere_service_callback
+        )
 
-        subprocess.Popen('python3 -m http.server -d ' + os.path.join(get_package_share_directory("photosphere").split("rov-25")[0], "rov-25", WEBSERVER_PATH), shell=True)
+        subprocess.Popen(
+            'python3 -m http.server -d '
+            + os.path.join(
+                get_package_share_directory('photosphere').split('rov-25')[0],
+                'rov-25',
+                WEBSERVER_PATH,
+            ),
+            shell=True,
+        )
 
     def handle_frame_msg(self, msg: Image, index: int) -> None:
         """Handle a ros image message containing a frame from the photosphere
@@ -54,11 +65,12 @@ class Photosphere(Node):
         index : int
             Which camera the image is from (0 or 1)
         """
-        
         cv_img = self.bridge.imgmsg_to_cv2(msg)
         self.fisheye_frames[index] = cv_img
 
-    def photosphere_service_callback(self, request: GeneratePhotosphere.Request, response: GeneratePhotosphere.Response) -> GeneratePhotosphere.Response:
+    def photosphere_service_callback(
+        self, request: GeneratePhotosphere.Request, response: GeneratePhotosphere.Response
+    ) -> GeneratePhotosphere.Response:
         """
         Handle a request to generate a photosphere.
 
@@ -79,9 +91,16 @@ class Photosphere(Node):
         # print("frames saved")
 
         projection = convert_with_matrix(self.fisheye_frames[0], self.fisheye_frames[1])
-        self.get_logger().info("Projection created")
-        cv2.imwrite(os.path.join(get_package_share_directory("photosphere").split("rov-25")[0], "rov-25", PROJECTION_PATH), projection)
-        self.get_logger().info("Projection saved")
+        self.get_logger().info('Projection created')
+        cv2.imwrite(
+            os.path.join(
+                get_package_share_directory('photosphere').split('rov-25')[0],
+                'rov-25',
+                PROJECTION_PATH,
+            ),
+            projection,
+        )
+        self.get_logger().info('Projection saved')
 
         # fisheye_image1 = cv2.imread('src/surface/photosphere/photosphere/frame1.png')
         # fisheye_image2 = cv2.imread('src/surface/photosphere/photosphere/frame2.png')
@@ -90,8 +109,6 @@ class Photosphere(Node):
 
         response.generated = True
         return response
-        
-
 
 
 def main() -> None:
@@ -101,6 +118,7 @@ def main() -> None:
     photosphere = Photosphere()
 
     rclpy.spin(photosphere)
+
 
 if __name__ == '__main__':
     main()
