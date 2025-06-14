@@ -5,16 +5,16 @@ from dataclasses import dataclass
 
 import rclpy
 import rclpy.utilities
+from ament_index_python.packages import get_package_prefix
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
-from ament_index_python.packages import get_package_prefix
 
 from rov_msgs.msg import Heartbeat, Manip, VehicleState, VideoWidgetSwitch
 from rov_msgs.srv import VehicleArming
 
 os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
-from pymavlink import mavutil, mavparm
+from pymavlink import mavparm, mavutil
 
 os.environ['SDL_VIDEODRIVER'] = 'dummy'
 os.environ['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1'
@@ -189,8 +189,10 @@ class MavlinkManualControlNode(Node):
 
         self.wrote_params = False
         self.param_dict = mavparm.MAVParmDict()
-        self.param_path = os.path.join(get_package_prefix('flight_control').split('install')[0],
-                                       'src/surface/flight_control/params/thrusters.params')
+        self.param_path = os.path.join(
+            get_package_prefix('flight_control').split('install')[0],
+            'src/surface/flight_control/params/thrusters.params',
+        )
 
         self.critical_state_count = CRITICAL_STATE_TRIGGER
 
@@ -429,18 +431,15 @@ class MavlinkManualControlNode(Node):
             self.get_logger().warn('Could not load params file')
 
         for line in lines:
-            stripped_line=line.strip()
+            stripped_line = line.strip()
             if len(stripped_line) == 0 or stripped_line.startswith('#'):
                 continue
             _, _, param_name, param_val, param_type = stripped_line.split('	')
             print(param_name, param_val, param_type)
             self.mavlink.param_set_send(
-                parm_name=param_name,
-                parm_value=float(param_val),
-                parm_type=int(param_type)
+                parm_name=param_name, parm_value=float(param_val), parm_type=int(param_type)
             )
         self.get_logger().info('Wrote mavlink parameters')
-
 
     def poll_mavlink_for_new_state(self) -> VehicleState:
         """Read incoming mavlink messages to determine the state of the vehicle.
