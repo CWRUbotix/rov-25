@@ -7,7 +7,7 @@ import cv2
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-host_name  = socket.gethostname()
+host_name = socket.gethostname()
 host_ip = socket.gethostbyname(host_name)
 print('HOST IP: ', host_ip)
 port = int(sys.argv[1])
