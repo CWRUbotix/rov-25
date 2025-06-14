@@ -9,10 +9,11 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 from sensor_msgs.msg import Image
 from std_srvs.srv import Trigger
+from pathlib import Path
 
 HOST = '192.168.2.5'
 USER = 'rov'
-PASSWORD = 'rov12345'
+PASSWORD = 'rov12345'  # noqa: S105
 CONNECT_TIMEOUT = 8  # Seconds to log in
 
 TAKE_PICS_CMD = 'bash /home/rov/rov-25/src/photosphere/take_images.sh'
@@ -35,16 +36,14 @@ class PhotosphereDriverNode(Node):
 
         self.image_publisher_2 = self.create_publisher(Image, 'image_2', qos_profile_system_default)
 
-        self.local_images_path = os.path.join(
-            get_package_share_directory('photosphere').split('rov-25')[0], 'rov-25', LOCAL_PATH
-        )
+        self.local_images_path = Path(get_package_share_directory('photosphere').split('rov-25')[0]) / 'rov-25' / LOCAL_PATH
 
         self.get_logger().info('Ready to download photosphere images')
 
     def take_photos_callback(
-        self, request: Trigger.Request, response: Trigger.Response
+        self, _: Trigger.Request, response: Trigger.Response
     ) -> Trigger.Response:
-        """Connect to the photosphere over ssh and take an image from each camera
+        """Connect to the photosphere over ssh and take an image from each camera.
 
         Parameters
         ----------
@@ -59,7 +58,7 @@ class PhotosphereDriverNode(Node):
             The filled ROS service response
         """
         ssh_client = paramiko.SSHClient()
-        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
 
         try:
             ssh_client.connect(HOST, username=USER, password=PASSWORD, timeout=CONNECT_TIMEOUT)

@@ -1,4 +1,3 @@
-import os
 import subprocess
 
 import cv2
@@ -14,6 +13,7 @@ from sensor_msgs.msg import Image
 
 from photosphere.fisheye_projection import convert_with_matrix
 from rov_msgs.srv import GeneratePhotosphere
+from pathlib import Path
 
 PROJECTION_PATH = 'src/photosphere/display/projection.jpg'  # relative the rov-25 repo
 WEBSERVER_PATH = 'src/photosphere/display/'  # relative the rov-25 repo
@@ -47,16 +47,12 @@ class Photosphere(Node):
 
         subprocess.Popen(
             'python3 -m http.server -d '
-            + os.path.join(
-                get_package_share_directory('photosphere').split('rov-25')[0],
-                'rov-25',
-                WEBSERVER_PATH,
-            ),
+            + (Path(get_package_share_directory('photosphere').split('rov-25')[0]) / 'rov-25' / WEBSERVER_PATH),
             shell=True,
         )
 
     def handle_frame_msg(self, msg: Image, index: int) -> None:
-        """Handle a ros image message containing a frame from the photosphere
+        """Handle a ros image message containing a frame from the photosphere.
 
         Parameters
         ----------
@@ -69,7 +65,7 @@ class Photosphere(Node):
         self.fisheye_frames[index] = cv_img
 
     def photosphere_service_callback(
-        self, request: GeneratePhotosphere.Request, response: GeneratePhotosphere.Response
+        self, _: GeneratePhotosphere.Request, response: GeneratePhotosphere.Response
     ) -> GeneratePhotosphere.Response:
         """
         Handle a request to generate a photosphere.
@@ -86,26 +82,13 @@ class Photosphere(Node):
         GeneratePhotosphere.Response
             The filled response
         """
-        # cv2.imwrite('src/surface/photosphere/photosphere/frame1.png', self.fisheye_frames[0])
-        # cv2.imwrite('src/surface/photosphere/photosphere/frame2.png', self.fisheye_frames[1])
-        # print("frames saved")
-
         projection = convert_with_matrix(self.fisheye_frames[0], self.fisheye_frames[1])
         self.get_logger().info('Projection created')
         cv2.imwrite(
-            os.path.join(
-                get_package_share_directory('photosphere').split('rov-25')[0],
-                'rov-25',
-                PROJECTION_PATH,
-            ),
+            (Path(get_package_share_directory('photosphere').split('rov-25')[0]) / 'rov-25' / PROJECTION_PATH),
             projection,
         )
         self.get_logger().info('Projection saved')
-
-        # fisheye_image1 = cv2.imread('src/surface/photosphere/photosphere/frame1.png')
-        # fisheye_image2 = cv2.imread('src/surface/photosphere/photosphere/frame2.png')
-        # projection = equirectangular_projection(fisheye_image1, fisheye_image2)
-        # cv2.imwrite('src/surface/photosphere/photosphere/projection.png', projection)
 
         response.generated = True
         return response

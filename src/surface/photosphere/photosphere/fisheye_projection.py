@@ -1,9 +1,15 @@
-# To make a new matrix: adjust the meta data to the new values and run the equirectangular_projection function
-# To make an image using a matrix: use the convert_with_matrix function and give the fisheye images in the order of the metadata
-# To make an image without a matrix: adjust the metadata, then use the equirectangular_projection_original function
-# To adjust meta data: find the left side of the circle, diameter of the circle (right - left) then find the top
-# To find the top of the circle it may be necessary to find the bottom then subtract the diameter if the top is cut off
-# If using this file without ros, the imports will need to be changed to be from projection_matrix import get_matrix
+# To make a new matrix: adjust the meta data to the new values and run the
+# equirectangular_projection function
+# To make an image using a matrix: use the convert_with_matrix function and give the fisheye images
+# in the order of the metadata
+# To make an image without a matrix: adjust the metadata, then use the
+# equirectangular_projection_original function
+# To adjust meta data: find the left side of the circle, diameter of the circle (right - left) then
+# find the top
+# To find the top of the circle it may be necessary to find the bottom then subtract the diameter if
+# the top is cut off
+# If using this file without ros, the imports will need to be changed to be from projection_matrix
+# import get_matrix
 
 import math
 import time
@@ -15,6 +21,7 @@ from numpy import generic
 from numpy.typing import NDArray
 
 from photosphere.projection_matrix.projection_matrix import get_matrix
+from pathlib import Path
 
 # from projection_matrix import get_matrix
 
@@ -389,9 +396,10 @@ def store_projection_matrix(projection_matrix: Matlike) -> None:
         matrix_strings.append('],')
     matrix_strings.append(']\n    return matrix')
 
-    with open('src/surface/photosphere/photosphere/projection_matrix.py', 'w') as file:
+    with (Path('src') / 'surface' / 'photosphere' / 'photosphere' / 'projection_matrix.py').open('w') as file:
         file.writelines(matrix_strings)
 
+OVERLAP_ARRAY_LENGTH = 5
 
 def convert_with_matrix(fisheye_image1: Matlike, fisheye_image2: Matlike) -> Matlike:
     projection_matrix = get_matrix()
@@ -400,7 +408,7 @@ def convert_with_matrix(fisheye_image1: Matlike, fisheye_image2: Matlike) -> Mat
 
     for row_index, row in enumerate(projection_matrix):
         for col_index, pixel in enumerate(row):
-            if len(pixel) == 5:
+            if len(pixel) == OVERLAP_ARRAY_LENGTH:
                 fisheye1_pixel = images[0][pixel[0]][pixel[1]] * (pixel[4] / 100.0)
                 fisheye2_pixel = images[1][pixel[2]][pixel[3]] * (1 - (pixel[4] / 100.0))
                 projection_image[row_index][col_index] = fisheye1_pixel + fisheye2_pixel
