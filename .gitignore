@@ -38,3 +38,6 @@ eeprom.bin
 
 # Mavproxy Files
 *.parm
+
+# Images
+src/photosphere/display/projection.jpg

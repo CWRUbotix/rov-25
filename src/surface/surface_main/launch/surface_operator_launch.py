@@ -11,6 +11,7 @@ def generate_launch_description() -> LaunchDescription:
     gui_path = get_package_share_directory('gui')
     flight_control_path = get_package_share_directory('flight_control')
     transceiver_path = get_package_share_directory('transceiver')
+    photosphere_path = get_package_share_directory('photosphere')
 
     # Launches Gui
     gui_launch = IncludeLaunchDescription(
@@ -31,12 +32,20 @@ def generate_launch_description() -> LaunchDescription:
         ),
     )
 
+    # Launches Photosphere
+    photosphere_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [str(Path(photosphere_path) / 'launch' / 'photosphere_launch.py')]
+        ),
+    )
+
     namespace_launch = GroupAction(
         actions=[
             PushRosNamespace('surface'),
             gui_launch,
             flight_control_launch,
             transceiver_launch,
+            photosphere_launch,
         ]
     )
 
