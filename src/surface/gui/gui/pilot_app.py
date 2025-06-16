@@ -2,12 +2,13 @@ import enum
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QScreen
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
 from gui.app import App
 from gui.widgets.arm import Arm
 from gui.widgets.flood_warning import FloodWarning
 from gui.widgets.livestream_header import LivestreamHeader
+from gui.widgets.manip_status import ManipStatus
 from gui.widgets.timer import TimerDisplay
 from gui.widgets.video_widget import (
     CameraDescription,
@@ -116,18 +117,24 @@ class PilotApp(App):
         """
         bottom_screen_layout = QHBoxLayout()
 
-        timer = TimerDisplay()
-        bottom_screen_layout.addWidget(timer)
+        left_layout = QVBoxLayout()
+        left_layout.addWidget(ManipStatus('left'))
+        left_layout.addWidget(TimerDisplay())
+        bottom_screen_layout.addLayout(left_layout)
 
         flood_widget = FloodWarning()
         bottom_screen_layout.addWidget(
             flood_widget, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom
         )
 
-        arm = Arm()
-        bottom_screen_layout.addWidget(
-            arm, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom
-        )
+        right_layout = QVBoxLayout()
+        right_layout.addWidget(ManipStatus('right'))
+        right_layout.addWidget(Arm())
+        right_container = QWidget()
+        right_container.setLayout(right_layout)
+        bottom_screen_layout.addWidget(right_container,
+                                       alignment=Qt.AlignmentFlag.AlignRight | \
+                                        Qt.AlignmentFlag.AlignBottom)
 
         return bottom_screen_layout
 
