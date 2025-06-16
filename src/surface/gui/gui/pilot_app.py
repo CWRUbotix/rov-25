@@ -132,9 +132,9 @@ class PilotApp(App):
         right_layout.addWidget(Arm())
         right_container = QWidget()
         right_container.setLayout(right_layout)
-        bottom_screen_layout.addWidget(right_container,
-                                       alignment=Qt.AlignmentFlag.AlignRight | \
-                                        Qt.AlignmentFlag.AlignBottom)
+        bottom_screen_layout.addWidget(
+            right_container, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom
+        )
 
         return bottom_screen_layout
 
