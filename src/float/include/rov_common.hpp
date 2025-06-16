@@ -45,6 +45,11 @@ const uint8_t RFM95_CS = 11;   // "B"
 const uint8_t RFM95_INT = 31;  // "C"
 const uint8_t RFM95_RST = 7;   // "A"
 
+#else  // Custom RP2040 setup
+const uint8_t RFM95_CS = 16;
+const uint8_t RFM95_INT = 22;
+const uint8_t RFM95_RST = 17;
+
 #endif
 
 // Buffers for pressures & time data w/preambles containing:
@@ -63,7 +68,7 @@ const uint8_t PKT_IDX_PROFILE_HALF = 2;
 const uint8_t PKT_HEADER_LEN = 3;
 const uint8_t PKT_PAYLOAD_LEN = PKT_LEN - PKT_HEADER_LEN;
 
-const float RF95_FREQ = 877.0;
+const float RADIO_FREQ = 917.0;  // Hz, anything between 902 and 928 is legal
 
 // Define DO_DEBUGGING to enable some extra Serial.prints on the surface,
 //  some debug transmissions from the float, and faster profiling/measurement

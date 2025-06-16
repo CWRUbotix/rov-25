@@ -1,11 +1,15 @@
+from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
-from pyqtgraph import PlotWidget
+from pyqtgraph import PlotItem, PlotWidget, mkBrush, mkPen
 from rclpy.qos import QoSPresetProfiles, qos_profile_default
 
 from gui.gui_node import GUINode
 from rov_msgs.msg import FloatCommand, FloatData, FloatSerial, FloatSingle
+
+TARGET_DEPTH_MIN = 2
+TARGET_DEPTH_MAX = 3
 
 
 class FloatComm(QWidget):
@@ -18,6 +22,18 @@ class FloatComm(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
+        self.make_layout()
+
+        self.time_data: list[float] = []
+        self.depth_data: list[float] = []
+        self.received_first_half = False
+        self.received_second_half = False
+        self.completed_profile_one = False
+
+        self.counter = 0
+
+    def make_layout(self) -> None:
+        """Create the main layout and all necessary widgets."""
         layout = QHBoxLayout()
         self.setLayout(layout)
 
@@ -79,6 +95,10 @@ class FloatComm(QWidget):
         self.console.setFont(font)
 
         self.plots = [PlotWidget(), PlotWidget()]
+        for plot in self.plots:
+            plot.getPlotItem().getViewBox().invertY(b=True)
+            plot.getPlotItem().setLabel('bottom', 'Time (seconds)')
+            plot.getPlotItem().setLabel('left', 'Depth (meters)')
 
         left_side_layout = QVBoxLayout()
         left_side_layout.addLayout(info_and_buttons)
@@ -88,14 +108,6 @@ class FloatComm(QWidget):
         layout.addLayout(left_side_layout)
         for plot in self.plots:
             layout.addWidget(plot)
-
-        self.time_data: list[float] = []
-        self.depth_data: list[float] = []
-        self.received_first_half = False
-        self.received_second_half = False
-        self.completed_profile_one = False
-
-        self.counter = 0
 
     def make_button_layout(self) -> QHBoxLayout:
         button_layout = QHBoxLayout()
@@ -132,6 +144,27 @@ class FloatComm(QWidget):
 
         return button_layout
 
+    def plot_float_data(self, plot: PlotItem, times: list[float], depths: list[float]) -> None:
+        points = zip(times, depths, strict=False)
+
+        valid_points = []
+        invalid_points = []
+
+        for p in points:
+            if TARGET_DEPTH_MIN <= p[1] <= TARGET_DEPTH_MAX:
+                valid_points.append(p)
+            else:
+                invalid_points.append(p)
+
+        plot.plot(times, depths)
+
+        plot.scatterPlot(*zip(*valid_points, strict=False), brush=mkBrush('g'))
+        plot.scatterPlot(*zip(*invalid_points, strict=False), brush=mkBrush('r'))
+
+        target_lines_pen = mkPen(0.5, style=QtCore.Qt.PenStyle.DashLine)
+        plot.plot(times, [TARGET_DEPTH_MIN] * len(times), pen=target_lines_pen)
+        plot.plot(times, [TARGET_DEPTH_MAX] * len(times), pen=target_lines_pen)
+
     @pyqtSlot(FloatData)
     def handle_data(self, msg: FloatData) -> None:
         """
@@ -165,7 +198,7 @@ class FloatComm(QWidget):
             self.received_second_half = True
 
         if self.received_first_half and self.received_second_half:
-            self.plots[msg.profile_number].plot(self.time_data, self.depth_data)
+            self.plot_float_data(self.plots[msg.profile_number], self.time_data, self.depth_data)
             self.time_data = []
             self.depth_data = []
             self.received_first_half = False
