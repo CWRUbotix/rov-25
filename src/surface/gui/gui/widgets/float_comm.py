@@ -22,6 +22,18 @@ class FloatComm(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
+        self.make_layout()
+
+        self.time_data: list[float] = []
+        self.depth_data: list[float] = []
+        self.received_first_half = False
+        self.received_second_half = False
+        self.completed_profile_one = False
+
+        self.counter = 0
+
+    def make_layout(self) -> None:
+        """Create the main layout and all necessary widgets."""
         layout = QHBoxLayout()
         self.setLayout(layout)
 
@@ -84,7 +96,7 @@ class FloatComm(QWidget):
 
         self.plots = [PlotWidget(), PlotWidget()]
         for plot in self.plots:
-            plot.getPlotItem().getViewBox().invertY(True)
+            plot.getPlotItem().getViewBox().invertY(b=True)
             plot.getPlotItem().setLabel('bottom', 'Time (seconds)')
             plot.getPlotItem().setLabel('left', 'Depth (meters)')
 
@@ -96,14 +108,6 @@ class FloatComm(QWidget):
         layout.addLayout(left_side_layout)
         for plot in self.plots:
             layout.addWidget(plot)
-
-        self.time_data: list[float] = []
-        self.depth_data: list[float] = []
-        self.received_first_half = False
-        self.received_second_half = False
-        self.completed_profile_one = False
-
-        self.counter = 0
 
     def make_button_layout(self) -> QHBoxLayout:
         button_layout = QHBoxLayout()
