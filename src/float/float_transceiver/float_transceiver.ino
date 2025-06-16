@@ -434,7 +434,8 @@ float getDepth() {
 
 void transmitPacketsCallback() {
   for (int half = 0; half < 2; half++) {
-    serialPrintf("Sending packet #%d half %d with content {", packets[half][PKT_IDX_PROFILE_NUM], half);
+    serialPrintf(
+      "Sending packet #%d half %d with content {", packets[half][PKT_IDX_PROFILE_NUM], half);
     for (int p = 0; p < PKT_LEN; p++) {
       serialPrintf("%d, ", packets[half][p]);
     }
