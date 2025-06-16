@@ -1,4 +1,4 @@
-#No information is needed in the request
+# No information is needed in the request
 ---
-#Whether the photosphere was generated correctly
+# Whether the photosphere was generated correctly
 bool generated

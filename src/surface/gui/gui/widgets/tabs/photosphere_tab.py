@@ -1,19 +1,18 @@
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from std_srvs.srv import Trigger
+from PyQt6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from gui.gui_node import GUINode
 from gui.styles.custom_styles import ButtonIndicator, WidgetState
 from gui.widgets.logger import Logger
 from gui.widgets.video_widget import CameraDescription, CameraType, VideoWidget
-from rov_msgs.srv import GeneratePhotosphere
+from rov_msgs.srv import GeneratePhotosphere, TakePhotosphere
 
 FISHEYE1_TOPIC = 'photosphere/image_1'
 FISHEYE2_TOPIC = 'photosphere/image_2'
 
 
 class PhotosphereTab(QWidget):
-    take_photos_response_signal = pyqtSignal(Trigger.Response)
+    take_photos_response_signal = pyqtSignal(TakePhotosphere.Response)
     generate_response_signal = pyqtSignal(GeneratePhotosphere.Response)
 
     def __init__(self) -> None:
@@ -29,7 +28,7 @@ class PhotosphereTab(QWidget):
         )
 
         self.take_photos_client = GUINode().create_client_multithreaded(
-            Trigger, 'photosphere/take_photos'
+            TakePhotosphere, 'photosphere/take_photos'
         )
         self.generate_photosphere_client = GUINode().create_client_multithreaded(
             GeneratePhotosphere, 'photosphere/generate_photosphere'
@@ -47,22 +46,33 @@ class PhotosphereTab(QWidget):
             alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft,
         )
 
-        button_pane = QHBoxLayout()
+        button_pane = QGridLayout()
 
         self.take_photos_button = ButtonIndicator('Take Photos')
-        self.take_photos_button.setMinimumHeight(60)
-        self.take_photos_button.setMinimumWidth(150)
-        self.take_photos_button.clicked.connect(self.take_photos_clicked)
+        self.take_photos_button.clicked.connect(
+            lambda: self.take_photo_clicked(TakePhotosphere.Request.BOTH))
+
+        self.take_cam0_button = ButtonIndicator('Take 0')
+        self.take_cam1_button = ButtonIndicator('Take 1')
+        self.take_cam0_button.clicked.connect(
+            lambda: self.take_photo_clicked(cam=TakePhotosphere.Request.CAM0))
+        self.take_cam1_button.clicked.connect(
+            lambda: self.take_photo_clicked(cam=TakePhotosphere.Request.CAM1))
+
+        self.photo_buttons: dict[int, tuple[ButtonIndicator, ...]] = {
+            TakePhotosphere.Request.CAM0: (self.take_cam0_button,),
+            TakePhotosphere.Request.CAM1: (self.take_cam1_button,),
+            TakePhotosphere.Request.BOTH: (self.take_cam0_button, self.take_cam1_button),
+        }
 
         self.generate_button = ButtonIndicator('Generate Photosphere')
-        self.generate_button.setMinimumHeight(60)
-        self.generate_button.setMinimumWidth(150)
         self.generate_button.set_state(WidgetState.INACTIVE)
         self.generate_button.clicked.connect(self.generate_clicked)
 
-        button_pane.addWidget(self.take_photos_button)
-        button_pane.addWidget(self.generate_button)
-        button_pane.addStretch()
+        button_pane.addWidget(self.take_photos_button, 0, 0, 1, 2)
+        button_pane.addWidget(self.take_cam0_button, 1, 0)
+        button_pane.addWidget(self.take_cam1_button, 1, 1)
+        button_pane.addWidget(self.generate_button, 2, 0, 1, 2)
 
         root_layout = QVBoxLayout()
         root_layout.addLayout(video_pane)
@@ -78,10 +88,13 @@ class PhotosphereTab(QWidget):
         root_layout.addWidget(Logger())
         self.setLayout(root_layout)
 
-    def take_photos_clicked(self) -> None:
-        self.take_photos_button.set_state(WidgetState.INACTIVE)
+    def take_photo_clicked(self, cam: int) -> None:
+        for button in self.photo_buttons[cam]:
+            button.set_state(WidgetState.INACTIVE)
         GUINode().send_request_multithreaded(
-            self.take_photos_client, Trigger.Request(), self.take_photos_response_signal
+            self.take_photos_client,
+            TakePhotosphere.Request(cam=cam),
+            self.take_photos_response_signal
         )
 
     def generate_clicked(self) -> None:
@@ -100,11 +113,18 @@ class PhotosphereTab(QWidget):
             self.photosphere_status_label.setText('Photosphere generated')
             self.generate_button.set_state(WidgetState.ON)
 
-    @pyqtSlot(Trigger.Response)
-    def take_photos_response_handler(self, res: Trigger.Response) -> None:
-        if res and res.success:
-            self.take_photos_button.set_state(WidgetState.ON)
-            if self.generate_button.current_state == WidgetState.INACTIVE:
+    @pyqtSlot(TakePhotosphere.Response)
+    def take_photos_response_handler(self, res: TakePhotosphere.Response) -> None:
+        if not res:
+            for button in self.photo_buttons[TakePhotosphere.Request.BOTH]:
+                button.set_state(WidgetState.OFF)
+        elif res.success:
+            for button in self.photo_buttons[res.cam]:
+                button.set_state(WidgetState.ON)
+            if self.generate_button.current_state == WidgetState.INACTIVE and \
+                all(button.current_state == WidgetState.ON for button in
+                     self.photo_buttons[TakePhotosphere.Request.BOTH]):
                 self.generate_button.set_state(WidgetState.NONE)
         else:
-            self.take_photos_button.set_state(WidgetState.OFF)
+            for button in self.photo_buttons[res.cam]:
+                button.set_state(WidgetState.OFF)
