@@ -64,7 +64,7 @@ const uint32_t TX_MAX_TIME = 2 * ONE_MINUTE;
 // Distance from the pressure sensor to the bottom of the float (m)
 const float MBAR_TO_METER_OF_HEAD = 0.010199773339984;
 const float PRESSURE_SENSOR_VERTICAL_OFFSET = 0;  // 0.62 to measure to bottom of float;
-const int AVERAGE_PRESSURE_LEN = 10;
+const int AVERAGE_PRESSURE_LEN = 5;
 
 float surfacePressures[AVERAGE_PRESSURE_LEN];
 float surfaceAverage = 0;
@@ -789,6 +789,9 @@ void resetPackets(uint8_t profileNum) {
   packets[1][PKT_IDX_TEAM_NUM] = TEAM_NUM;
   packets[1][PKT_IDX_PROFILE_HALF] = 1;
   packets[1][PKT_IDX_PROFILE_NUM] = profileNum;
+
+  packetIndex = PKT_HEADER_LEN;
+  profileHalf = 0;
 }
 
 void setLedColor(COLOR color) {
