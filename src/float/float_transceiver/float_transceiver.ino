@@ -33,7 +33,7 @@
 // The encoder requires two adjacent pins on the PIO
 #define PIN_ENCODER 4
 
-const uint8_t TEAM_NUM = 25;
+const uint8_t TEAM_NUM = 0;
 const uint32_t PACKET_SEND_INTERVAL = 1000;
 const uint32_t FLOAT_PKT_RX_TIMEOUT = 10;
 const uint8_t JUDGE_PKT_SIZE = 30;
@@ -56,11 +56,10 @@ const uint32_t ONE_MINUTE = 60000;
 const uint32_t AFTER_HOME_WAIT = 10'000;
 const uint32_t RELEASE_MAX = 8 * ONE_MINUTE;
 const uint32_t SUCK_MAX = PROFILE_SEGMENT;
-const uint32_t DESCEND_TIME = 2 * ONE_MINUTE;
+const uint32_t DESCEND_TIME = 4 * ONE_MINUTE;
 const uint32_t PUMP_MAX = PROFILE_SEGMENT;
 const uint32_t ASCEND_TIME = ONE_MINUTE;
 const uint32_t TX_MAX_TIME = 2 * ONE_MINUTE;
-const uint32_t HOLD_TIME = 0;
 
 // Distance from the pressure sensor to the bottom of the float (m)
 const float MBAR_TO_METER_OF_HEAD = 0.010199773339984;
@@ -103,7 +102,7 @@ StageType stage = StageType::DeploySuck;
 OverrideState overrideState = OverrideState::NoOverride;
 MotorState motorState = MotorState::Error;
 
-uint8_t profileNum = 0;
+uint8_t nextProfileNum = 0;
 uint8_t profileHalf = 0;
 
 uint32_t stageTimeout = 0;
@@ -196,11 +195,7 @@ void setup() {
   digitalWrite(PIN_MOTOR_SUCK, LOW);
 
   // Set up radio and packets
-  clearPacketPayloads();
-  packets[0][PKT_IDX_TEAM_NUM] = TEAM_NUM;
-  packets[0][PKT_IDX_PROFILE_HALF] = 0;
-  packets[1][PKT_IDX_TEAM_NUM] = TEAM_NUM;
-  packets[1][PKT_IDX_PROFILE_HALF] = 1;
+  resetPackets(0);
   initRadio();
 
   initPressureSensor();
@@ -355,16 +350,15 @@ void startStageWaitDeploying() {
 void startStageDescending() {
   Serial.println("Stage: Descending");
   stage = StageType::Descending;
-  stageTimeout = millis() + DESCEND_TIME + HOLD_TIME;
+  stageTimeout = millis() + DESCEND_TIME;
+  Serial.print("Ascend time: ");
+  Serial.println(stageTimeout);
 
   setLedColor(COLOR_DESCENDING);
 
-  // Set up pressure logging
-  clearPacketPayloads();
-  packets[0][PKT_IDX_TEAM_NUM] = TEAM_NUM;
-  packets[0][PKT_IDX_PROFILE_HALF] = 0;
-  packets[1][PKT_IDX_TEAM_NUM] = TEAM_NUM;
-  packets[1][PKT_IDX_PROFILE_HALF] = 1;
+  resetPackets(nextProfileNum);
+  nextProfileNum = !nextProfileNum;
+
   taskRecordPressure.enable();
 
   // Init Kalman filter
@@ -440,13 +434,11 @@ float getDepth() {
 
 void transmitPacketsCallback() {
   for (int half = 0; half < 2; half++) {
-    serialPrintf("Sending packet #%d half %d with content {", profileNum, half);
+    serialPrintf("Sending packet #%d half %d with content {", packets[half][PKT_IDX_PROFILE_NUM], half);
     for (int p = 0; p < PKT_LEN; p++) {
       serialPrintf("%d, ", packets[half][p]);
     }
     Serial.println("}");
-
-    packets[half][PKT_IDX_PROFILE_NUM] = profileNum;
 
     rf95.send(packets[half], PKT_LEN);
     rf95.waitPacketSent();
@@ -786,6 +778,17 @@ void clearPacketPayloads() {
       packets[half][i] = 0;
     }
   }
+}
+
+void resetPackets(uint8_t profileNum) {
+  clearPacketPayloads();
+
+  packets[0][PKT_IDX_TEAM_NUM] = TEAM_NUM;
+  packets[0][PKT_IDX_PROFILE_HALF] = 0;
+  packets[0][PKT_IDX_PROFILE_NUM] = profileNum;
+  packets[1][PKT_IDX_TEAM_NUM] = TEAM_NUM;
+  packets[1][PKT_IDX_PROFILE_HALF] = 1;
+  packets[1][PKT_IDX_PROFILE_NUM] = profileNum;
 }
 
 void setLedColor(COLOR color) {
