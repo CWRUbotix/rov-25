@@ -90,6 +90,8 @@ R2PRESS_PERCENT = 5
 
 CONTROLLER_PROFILE_PARAM = 'controller_profile'
 
+MANIP_TOGGLE_MODE = True
+
 
 @dataclass
 class ManipButton:
@@ -312,11 +314,15 @@ class MavlinkManualControlNode(Node):
         buttons = joy_state.buttons
         for button_id, manip_button in self.manip_buttons.items():
             just_pressed = buttons[button_id] == PRESSED
-            if manip_button.last_button_state is False and just_pressed:
+
+            if MANIP_TOGGLE_MODE and manip_button.last_button_state is False and just_pressed:
                 new_manip_state = not manip_button.is_active
                 manip_button.is_active = new_manip_state
-                manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
-                self.manip_publisher.publish(manip_msg)
+            elif not MANIP_TOGGLE_MODE and manip_button.last_button_state != just_pressed:
+                manip_button.is_active = just_pressed
+
+            manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
+            self.manip_publisher.publish(manip_msg)
 
             manip_button.last_button_state = just_pressed
 
