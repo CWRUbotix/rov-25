@@ -9,6 +9,7 @@ class CarpModelTab(QWidget):
         super().__init__()
 
         root_layout = QVBoxLayout()
-        root_layout.addWidget(CarpAnimation(),
-                              alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        root_layout.addWidget(
+            CarpAnimation(), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
         self.setLayout(root_layout)

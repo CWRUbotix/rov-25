@@ -7,8 +7,8 @@ from gui.widgets.flood_warning import FloodWarning
 from gui.widgets.heartbeat import HeartbeatWidget
 from gui.widgets.ip_widget import IPWidget
 from gui.widgets.logger import Logger
-from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.tabs.carp_model_tab import CarpModelTab
+from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.tabs.photosphere_tab import PhotosphereTab
 from gui.widgets.tabs.shipwreck import ShipwreckTab
 from gui.widgets.temperature import TemperatureSensor

@@ -8,14 +8,16 @@ from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QPushButton, QVBoxLa
 START_YEAR = 2016
 END_YEAR = 2025
 
+
 class AnimationLabel(QLabel):
     def __init__(self, year_list: list[int], interval: int = 2000) -> None:
         super().__init__()
         self.year = START_YEAR
         self.year_list = year_list
 
-        map_path = str(Path(get_package_share_directory('gui')) / \
-                       'images' / 'illinois_river_map_0.png')
+        map_path = str(
+            Path(get_package_share_directory('gui')) / 'images' / 'illinois_river_map_0.png'
+        )
         map_pixmap = QPixmap(map_path)
         self.setPixmap(
             map_pixmap.scaled(
@@ -30,15 +32,17 @@ class AnimationLabel(QLabel):
         self.timer.timeout.connect(self.update_frame)
         self.timer.start(interval)  # in milliseconds
 
-
     def update_frame(self) -> None:
         region = 0
         for year in self.year_list:
             if self.year >= year:
                 region += 1
 
-        map_path = str(Path(get_package_share_directory('gui')) / 'images' /
-                       ('illinois_river_map_' + str(region) + '.png'))
+        map_path = str(
+            Path(get_package_share_directory('gui'))
+            / 'images'
+            / ('illinois_river_map_' + str(region) + '.png')
+        )
 
         map_pixmap = QPixmap(map_path)
 
@@ -59,6 +63,7 @@ class AnimationLabel(QLabel):
 
         self.year += 1
         self.year = min(self.year, END_YEAR)
+
 
 class CarpAnimation(QWidget):
     def __init__(self) -> None:
