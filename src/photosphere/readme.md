@@ -1,0 +1,5 @@
+ - https://www.arducam.com/product/12mp-usb-camera-module-with-m12-lens-1-2-3-3840hx3032v-4k15fps-for-windows-linux-macos-and-android/
+ - https://docs.arducam.com/UVC-Camera/Quick-Start-Guide(USB2)/Linux/
+ - https://docs.opencv.org/3.4/d8/dfe/classcv_1_1VideoCapture.html#a473055e77dd7faa4d26d686226b292c1
+ - https://docs.opencv.org/3.4/d4/d15/group__videoio__flags__base.html#gaeb8dd9c89c10a5c63c139bf7c4f5704d
+ - https://docs.opencv.org/3.4/dd/d9e/classcv_1_1VideoWriter.html#afec93f94dc6c0b3e28f4dd153bc5a7f0

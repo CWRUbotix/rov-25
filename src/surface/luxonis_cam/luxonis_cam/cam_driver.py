@@ -14,9 +14,21 @@ from rclpy.publisher import Publisher
 from rclpy.qos import QoSPresetProfiles
 from sensor_msgs.msg import Image
 
+from rov_msgs.msg import Intrinsics
 from rov_msgs.srv import CameraManage
 
 Matlike = NDArray[generic]
+
+
+LEFT_CAM_SOCKET = depthai.CameraBoardSocket.CAM_A
+RIGHT_CAM_SOCKET = depthai.CameraBoardSocket.CAM_D
+
+MISSED_SENDS_RESET_THRESHOLD = 5
+
+# FRAME_WIDTH = 1280
+# FRAME_HEIGHT = 800
+FRAME_WIDTH = 640
+FRAME_HEIGHT = 400
 
 
 class StreamTopic(StrEnum):
@@ -212,12 +224,35 @@ class LuxonisCamDriverNode(Node):
         self.cam_manage_service = self.create_service(
             CameraManage, 'manage_luxonis', self.cam_manage_callback
         )
+        self.intrinsics_publishers = (
+            self.create_publisher(
+                Intrinsics, 'luxonis_left_intrinsics', QoSPresetProfiles.DEFAULT.value
+            ),
+            self.create_publisher(
+                Intrinsics, 'luxonis_right_intrinsics', QoSPresetProfiles.DEFAULT.value
+            ),
+        )
 
-        self.create_pipeline()
+        self.deploy_pipeline()
+
+        calib_data = self.device.readCalibration()
+        focal_lengths_mm = [0.0, 0.0]
+        self.intrinsics: list[list[list[float]]] = []
+        try:
+            for i, cam in enumerate((LEFT_CAM_SOCKET, RIGHT_CAM_SOCKET)):
+                # 3um/px (https://docs.luxonis.com/hardware/sensors/OV9782)
+                # / 1000 to get mm
+                self.intrinsics.append(calib_data.getCameraIntrinsics(cam))
+                focal_lengths_mm[i] = self.intrinsics[-1][0][0] * 3 / 1000
+            self.get_logger().info(f'Focal lengths: {focal_lengths_mm}')
+        except IndexError:
+            self.get_logger().warn('Unable to get Luxonis intrinsics. Did you calibrate?')
 
         self.frame_publishers = FramePublishers(self)
 
         self.get_logger().info('Pipeline created')
+
+        self.missed_sends = 0
 
     def cam_manage_callback(
         self, request: CameraManage.Request, response: CameraManage.Response
@@ -249,16 +284,16 @@ class LuxonisCamDriverNode(Node):
 
         return response
 
-    def create_pipeline(self) -> None:
+    def deploy_pipeline(self) -> None:
         """Create a depthai pipeline and deploy it to the camera."""
         pipeline = depthai.Pipeline()
 
         left_cam_node = pipeline.createColorCamera()
-        left_cam_node.setBoardSocket(depthai.CameraBoardSocket.CAM_D)
+        left_cam_node.setBoardSocket(LEFT_CAM_SOCKET)
         left_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
 
         right_cam_node = pipeline.createColorCamera()
-        right_cam_node.setBoardSocket(depthai.CameraBoardSocket.CAM_A)
+        right_cam_node.setBoardSocket(RIGHT_CAM_SOCKET)
         right_cam_node.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_800_P)
         right_cam_node.initialControl.setMisc('3a-follow', depthai.CameraBoardSocket.CAM_D.value)
 
@@ -281,7 +316,7 @@ while True:
         if frame is not None and enabled_flags[i]:
             node.io[frame_output].send(frame)
 """
-        self.get_logger().info('\nScript:\n"""' + script_str + '"""\n')
+        # self.get_logger().info('\nScript:\n"""' + script_str + '"""\n')
         script.setScript(script_str)
 
         for node, meta in zip(
@@ -290,13 +325,13 @@ while True:
             strict=True,
         ):
             # Camera frame reader -> script [script_input_name]
-            node.setPreviewSize(640, 400)
+            node.setPreviewSize(FRAME_WIDTH, FRAME_HEIGHT)
             node.setInterleaved(False)
             node.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
             node.preview.link(script.inputs[meta.script_topics.script_input_name])
 
         stereo_node = pipeline.create(depthai.node.StereoDepth)
-        stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
+        stereo_node.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)
 
         for names in self.script_topics:
             # Camera toggler -> script [script_toggle_name]
@@ -344,7 +379,7 @@ while True:
                 )
                 # Uncomment to get more details about errors
                 # These are usually just "the cam is disconnected", but can be other things
-                # self.get_logger().warning(e)
+                # self.get_logger().warning(str(e))
                 continue
             break
 
@@ -363,26 +398,56 @@ while True:
 
     def spin(self) -> None:
         """Run one iteration of I/O with the Luxonis cam."""
-        # TODO: only send toggles when we actually need to change state?
-        for cam_id, output_queue in self.frame_output_queues.items():
-            if self.stream_metas[cam_id].enabled:
-                self.frame_publishers.try_get_publish(self.stream_metas[cam_id].topic, output_queue)
+        if len(self.intrinsics) == len(self.intrinsics_publishers):
+            # Only publish intrinsics if they've been set (cam is calibrated)
+            for intrinsics, publisher in zip(
+                self.intrinsics, self.intrinsics_publishers, strict=True
+            ):
+                publisher.publish(
+                    Intrinsics(
+                        fx=intrinsics[0][0],
+                        fy=intrinsics[1][1],
+                        x0=intrinsics[0][2],
+                        y0=intrinsics[1][2],
+                        s=intrinsics[0][1],
+                    )
+                )
 
-        enable_stereo = False
-        for cam_id in STREAMS_THAT_NEED_STEREO:
-            if self.stream_metas[cam_id].enabled:
-                enable_stereo = True
-                break
+        try:
+            # TODO: only send toggles when we actually need to change state?
+            for cam_id, output_queue in self.frame_output_queues.items():
+                if self.stream_metas[cam_id].enabled:
+                    self.frame_publishers.try_get_publish(
+                        self.stream_metas[cam_id].topic, output_queue
+                    )
 
-        buf = depthai.Buffer()  # TODO: can we create this once and reuse?
-        buf.setData([1 if enable_stereo else 0])
-        self.left_stereo_toggle_queue.send(buf)
-        self.right_stereo_toggle_queue.send(buf)
+            enable_stereo = False
+            for cam_id in STREAMS_THAT_NEED_STEREO:
+                if self.stream_metas[cam_id].enabled:
+                    enable_stereo = True
+                    break
 
-        for cam_id, toggle_queue in self.toggle_queues.items():
-            buf = depthai.Buffer()
-            buf.setData([1 if self.stream_metas[cam_id].enabled else 0])
-            toggle_queue.send(buf)
+            buf = depthai.Buffer()  # TODO: can we create this once and reuse?
+            buf.setData([1 if enable_stereo else 0])
+            self.left_stereo_toggle_queue.send(buf)
+            self.right_stereo_toggle_queue.send(buf)
+
+            for cam_id, toggle_queue in self.toggle_queues.items():
+                buf = depthai.Buffer()
+                buf.setData([1 if self.stream_metas[cam_id].enabled else 0])
+                toggle_queue.send(buf)
+
+            self.missed_sends = 0
+        except RuntimeError:
+            self.missed_sends += 1
+            self.get_logger().warn('Missed a dual cam spin')
+
+        if self.missed_sends >= MISSED_SENDS_RESET_THRESHOLD:
+            self.get_logger().error(
+                f'Missed >= {MISSED_SENDS_RESET_THRESHOLD} dual cam spins, redeploying'
+            )
+            self.deploy_pipeline()
+            self.missed_sends = 0
 
         # disparity_frame = self.disparity_queue.tryGet()
 

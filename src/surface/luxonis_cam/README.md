@@ -36,7 +36,7 @@ Stereo computations required (computationaly expensive for Luxonis cam's onboard
 
     Rectified left eye Luxonis stream.
 
-* **`/surface/rect_eight/image_raw`** ([sensor_msgs/msg/Image])
+* **`/surface/rect_right/image_raw`** ([sensor_msgs/msg/Image])
 
     Rectified right eye Luxonis stream.
 

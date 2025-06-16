@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>photosphere</name>
+  <version>1.2.0</version>
+  <description>Mate ROV photosphere creation code</description>
+  <maintainer email="svg33@case.edu">Shannon Griswold</maintainer>
+  <license>Apache License 2.0</license>
+
+  <depend>rclpy</depend>
+  <depend>rov_msgs</depend>
+
+
+  <exec_depend>python3-paramiko</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+
+  <test_depend>ament_mypy</test_depend>
+  <test_depend>python3-pre-commit</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

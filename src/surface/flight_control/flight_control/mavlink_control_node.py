@@ -2,9 +2,11 @@ import math
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 import rclpy
 import rclpy.utilities
+from ament_index_python.packages import get_package_prefix
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
@@ -14,6 +16,7 @@ from rov_msgs.srv import VehicleArming
 
 os.environ['MAVLINK20'] = '1'  # Force mavlink 2.0 for pymavlink
 from pymavlink import mavutil
+from pymavlink.dialects.v20.ardupilotmega import MAVLink_heartbeat_message
 
 os.environ['SDL_VIDEODRIVER'] = 'dummy'
 os.environ['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1'
@@ -47,11 +50,11 @@ SERVO_CENTER = 1500
 SERVO_MIN = 500
 SERVO_MAX = 2500
 SERVO_TURN_RATE = 500
-SERVO_PRESET_UP = 500
-SERVO_PRESET_DOWN = 1500
+SERVO_PRESET_UP = 970
+SERVO_PRESET_DOWN = 1550
 # If True each button corresponds to a preset
 # If false one button moves gradually up and one moves gradually down
-SERVO_USE_PRESETS = False
+SERVO_USE_PRESETS = True
 
 UNPRESSED = 0
 PRESSED = 1
@@ -131,6 +134,8 @@ CONTROLLER_PROFILES = (
     ),
 )
 
+CRITICAL_STATE_TRIGGER = 15
+
 
 class MavlinkManualControlNode(Node):
     def __init__(self) -> None:
@@ -184,7 +189,17 @@ class MavlinkManualControlNode(Node):
 
         self.vehicle_state = VehicleState(pi_connected=False, ardusub_connected=False, armed=False)
 
-        self.timer = self.create_timer(1 / MAVLINK_POLL_RATE, self.poll_mavlink)
+        self.wrote_params = False
+        self.param_path = (
+            Path(get_package_prefix('flight_control').split('install')[0])
+            / 'src'
+            / 'surface'
+            / 'flight_control'
+            / 'params'
+            / 'thrusters.params'
+        )
+
+        self.critical_state_count = CRITICAL_STATE_TRIGGER
 
     def controller_callback(self, joy_state: JoystickState) -> None:
         """Handle a joystick update.
@@ -413,6 +428,77 @@ class MavlinkManualControlNode(Node):
             self.vehicle_state = new_state
             self.state_publisher.publish(new_state)
 
+    def try_load_parameters(self) -> None:
+        """Attempt to upload parameter file to ardusub."""
+        try:
+            with Path.open(self.param_path) as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            self.get_logger().warn('Could not load params file')
+
+        for line in lines:
+            stripped_line = line.strip()
+            if len(stripped_line) == 0 or stripped_line.startswith('#'):
+                continue
+            _, _, param_name, param_val, param_type = stripped_line.split('	')
+            print(param_name, param_val, param_type)
+            self.mavlink.param_set_send(
+                parm_name=param_name, parm_value=float(param_val), parm_type=int(param_type)
+            )
+        self.get_logger().info('Wrote mavlink parameters')
+
+    def parse_heartbeat_for_state(
+        self, mavlink_msg: MAVLink_heartbeat_message, current_state: VehicleState
+    ) -> VehicleState:
+        """Parse a single mavlink heartbeat message to find the vehicle state.
+
+        Parameters
+        ----------
+        mavlink_msg: MAVLink_heartbeat_message
+            The mavlink message
+        current_state : VehicleState
+            The previous vehicle state
+
+        Returns
+        -------
+        VehicleState
+            The updated state of the vehicle
+        """
+        new_state = VehicleState(
+            pi_connected=current_state.pi_connected,
+            ardusub_connected=current_state.ardusub_connected,
+            armed=current_state.armed,
+        )
+
+        self.last_ardusub_heartbeat = time.time()
+
+        if not self.wrote_params:
+            # Upload params to ardusub
+            self.try_load_parameters()
+            self.wrote_params = True
+
+        new_state.ardusub_connected = True
+        if not self.vehicle_state.ardusub_connected:
+            self.get_logger().info('Ardusub connected')
+
+        if mavlink_msg.system_status == mavutil.mavlink.MAV_STATE_ACTIVE:
+            new_state.armed = True
+            if not self.vehicle_state.armed:
+                self.get_logger().info('Vehicle armed')
+        elif mavlink_msg.system_status == mavutil.mavlink.MAV_STATE_STANDBY:
+            new_state.armed = False
+            if self.vehicle_state.armed:
+                self.get_logger().info('Vehicle disarmed')
+        elif mavlink_msg.system_status == mavutil.mavlink.MAV_STATE_CRITICAL:
+            self.critical_state_count += 1
+            if self.critical_state_count >= CRITICAL_STATE_TRIGGER:
+                self.critical_state_count = 0
+                self.get_logger().info('Vehicle in failsafe mode (no input received)')
+        else:
+            self.get_logger().warning(f'Unknown ardusub state: {mavlink_msg.system_status}')
+
+        return new_state
+
     def poll_mavlink_for_new_state(self) -> VehicleState:
         """Read incoming mavlink messages to determine the state of the vehicle.
 
@@ -435,23 +521,8 @@ class MavlinkManualControlNode(Node):
                 or mavlink_msg.get_type() != 'HEARTBEAT'
             ):
                 continue
+            new_state = self.parse_heartbeat_for_state(mavlink_msg, new_state)
 
-            self.last_ardusub_heartbeat = time.time()
-
-            new_state.ardusub_connected = True
-            if not self.vehicle_state.ardusub_connected:
-                self.get_logger().info('Ardusub connected')
-
-            if mavlink_msg.system_status == mavutil.mavlink.MAV_STATE_ACTIVE:
-                new_state.armed = True
-                if not self.vehicle_state.armed:
-                    self.get_logger().info('Vehicle armed')
-            elif mavlink_msg.system_status == mavutil.mavlink.MAV_STATE_STANDBY:
-                new_state.armed = False
-                if self.vehicle_state.armed:
-                    self.get_logger().info('Vehicle disarmed')
-            else:
-                self.get_logger().warning(f'Unknown ardusub state: {mavlink_msg.system_status}')
         return new_state
 
     def pi_heartbeat_callback(self, _: Heartbeat) -> None:

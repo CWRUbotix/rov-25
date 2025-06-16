@@ -1,3 +1,4 @@
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QHBoxLayout, QTabWidget, QVBoxLayout, QWidget
 
 from gui.app import App
@@ -8,11 +9,17 @@ from gui.widgets.ip_widget import IPWidget
 from gui.widgets.logger import Logger
 from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.tabs.carp_model_tab import CarpModelTab
+from gui.widgets.tabs.photosphere_tab import PhotosphereTab
+from gui.widgets.tabs.shipwreck import ShipwreckTab
 from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.timer import InteractiveTimer
 
+SHIPWRECK_TEXT = 'Shipwreck'
+
 
 class OperatorApp(App):
+    changed_tabs = pyqtSignal(int)
+
     def __init__(self) -> None:
         super().__init__('operator_gui_node')
 
@@ -46,11 +53,23 @@ class OperatorApp(App):
         root_layout = QVBoxLayout()
         self.setLayout(root_layout)
 
-        tabs = QTabWidget()
-        tabs.addTab(main_tab, 'Main')
-        tabs.addTab(GeneralDebugTab(), 'General Debug')
-        tabs.addTab(CarpModelTab(), 'Carp Model')
-        root_layout.addWidget(tabs)
+        self.tabs = QTabWidget()
+        self.tabs.addTab(main_tab, 'Main')
+        self.tabs.addTab(GeneralDebugTab(), 'General Debug')
+        self.tabs.addTab(PhotosphereTab(), 'Photosphere')
+        self.tabs.addTab(CarpModelTab(), 'Carp Model')
+        self.shipwreck_tab = ShipwreckTab()
+        self.tabs.addTab(self.shipwreck_tab, SHIPWRECK_TEXT)
+        self.tabs.currentChanged.connect(self.changed_tabs)
+        root_layout.addWidget(self.tabs)
+
+        self.changed_tabs.connect(self.tab_change_slot)
+
+    @pyqtSlot(int)
+    def tab_change_slot(self, index: int) -> None:
+        if self.tabs.tabText(index) == SHIPWRECK_TEXT:
+            # Allow keyboard events
+            self.shipwreck_tab.setFocus(Qt.FocusReason.TabFocusReason)
 
 
 def run_gui_operator() -> None:
