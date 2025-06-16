@@ -50,14 +50,17 @@ class PhotosphereTab(QWidget):
 
         self.take_photos_button = ButtonIndicator('Take Photos')
         self.take_photos_button.clicked.connect(
-            lambda: self.take_photo_clicked(TakePhotosphere.Request.BOTH))
+            lambda: self.take_photo_clicked(TakePhotosphere.Request.BOTH)
+        )
 
         self.take_cam0_button = ButtonIndicator('Take 0')
         self.take_cam1_button = ButtonIndicator('Take 1')
         self.take_cam0_button.clicked.connect(
-            lambda: self.take_photo_clicked(cam=TakePhotosphere.Request.CAM0))
+            lambda: self.take_photo_clicked(cam=TakePhotosphere.Request.CAM0)
+        )
         self.take_cam1_button.clicked.connect(
-            lambda: self.take_photo_clicked(cam=TakePhotosphere.Request.CAM1))
+            lambda: self.take_photo_clicked(cam=TakePhotosphere.Request.CAM1)
+        )
 
         self.photo_buttons: dict[int, tuple[ButtonIndicator, ...]] = {
             TakePhotosphere.Request.CAM0: (self.take_cam0_button,),
@@ -94,7 +97,7 @@ class PhotosphereTab(QWidget):
         GUINode().send_request_multithreaded(
             self.take_photos_client,
             TakePhotosphere.Request(cam=cam),
-            self.take_photos_response_signal
+            self.take_photos_response_signal,
         )
 
     def generate_clicked(self) -> None:
@@ -121,9 +124,10 @@ class PhotosphereTab(QWidget):
         elif res.success:
             for button in self.photo_buttons[res.cam]:
                 button.set_state(WidgetState.ON)
-            if self.generate_button.current_state == WidgetState.INACTIVE and \
-                all(button.current_state == WidgetState.ON for button in
-                     self.photo_buttons[TakePhotosphere.Request.BOTH]):
+            if self.generate_button.current_state == WidgetState.INACTIVE and all(
+                button.current_state == WidgetState.ON
+                for button in self.photo_buttons[TakePhotosphere.Request.BOTH]
+            ):
                 self.generate_button.set_state(WidgetState.NONE)
         else:
             for button in self.photo_buttons[res.cam]:

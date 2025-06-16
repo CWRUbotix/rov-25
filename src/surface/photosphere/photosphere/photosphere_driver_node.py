@@ -18,13 +18,16 @@ PASSWORD = 'rov12345'  # noqa: S105
 CONNECT_TIMEOUT = 8  # Seconds to log in
 
 # TAKE_PICS_CMD = 'bash /home/rov/rov-25/src/photosphere/take_images.sh'
-TAKE_PICS_TEMPLATE = ('fswebcam -d /dev/video{video_num} -r 3840x3032 --skip 10 --scale 3840x3032 '
-                      '--no-banner /home/rov/rov-25/src/photosphere/images/cam{cam_num}.jpg')
+TAKE_PICS_TEMPLATE = (
+    'fswebcam -d /dev/video{video_num} -r 3840x3032 --skip 10 --scale 3840x3032 '
+    '--no-banner /home/rov/rov-25/src/photosphere/images/cam{cam_num}.jpg'
+)
 TAKE_PICS_CMDS = {
     TakePhotosphere.Request.CAM0: TAKE_PICS_TEMPLATE.format(video_num=0, cam_num=0),
     TakePhotosphere.Request.CAM1: TAKE_PICS_TEMPLATE.format(video_num=2, cam_num=1),
-    TakePhotosphere.Request.BOTH: TAKE_PICS_TEMPLATE.format(video_num=0, cam_num=0) + '\n' + \
-                                  TAKE_PICS_TEMPLATE.format(video_num=2, cam_num=1),
+    TakePhotosphere.Request.BOTH: TAKE_PICS_TEMPLATE.format(video_num=0, cam_num=0)
+    + '\n'
+    + TAKE_PICS_TEMPLATE.format(video_num=2, cam_num=1),
 }
 
 PIC_FILE_NAMES = {
