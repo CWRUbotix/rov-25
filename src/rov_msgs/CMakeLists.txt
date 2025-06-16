@@ -45,6 +45,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/MissionTimerSet.srv"
   "srv/CameraManage.srv"
   "srv/VehicleArming.srv"
+  "srv/TakePhotosphere.srv"
   DEPENDENCIES std_msgs
 )
 
