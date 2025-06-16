@@ -314,15 +314,21 @@ class MavlinkManualControlNode(Node):
         buttons = joy_state.buttons
         for button_id, manip_button in self.manip_buttons.items():
             just_pressed = buttons[button_id] == PRESSED
+            was_active = manip_button.is_active
 
-            if MANIP_TOGGLE_MODE and manip_button.last_button_state is False and just_pressed:
-                new_manip_state = not manip_button.is_active
-                manip_button.is_active = new_manip_state
-            elif not MANIP_TOGGLE_MODE and manip_button.last_button_state != just_pressed:
-                manip_button.is_active = just_pressed
+            if MANIP_TOGGLE_MODE:
+                if manip_button.last_button_state is False and just_pressed:
+                    new_manip_state = not manip_button.is_active
+                    manip_button.is_active = new_manip_state
+            else:
+                # For some reason you need to send activated: true to turn the relay board off and
+                # activated: false to turn it on, but it's right before comp so instead of fixing
+                # that I'm just inverting it here :)
+                manip_button.is_active = not just_pressed
 
-            manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
-            self.manip_publisher.publish(manip_msg)
+            if was_active != manip_button.is_active:
+                manip_msg = Manip(manip_id=manip_button.claw, activated=manip_button.is_active)
+                self.manip_publisher.publish(manip_msg)
 
             manip_button.last_button_state = just_pressed
 
