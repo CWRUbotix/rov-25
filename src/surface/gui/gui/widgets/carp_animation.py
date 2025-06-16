@@ -1,19 +1,21 @@
 from pathlib import Path
 
-from typing import List
-
 from ament_index_python.packages import get_package_share_directory
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor, QFont
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget, QPushButton, QComboBox
+from PyQt6.QtGui import QColor, QFont, QPainter, QPen, QPixmap
+from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+
+START_YEAR = 2016
+END_YEAR = 2025
 
 class AnimationLabel(QLabel):
-    def __init__(self, year_list: List[int], interval=1000):
+    def __init__(self, year_list: list[int], interval: int = 2000) -> None:
         super().__init__()
-        self.year = 2015
+        self.year = START_YEAR
         self.year_list = year_list
 
-        map_path = str(Path(get_package_share_directory('gui')) / 'images' / 'Illinois River Map 0.png')
+        map_path = str(Path(get_package_share_directory('gui')) / \
+                       'images' / 'illinois_river_map_0.png')
         map_pixmap = QPixmap(map_path)
         self.setPixmap(
             map_pixmap.scaled(
@@ -29,21 +31,22 @@ class AnimationLabel(QLabel):
         self.timer.start(interval)  # in milliseconds
 
 
-    def update_frame(self):
+    def update_frame(self) -> None:
         region = 0
         for year in self.year_list:
             if self.year >= year:
                 region += 1
 
-        map_path = str(Path(get_package_share_directory('gui')) / 'images' / ('Illinois River Map ' + str(region) + '.png'))
+        map_path = str(Path(get_package_share_directory('gui')) / 'images' /
+                       ('illinois_river_map_' + str(region) + '.png'))
 
         map_pixmap = QPixmap(map_path)
 
         painter = QPainter(map_pixmap)
-        pen = QPen(QColor("black"))
-        painter.setFont(QFont("Arial", 20))
+        pen = QPen(QColor('black'))
+        painter.setFont(QFont('Arial', 50))
         painter.setPen(pen)
-        painter.drawText(20, 40, str(self.year))
+        painter.drawText(20, 60, str(self.year))
         painter.end()
         self.setPixmap(
             map_pixmap.scaled(
@@ -54,7 +57,8 @@ class AnimationLabel(QLabel):
             )
         )
 
-        self.year = ((self.year - 2016 + 1) % 10) + 2016
+        self.year += 1
+        self.year = min(self.year, END_YEAR)
 
 class CarpAnimation(QWidget):
     def __init__(self) -> None:
@@ -64,43 +68,33 @@ class CarpAnimation(QWidget):
 
         input_layout = QVBoxLayout()
 
-        self.dropdown_list: List[QComboBox] = []
+        self.dropdown_list: list[QComboBox] = []
 
         for _ in range(5):
             dropdown = QComboBox()
-            options = list(map(str,range(2016,2026))) # Generate list of years [2016,2025]
+            # List of years [2016,2025]
+            options = list(map(str, range(2016, 2026)))
+            options.append('9999')
             dropdown.addItems(options)
+            dropdown.setCurrentIndex(len(options) - 1)
             self.dropdown_list.append(dropdown)
             input_layout.addWidget(dropdown)
 
         self.setLayout(self.root_layout)
 
-        show_button = QPushButton("Show Animation", None)
+        show_button = QPushButton('Show Animation', None)
 
         input_layout.addWidget(show_button)
-        
+        input_layout.addStretch()
+
         self.root_layout.addLayout(input_layout)
 
-        show_button.clicked.connect(self.showAnimation)
-        # root_layout.addSpacing(10)
+        show_button.clicked.connect(self.show_animation)
 
-        # text_vbox = QVBoxLayout()
-        # title_label = QLabel('Explorer Team 25 - CWRUbotix')
-        # title_label.setStyleSheet('QLabel { font-size: 35px; }')
-        # title_label.setAlignment(Qt.AlignmentFlag.AlignAbsolute)
-        # text_vbox.addWidget(title_label)
+        self.animation_label: AnimationLabel | None = None
 
-        # subtitle_label = QLabel('Case Western Reserve University - Cleveland, Ohio')
-        # subtitle_label.setStyleSheet('QLabel { font-size: 20px; }')
-        # subtitle_label.setAlignment(Qt.AlignmentFlag.AlignAbsolute)
-        # text_vbox.addWidget(subtitle_label)
-
-        # root_layout.addLayout(text_vbox)
-    
-    def showAnimation(self):
+    def show_animation(self) -> None:
+        self.root_layout.removeWidget(self.animation_label)
         self.year_list = [int(dropdown.currentText()) for dropdown in self.dropdown_list]
-        animation_label = AnimationLabel(self.year_list)
-        self.root_layout.addWidget(animation_label)
-        
-
-        
+        self.animation_label = AnimationLabel(self.year_list)
+        self.root_layout.addWidget(self.animation_label)
