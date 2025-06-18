@@ -409,14 +409,21 @@ class MavlinkManualControlNode(Node):
             The state of the joystick buttons and axess
         """
         # MARK: PROC CAM BUTTONS
-        if joy_state.buttons[self.profile.cam_back_button] and not self.switch_cam_button_was_pressed:
+        if (
+            joy_state.buttons[self.profile.cam_back_button]
+            and not self.switch_cam_button_was_pressed
+        ):
             # Toggle back cam
             self.back_cam_mode = not self.back_cam_mode
-            self.get_logger().info(f"Back Cam Mode {self.back_cam_mode}")
+            self.get_logger().info(f'Back Cam Mode {self.back_cam_mode}')
             if self.back_cam_mode:
-                self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=1))
+                self.right_stream_switch_publisher.publish(
+                    VideoWidgetSwitch(relative=False, index=1)
+                )
             else:
-                self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=0))
+                self.right_stream_switch_publisher.publish(
+                    VideoWidgetSwitch(relative=False, index=0)
+                )
 
         self.switch_cam_button_was_pressed = joy_state.buttons[self.profile.cam_back_button]
 
