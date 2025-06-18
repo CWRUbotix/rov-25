@@ -30,7 +30,7 @@ JOYSTICK_POLL_RATE = 50  # Hz
 JOY_MAP_STRENGTH = 2
 
 GLOBAL_THROTTLE = 1.0  # From 0 to 1, lower numbers decrease the thrust in every direction
-PITCH_THROTTLE = 0.5  # From 0 to 1, stacks multiplicatively with GLOBAL_THROTTLE
+PITCH_THROTTLE = 0.3  # From 0 to 1, stacks multiplicatively with GLOBAL_THROTTLE
 
 # How often to check for new subscribers and send them the current state, Hz
 SUBSCRIBER_POLL_RATE = 2
