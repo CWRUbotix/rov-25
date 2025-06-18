@@ -31,7 +31,7 @@ class LivestreamHeader(QWidget):
         root_layout.addSpacing(10)
 
         text_vbox = QVBoxLayout()
-        title_label = QLabel('Explorer Team 25 - CWRUbotix')
+        title_label = QLabel('Explorer Team 09 - CWRUbotix')
         title_label.setStyleSheet('QLabel { font-size: 35px; }')
         title_label.setAlignment(Qt.AlignmentFlag.AlignAbsolute)
         text_vbox.addWidget(title_label)
