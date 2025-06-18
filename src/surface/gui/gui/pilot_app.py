@@ -35,13 +35,13 @@ THREE_MONITOR = 3
 # Use 1 or 2 to launch fullscreen on the corresponding monitor
 # Use `None` to launch in windowed mode
 TWO_MONITOR_CONFIG: dict[GuiType, int | None] = {
-    GuiType.PILOT: None,
-    GuiType.LIVESTREAM: 1,
+    GuiType.PILOT: 1,
+    GuiType.LIVESTREAM: None,
     GuiType.DEBUG: None,
 }
 THREE_MONITOR_CONFIG: dict[GuiType, int | None] = {
-    GuiType.PILOT: 2,
-    GuiType.LIVESTREAM: 1,
+    GuiType.PILOT: 1,
+    GuiType.LIVESTREAM: 2,
     GuiType.DEBUG: None,
 }
 
