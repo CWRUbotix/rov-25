@@ -103,6 +103,7 @@ def has_all_points(
         for eye in Eye
     )
 
+
 def format_length(length: float) -> str:
     return f'{length}, {length + SHIPWRECK_BOW_LENGTH_CM}'
 
@@ -488,8 +489,9 @@ class ShipwreckTab(QWidget):
         )
         self.underwater_length_label.setText(f'Length (mm): {format_length(uw_length)}')
 
-        self.scaled_length_label.setText('Length (mm): ' +
-                                         format_length(uw_length * LENGTH_SCALE_FACTOR))
+        self.scaled_length_label.setText(
+            'Length (mm): ' + format_length(uw_length * LENGTH_SCALE_FACTOR)
+        )
 
     @staticmethod
     def solve_stereo_projection(
