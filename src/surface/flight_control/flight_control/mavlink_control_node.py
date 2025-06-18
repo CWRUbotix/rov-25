@@ -50,8 +50,9 @@ SERVO_CENTER = 1500
 SERVO_MIN = 500
 SERVO_MAX = 2500
 SERVO_TURN_RATE = 500
-SERVO_PRESET_UP = 970
-SERVO_PRESET_DOWN = 1550
+SERVO_PRESET_UP = 770
+SERVO_PRESET_MIDDLE = 1200
+SERVO_PRESET_DOWN = 1650
 # If True each button corresponds to a preset
 # If false one button moves gradually up and one moves gradually down
 SERVO_USE_PRESETS = True
@@ -104,13 +105,13 @@ class ManipButton:
 class ControllerProfile:
     manip_left: int = L1
     manip_right: int = R1
-    servo_up: int = TRI_BUTTON
-    servo_down: int = SQUARE_BUTTON
+    servo_up: int = DPAD_RIGHT
+    servo_middle: int = DPAD_UP
+    servo_down: int = DPAD_LEFT
     roll_left: int = X_BUTTON  # positive roll
     roll_right: int = O_BUTTON  # negative roll
     arm_button: int = MENU
     disarm_button: int = PAIRING_BUTTON
-    cam_front_button: int = DPAD_UP
     cam_back_button: int = DPAD_DOWN
     lateral: int = LJOYX
     forward: int = LJOYY
@@ -181,6 +182,7 @@ class MavlinkManualControlNode(Node):
         )
 
         self.back_cam_mode = False
+        self.switch_cam_button_was_pressed = False
 
         self.servo_pwm = SERVO_PRESET_DOWN if SERVO_USE_PRESETS else SERVO_CENTER
 
@@ -276,6 +278,8 @@ class MavlinkManualControlNode(Node):
         if SERVO_USE_PRESETS:
             if buttons[self.profile.servo_up]:
                 self.servo_pwm = SERVO_PRESET_UP
+            elif buttons[self.profile.servo_middle]:
+                self.servo_pwm = SERVO_PRESET_MIDDLE
             elif buttons[self.profile.servo_down]:
                 self.servo_pwm = SERVO_PRESET_DOWN
         else:
@@ -405,14 +409,23 @@ class MavlinkManualControlNode(Node):
             The state of the joystick buttons and axess
         """
         # MARK: PROC CAM BUTTONS
-        # Camera switching uses the DPAD, currently not remapable with the controller profile system
-        # because DPADs are presented as axes not buttons and using any other axis is non-sensible
-        if joy_state.buttons[self.profile.cam_front_button]:
-            self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=0))
-            self.back_cam_mode = False
-        elif joy_state.buttons[self.profile.cam_back_button]:
-            self.right_stream_switch_publisher.publish(VideoWidgetSwitch(relative=False, index=1))
-            self.back_cam_mode = True
+        if (
+            joy_state.buttons[self.profile.cam_back_button]
+            and not self.switch_cam_button_was_pressed
+        ):
+            # Toggle back cam
+            self.back_cam_mode = not self.back_cam_mode
+            self.get_logger().info(f'Back Cam Mode {self.back_cam_mode}')
+            if self.back_cam_mode:
+                self.right_stream_switch_publisher.publish(
+                    VideoWidgetSwitch(relative=False, index=1)
+                )
+            else:
+                self.right_stream_switch_publisher.publish(
+                    VideoWidgetSwitch(relative=False, index=0)
+                )
+
+        self.switch_cam_button_was_pressed = joy_state.buttons[self.profile.cam_back_button]
 
     def poll_mavlink(self) -> None:
         """Check for incoming mavlink messages from the vehicle and send state updates if
