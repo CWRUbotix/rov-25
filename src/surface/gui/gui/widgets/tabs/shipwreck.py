@@ -49,6 +49,8 @@ DIVISION_SAFETY = 0.0001
 
 BLACK = QColor(Qt.GlobalColor.black)
 
+SHIPWRECK_BOW_LENGTH_CM = 30 + 16.6
+
 
 class Eye(IntEnum):
     LEFT = 0
@@ -100,6 +102,9 @@ def has_all_points(
         and all(point is not None for point in key_points[eye])
         for eye in Eye
     )
+
+def format_length(length: float) -> str:
+    return f'{length}, {length + SHIPWRECK_BOW_LENGTH_CM}'
 
 
 class ShipwreckTab(QWidget):
@@ -453,7 +458,7 @@ class ShipwreckTab(QWidget):
         self.world_points_label.setText(
             f'3D (mm): {"\t".join([str(point) for point in world_points])}'
         )
-        self.length_label.setText(f'Length (mm): {length}')
+        self.length_label.setText(f'Length (mm): {format_length(length)}')
 
         ds: dict[Eye, list[float]] = {Eye.LEFT: [], Eye.RIGHT: []}
         thetas: dict[Eye, list[float]] = {Eye.LEFT: [], Eye.RIGHT: []}
@@ -481,9 +486,10 @@ class ShipwreckTab(QWidget):
         self.underwater_world_points_label.setText(
             f'3D (mm): {"\t".join([str(point) for point in uw_world_points])}'
         )
-        self.underwater_length_label.setText(f'Length (mm): {uw_length}')
+        self.underwater_length_label.setText(f'Length (mm): {format_length(uw_length)}')
 
-        self.scaled_length_label.setText(f'Length (mm): {uw_length * LENGTH_SCALE_FACTOR}')
+        self.scaled_length_label.setText('Length (mm): ' +
+                                         format_length(uw_length * LENGTH_SCALE_FACTOR))
 
     @staticmethod
     def solve_stereo_projection(
