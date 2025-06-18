@@ -22,9 +22,7 @@ def generate_launch_description() -> LaunchDescription:
         launch_arguments=[('gui', 'livestream')],
     )
 
-    namespace_launch = GroupAction(
-        actions=[PushRosNamespace('surface'), livestream_launch]
-    )
+    namespace_launch = GroupAction(actions=[PushRosNamespace('surface'), livestream_launch])
 
     return LaunchDescription(
         [
