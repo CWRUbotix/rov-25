@@ -75,8 +75,8 @@ class DNA(QWidget):
             self.results = []
             with Path.open(self.filename.text(), 'r') as samples_file:
                 samples = samples_file.readlines()
-                for sample in samples:
-                    self.results.append(QLabel(self.search(sample)))
+                for i, sample in enumerate(samples):
+                    self.results.append(str(i+1) + ': ' + QLabel(self.search(sample)))
         else:
             self.results = [QLabel(self.search(self.sample.text()))]
 
