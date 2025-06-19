@@ -27,7 +27,8 @@ class DNA(QWidget):
 
         self.root_layout = QHBoxLayout()
 
-        input_layout = QVBoxLayout()
+        self.input_layout = QVBoxLayout()
+        self.output_layout = QVBoxLayout()
 
         file_picker_layout = QHBoxLayout()
 
@@ -46,18 +47,19 @@ class DNA(QWidget):
 
         self.setLayout(self.root_layout)
 
-        input_layout.addLayout(form)
+        self.input_layout.addLayout(form)
 
         file_picker_layout.addWidget(self.filename)
         file_picker_layout.addWidget(file_browse)
-        input_layout.addLayout(file_picker_layout)
+        self.input_layout.addLayout(file_picker_layout)
 
-        input_layout.addWidget(show_button)
-        input_layout.addStretch()
+        self.input_layout.addWidget(show_button)
+        self.input_layout.addStretch()
 
-        self.root_layout.addLayout(input_layout)
+        self.root_layout.addLayout(self.input_layout)
+        self.root_layout.addLayout(self.output_layout)
 
-        self.results: list[QLabel] | None = None
+        self.results: list[QLabel] = []
 
     def open_file_dialog(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(
@@ -70,22 +72,24 @@ class DNA(QWidget):
             self.filename.setText(self.text_file)
 
     def display_result(self) -> None:
-        self.root_layout.removeWidget(self.results)
+        for result in self.results:
+            self.output_layout.removeWidget(result)
+
         if self.filename.text():
             self.results = []
             with Path.open(self.filename.text(), 'r') as samples_file:
                 samples = samples_file.readlines()
                 for i, sample in enumerate(samples):
-                    self.results.append(str(i+1) + ': ' + QLabel(self.search(sample)))
+                    self.results.append(QLabel(str(i+1) + ': ' + self.search(sample)))
         else:
             self.results = [QLabel(self.search(self.sample.text()))]
 
         for result in self.results:
-            self.root_layout.addWidget(result)
+            self.output_layout.addWidget(result)
 
-    def search(self, samples: list[str]) -> str:
+    def search(self, sample: str) -> str:
         for (name, substr) in DNA_NEEDLES:
-            if samples.find(substr) != -1:
+            if sample.find(substr) != -1:
                 return name
 
         return 'No match'
