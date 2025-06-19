@@ -11,6 +11,7 @@ from gui.widgets.tabs.carp_model_tab import CarpModelTab
 from gui.widgets.tabs.general_debug_tab import GeneralDebugTab
 from gui.widgets.tabs.photosphere_tab import PhotosphereTab
 from gui.widgets.tabs.shipwreck import ShipwreckTab
+from gui.widgets.tabs.dna_tab import DNATab
 from gui.widgets.temperature import TemperatureSensor
 from gui.widgets.timer import InteractiveTimer
 
@@ -59,6 +60,7 @@ class OperatorApp(App):
         self.tabs.addTab(PhotosphereTab(), 'Photosphere')
         self.tabs.addTab(CarpModelTab(), 'Carp Model')
         self.shipwreck_tab = ShipwreckTab()
+        self.tabs.addTab(DNATab(), 'DNA Sample')
         self.tabs.addTab(self.shipwreck_tab, SHIPWRECK_TEXT)
         self.tabs.currentChanged.connect(self.changed_tabs)
         root_layout.addWidget(self.tabs)
