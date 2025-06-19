@@ -32,12 +32,14 @@ FRAME_HEIGHT = 400
 # Alias for easier access to LUX_LEFT/LUX_RIGHT/etc.
 CAM_IDS = CameraManage.Request
 
+
 class StreamTopic(StrEnum):
     LUX_RAW = 'lux_raw/image_raw'
     RECT_LEFT = 'rect_left/image_raw'
     RECT_RIGHT = 'rect_right/image_raw'
     DISPARITY = 'disparity/image_raw'
     DEPTH = 'depth/image_raw'
+
 
 class FramePublishers:
     """Singleton to manage publishing video frames."""
@@ -117,10 +119,10 @@ class FramePublishers:
         img_msg.header.stamp = time
         return img_msg
 
+
 class LuxonisCamDriverNode(Node):
     def __init__(self) -> None:
         super().__init__('luxonis_cam_driver', parameter_overrides=[])
-
 
         self.cam_manage_service = self.create_service(
             CameraManage, 'manage_luxonis', self.cam_manage_callback
@@ -198,8 +200,10 @@ class LuxonisCamDriverNode(Node):
             left_cam_node.isp.link(stereo_node.left)
             right_cam_node.isp.link(stereo_node.right)
 
-            for pair in ((stereo_node.rectifiedLeft, 'rect_left'),
-                         (stereo_node.rectifiedRight, 'rect_right')):
+            for pair in (
+                (stereo_node.rectifiedLeft, 'rect_left'),
+                (stereo_node.rectifiedRight, 'rect_right'),
+            ):
                 frame_xout = pipeline.create(depthai.node.XLinkOut)
                 frame_xout.setStreamName(pair[1])
                 frame_xout.input.setBlocking(False)
@@ -294,6 +298,7 @@ class LuxonisCamDriverNode(Node):
         """Free the device and any other resources."""
         if self.device:
             self.device.close()
+
 
 def main() -> None:
     rclpy.init()
