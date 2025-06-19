@@ -33,7 +33,7 @@
 // The encoder requires two adjacent pins on the PIO
 #define PIN_ENCODER 4
 
-const uint8_t TEAM_NUM = 0;
+const uint8_t TEAM_NUM = 9;
 const uint32_t PACKET_SEND_INTERVAL = 1000;
 const uint32_t FLOAT_PKT_RX_TIMEOUT = 10;
 const uint8_t JUDGE_PKT_SIZE = 30;
@@ -54,7 +54,7 @@ const uint32_t ONE_MINUTE = 60000;
 
 // Schedule timings (all delays in ms)
 const uint32_t AFTER_HOME_WAIT = 10'000;
-const uint32_t RELEASE_MAX = 8 * ONE_MINUTE;
+const uint32_t RELEASE_MAX = 10 * ONE_MINUTE;
 const uint32_t SUCK_MAX = PROFILE_SEGMENT;
 const uint32_t DESCEND_TIME = 4 * ONE_MINUTE;
 const uint32_t PUMP_MAX = PROFILE_SEGMENT;
