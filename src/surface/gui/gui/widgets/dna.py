@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pypdf import PdfReader
 from PyQt6.QtWidgets import (
     QFileDialog,
     QFormLayout,
@@ -64,7 +65,7 @@ class DNA(QWidget):
     def open_file_dialog(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(
             caption='Select a File',
-            filter='Text files (*.txt)'
+            filter='PDF files (*.pdf)'
         )
         if filename:
             path = Path(filename)
@@ -77,10 +78,9 @@ class DNA(QWidget):
 
         if self.filename.text():
             self.results = []
-            with Path.open(self.filename.text(), 'r') as samples_file:
-                samples = samples_file.readlines()
-                for i, sample in enumerate(samples):
-                    self.results.append(QLabel(str(i+1) + ': ' + self.search(sample)))
+            samples = self.find_samples("/home/bunando/Downloads/EX PN RN Sample eDNA profile 1.pdf")
+            for i, sample in enumerate(samples):
+                self.results.append(QLabel(str(i+1) + ': ' + self.search(sample)))
         else:
             self.results = [QLabel(self.search(self.sample.text()))]
 
@@ -94,4 +94,16 @@ class DNA(QWidget):
 
         return 'No match'
 
-
+    def find_samples(self, pdf_file: str) -> list[str]:
+        reader = PdfReader(pdf_file)
+        samples = []
+        for page in reader.pages:
+            text = page.extract_text()
+            last_index = 0
+            while text.find('Unknown Sample',last_index) != -1:
+                current_index = text.find('Unknown Sample', last_index) # Roughly identify location of next sample
+                sample_index = text.find('\n', current_index) + 1 # Find start of sample
+                sample_index_end = text.find(' \n', sample_index) # Find end of sample
+                samples.append(text[sample_index:sample_index_end].replace('\n', ''))
+                last_index = sample_index_end
+        return samples
