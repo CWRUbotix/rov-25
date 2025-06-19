@@ -160,8 +160,10 @@ class LuxonisCamDriverNode(Node):
         self.frame_publishers = FramePublishers(self)
 
         self.right_unrect_queue = self.device.getOutputQueue('right_eye')
-        self.rect_left_queue = self.device.getOutputQueue('rect_left')
-        self.rect_right_queue = self.device.getOutputQueue('rect_right')
+
+        if self.streaming_rectified:
+            self.rect_left_queue = self.device.getOutputQueue('rect_left')
+            self.rect_right_queue = self.device.getOutputQueue('rect_right')
 
     def deploy_pipeline(self) -> None:
         pipeline = depthai.Pipeline()
@@ -223,7 +225,7 @@ class LuxonisCamDriverNode(Node):
                 )
                 # Uncomment to get more details about errors
                 # These are usually just "the cam is disconnected", but can be other things
-                # self.get_logger().warning(str(e))
+                self.get_logger().warning(str(e))
                 continue
             break
 
@@ -247,14 +249,24 @@ class LuxonisCamDriverNode(Node):
         """
         response.success = True
 
-        if request.cam in (CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT):
+        if request.cam in (CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT) and not self.streaming_rectified:
+            self.device.close()
+
             self.get_logger().info('Luxonis now publishing: Rectified')
             self.streaming_rectified = True
             self.deploy_pipeline()
-        elif request.cam == CAM_IDS.LUX_RIGHT:
+
+            self.right_unrect_queue = self.device.getOutputQueue('right_eye')
+            self.rect_left_queue = self.device.getOutputQueue('rect_left')
+            self.rect_right_queue = self.device.getOutputQueue('rect_right')
+        elif request.cam == CAM_IDS.LUX_RIGHT and self.streaming_rectified:
+            self.device.close()
+
             self.get_logger().info('Luxonis now publishing: Raw')
             self.streaming_rectified = False
             self.deploy_pipeline()
+
+            self.right_unrect_queue = self.device.getOutputQueue('right_eye')
 
         return response
 
@@ -265,8 +277,11 @@ class LuxonisCamDriverNode(Node):
             self.frame_publishers.try_get_publish(StreamTopic.LUX_RAW, self.right_unrect_queue)
 
             if self.streaming_rectified:
-                self.frame_publishers.try_get_publish(StreamTopic.RECT_LEFT, self.rect_left_queue)
-                self.frame_publishers.try_get_publish(StreamTopic.RECT_RIGHT, self.rect_right_queue)
+                try:
+                    self.frame_publishers.try_get_publish(StreamTopic.RECT_LEFT, self.rect_left_queue)
+                    self.frame_publishers.try_get_publish(StreamTopic.RECT_RIGHT, self.rect_right_queue)
+                except AttributeError as e:
+                    return
         except RuntimeError:
             self.missed_sends += 1
             self.get_logger().warn('Missed a dual cam spin')
