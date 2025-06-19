@@ -218,7 +218,7 @@ class LuxonisCamDriverNode(Node):
         while True:
             try:
                 self.device = depthai.Device(pipeline).__enter__()
-            except RuntimeError as e:  # noqa: F841 (unused variable e for optional logging below)
+            except RuntimeError as e:
                 self.get_logger().warning(
                     'Error uploading to Luxonis cam, retrying '
                     '(see cam_driver to enable more details)...'
@@ -249,7 +249,10 @@ class LuxonisCamDriverNode(Node):
         """
         response.success = True
 
-        if request.cam in (CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT) and not self.streaming_rectified:
+        if (
+            request.cam in (CAM_IDS.LUX_LEFT_RECT, CAM_IDS.LUX_RIGHT_RECT)
+            and not self.streaming_rectified
+        ):
             self.device.close()
 
             self.get_logger().info('Luxonis now publishing: Rectified')
@@ -278,9 +281,13 @@ class LuxonisCamDriverNode(Node):
 
             if self.streaming_rectified:
                 try:
-                    self.frame_publishers.try_get_publish(StreamTopic.RECT_LEFT, self.rect_left_queue)
-                    self.frame_publishers.try_get_publish(StreamTopic.RECT_RIGHT, self.rect_right_queue)
-                except AttributeError as e:
+                    self.frame_publishers.try_get_publish(
+                        StreamTopic.RECT_LEFT, self.rect_left_queue
+                    )
+                    self.frame_publishers.try_get_publish(
+                        StreamTopic.RECT_RIGHT, self.rect_right_queue
+                    )
+                except AttributeError:
                     return
         except RuntimeError:
             self.missed_sends += 1
