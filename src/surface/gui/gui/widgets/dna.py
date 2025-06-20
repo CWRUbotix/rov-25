@@ -136,7 +136,7 @@ class DNA(QWidget):
                 self.auto_results.append(QLabel(str(i + 1) + ': ' + self.search(sample)))
         if self.sample.toPlainText():
             sample = self.sample.toPlainText()
-            sample = re.sub('[^ACGT]', '', sample) # Remove every character except ACGT
+            sample = re.sub('[^ACGT]', '', sample)  # Remove every character except ACGT
             self.manual_result = QLabel('Manual: ' + self.search(sample))
 
         for result in self.auto_results:
