@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QPlainTextEdit,
     QPushButton,
     QTextEdit,
     QVBoxLayout,
@@ -46,7 +47,7 @@ class DNA(QWidget):
 
         file_picker_layout = QHBoxLayout()
 
-        self.sample = QTextEdit()
+        self.sample = QPlainTextEdit()
 
         file_browse = QPushButton('Browse')
         file_browse.clicked.connect(self.open_file_dialog)
