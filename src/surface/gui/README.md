@@ -9,6 +9,12 @@ Then `operator_app.py` and `pilot_app.py` inherit from App to make our two custo
 
 ## Installation
 
+Install pypdf with
+
+```bash
+pip install pypdf --break-system-packages
+```
+
 ## Usage
 
 Run the operator GUI with
