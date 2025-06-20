@@ -40,4 +40,4 @@ class ManipStatus(QWidget):
     @pyqtSlot(Manip)
     def manip_callback(self, msg: Manip) -> None:
         if msg.manip_id == self.manip_id:
-            self.update_gui(manip_on=msg.activated)
+            self.update_gui(manip_on=not msg.activated)
