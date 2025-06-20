@@ -1,15 +1,12 @@
 from pathlib import Path
 
 from pypdf import PdfReader
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
-    QSizePolicy,
-    QSplitter,
     QTextEdit,
     QVBoxLayout,
     QWidget,
@@ -19,11 +16,24 @@ START_YEAR = 2016
 END_YEAR = 2025
 
 DNA_NEEDLES = [
-    ['Bighead Carp','AACTTAAATAAACAGATTATTCCACTAACAATTGATTCTCAAATTTATTACTGAATTATTAACTAAAATCTAACTCAAGTATATTATTAAAGTAAGAGACCACCTACTTATTTATATTAAGGTATTATATTCATGATAAGATCAAGGACAATAACAGTGGGGGTGGCGCAAAATGAACTATTACTTGCATCTGGTTTGGAATCTCACGGACATGGCTACAAAATTCCACCCCCGTTACATTATAACTGGCATATGGTTAAATGATGTGAGTACATACTCCTCATTAACCCCACATGCCGAGCATTCTTTTAT'],
-    ['Silver Carp','CCTGAGAAAAGAGTTGTTCCACTATAATTGGTTCTCAAATATTTCCTTGAAATATTAACTTCTATTTAATTTAACTATATTAATGTAGTAAGAAACCACCTACTGGTTTATATTAAGGTATTCTATTCATGATAAGATCAGGGACAATAATCGTGGGGGTGGCGCAGAATGAACTATTACTTGCATTTGGC'],
-    ['Grass Carp','GAGTTTCTGACTTCTACCCCCTTCTTTCCTCCTACTATTAGCCTCTTCTGGTGTTGAGGCCGGAGCTGGAACAGGGTGAACAG'],
-    ['Black Carp','ACACCACGTTCTTTGACCCAGCAGGCGGAGGAGACCCAATCCTATATCAACACCTGTTCTGATTCTTCGGCCACCCAGAAGTTTACATTCTTATTTTACCCGGGTTTGGGATCATTTCAC']
+    [
+        'Bighead Carp',
+        'AACTTAAATAAACAGATTATTCCACTAACAATTGATTCTCAAATTTATTACTGAATTATTAACTAAAATCTAACTCAAGTATATTATTAAAGTAAGAGACCACCTACTTATTTATATTAAGGTATTATATTCATGATAAGATCAAGGACAATAACAGTGGGGGTGGCGCAAAATGAACTATTACTTGCATCTGGTTTGGAATCTCACGGACATGGCTACAAAATTCCACCCCCGTTACATTATAACTGGCATATGGTTAAATGATGTGAGTACATACTCCTCATTAACCCCACATGCCGAGCATTCTTTTAT',
+    ],
+    [
+        'Silver Carp',
+        'CCTGAGAAAAGAGTTGTTCCACTATAATTGGTTCTCAAATATTTCCTTGAAATATTAACTTCTATTTAATTTAACTATATTAATGTAGTAAGAAACCACCTACTGGTTTATATTAAGGTATTCTATTCATGATAAGATCAGGGACAATAATCGTGGGGGTGGCGCAGAATGAACTATTACTTGCATTTGGC',
+    ],
+    [
+        'Grass Carp',
+        'GAGTTTCTGACTTCTACCCCCTTCTTTCCTCCTACTATTAGCCTCTTCTGGTGTTGAGGCCGGAGCTGGAACAGGGTGAACAG',
+    ],
+    [
+        'Black Carp',
+        'ACACCACGTTCTTTGACCCAGCAGGCGGAGGAGACCCAATCCTATATCAACACCTGTTCTGATTCTTCGGCCACCCAGAAGTTTACATTCTTATTTTACCCGGGTTTGGGATCATTTCAC',
+    ],
 ]
+
 
 class DNA(QWidget):
     def __init__(self) -> None:
@@ -69,17 +79,14 @@ class DNA(QWidget):
 
         self.setLayout(self.root_layout)
 
-
     def open_file_dialog(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(
-            caption='Select a File',
-            filter='PDF files (*.pdf)'
+            caption='Select a File', filter='PDF files (*.pdf)'
         )
         if filename:
             path = Path(filename)
             self.text_file = str(path)
             self.filename.setText(self.text_file)
-
 
     def find_samples(self, pdf_file: str) -> list[str]:
         reader = PdfReader(pdf_file)
@@ -89,24 +96,31 @@ class DNA(QWidget):
             text = page.extract_text()
             last_index = 0
             while text.find('Unknown Sample', last_index) != -1:
-                current_index = text.find('Unknown Sample', last_index) # Roughly identify location of next sample
-                sample_index = text.find('\n', current_index) + 1 # Find start of sample
-                sample_index_end = text.find(' \n', sample_index) # Find end of sample
+                current_index = text.find(
+                    'Unknown Sample', last_index
+                )  # Roughly identify location of next sample
+                sample_index = text.find('\n', current_index) + 1  # Find start of sample
+                sample_index_end = text.find(' \n', sample_index)  # Find end of sample
                 sample = text[sample_index:sample_index_end].replace('\n', '')
                 samples.append(sample)
                 self.check_sample(sample, len(samples))
                 last_index = sample_index_end
         return samples
 
-
     def check_sample(self, sample: str, sample_num: int) -> None:
         # Check if sample has characters not corresponding to a DNA base
-        if sample.replace('A','').replace('C','').replace('G','').replace('T','') != '':
-            self.check_text.setText('Sample ' + str(sample_num) + ' has characters other than ACGT\n\n' + self.check_text.toPlainText())
+        if sample.replace('A', '').replace('C', '').replace('G', '').replace('T', '') != '':
+            self.check_text.setText(
+                'Sample '
+                + str(sample_num)
+                + ' has characters other than ACGT\n\n'
+                + self.check_text.toPlainText()
+            )
 
         # Display all samples for manual checking
-        self.check_text.setText(self.check_text.toPlainText() + ('Sample ' + str(sample_num) + ': ' + sample) + '\n\n')
-
+        self.check_text.setText(
+            self.check_text.toPlainText() + ('Sample ' + str(sample_num) + ': ' + sample) + '\n\n'
+        )
 
     def display_result(self) -> None:
         for result in self.results:
@@ -116,16 +130,15 @@ class DNA(QWidget):
             self.results = []
             samples = self.find_samples(self.filename.text())
             for i, sample in enumerate(samples):
-                self.results.append(QLabel(str(i+1) + ': ' + self.search(sample)))
+                self.results.append(QLabel(str(i + 1) + ': ' + self.search(sample)))
         else:
             self.results = [QLabel(self.search(self.sample.toPlainText()))]
 
         for result in self.results:
             self.output_layout.addWidget(result)
 
-
     def search(self, sample: str) -> str:
-        for (name, substr) in DNA_NEEDLES:
+        for name, substr in DNA_NEEDLES:
             if sample.find(substr) != -1:
                 return name
 
