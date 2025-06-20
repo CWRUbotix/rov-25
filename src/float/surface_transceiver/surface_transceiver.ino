@@ -26,7 +26,10 @@ const String LEGAL_COMMANDS[] = {"submerge", "suck", "pump", "stop", "return"};
 void setup() {
   Serial.begin(115200);
   // Wait until serial console is open; remove if not tethered to computer
-  while (!Serial) {}
+  while (!Serial) {
+    digitalWrite(LED_BUILTIN, millis() % 500 == 0);
+  }
+  digitalWrite(LED_BUILTIN, HIGH);
 
   Serial.println("Surface Transceiver");
   pinMode(RFM95_RST, OUTPUT);
@@ -48,7 +51,7 @@ void setup() {
   // Defaults after init are: 434.0MHz, modulation GFSK_Rb250Fd250
   // +13dbM (for low power module), no encryption
   // But we override frequency
-  if (!rf95.setFrequency(RF95_FREQ)) {
+  if (!rf95.setFrequency(RADIO_FREQ)) {
     Serial.println("setFrequency failed");
     while (1) {}
   }
@@ -58,7 +61,7 @@ void setup() {
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
 
-  serialPrintf("RFM95 radio @ %d MHz\n", static_cast<int>(RF95_FREQ));
+  serialPrintf("RFM95 radio @ %d MHz\n", static_cast<int>(RADIO_FREQ));
 }
 
 void loop() {
@@ -121,7 +124,7 @@ bool receivePacket() {
     byteBuffer[len] = '\0';
     char* charBuffer = reinterpret_cast<char*>(byteBuffer);
     // If this is a "single" judge/calibration packet
-    if (strncmp(byteBuffer, "ROS:SINGLE:", 11) == 0) {
+    if (strncmp((char*)byteBuffer, "ROS:SINGLE:", 11) == 0) {
       Serial.println(charBuffer);
     }
     else {
@@ -132,8 +135,8 @@ bool receivePacket() {
       Serial.println();
     }
 
-    bool isACK = (strncmp(byteBuffer, "ACK", 3) == 0);
-    bool isNACK = (strncmp(byteBuffer, "NACK", 4) == 0);
+    bool isACK = (strncmp((char*)byteBuffer, "ACK", 3) == 0);
+    bool isNACK = (strncmp((char*)byteBuffer, "NACK", 4) == 0);
 
     return isACK || isNACK;
   }

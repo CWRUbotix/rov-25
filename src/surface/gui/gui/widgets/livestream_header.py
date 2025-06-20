@@ -13,7 +13,7 @@ class LivestreamHeader(QWidget):
         root_layout = QHBoxLayout()
         self.setLayout(root_layout)
 
-        logo_path = str(Path(get_package_share_directory('gui')) / 'images' / 'CWRUbotix Logo.png')
+        logo_path = str(Path(get_package_share_directory('gui')) / 'images' / 'cwrubotix_logo.png')
 
         logo_pixmap = QPixmap(logo_path)
 
@@ -31,7 +31,7 @@ class LivestreamHeader(QWidget):
         root_layout.addSpacing(10)
 
         text_vbox = QVBoxLayout()
-        title_label = QLabel('Explorer Team 25 - CWRUbotix')
+        title_label = QLabel('Explorer Team 09 - CWRUbotix')
         title_label.setStyleSheet('QLabel { font-size: 35px; }')
         title_label.setAlignment(Qt.AlignmentFlag.AlignAbsolute)
         text_vbox.addWidget(title_label)

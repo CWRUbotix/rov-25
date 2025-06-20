@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import NamedTuple
@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge
 from numpy.typing import NDArray
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtCore import Qt, pyqtBoundSignal, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QImage, QMouseEvent, QPixmap
 from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 from rclpy.qos import qos_profile_default
 from sensor_msgs.msg import Image
@@ -45,6 +45,8 @@ class CameraType(IntEnum):
     ETHERNET = 2
     DEPTH = 3
     SIMULATION = 4
+    QPIXMAP = 5
+    PHOTOSPHERE = 6
 
 
 @dataclass
@@ -76,6 +78,8 @@ class CameraDescription(NamedTuple):
         The width of the Camera Stream, by default WIDTH constant.
     height: int
         The height of the Camera Stream, by default HEIGHT constant.
+    manager: CameraManager | None
+        Used for toggling cam streams in SwitchableVideoWidgets
 
     """
 
@@ -87,13 +91,29 @@ class CameraDescription(NamedTuple):
     manager: CameraManager | None = None
 
 
+class ClickableLabel(QLabel):
+    def __init__(self, signal: pyqtBoundSignal) -> None:
+        super().__init__()
+        self.signal = signal
+
+    def mousePressEvent(self, event: QMouseEvent | None) -> None:  # noqa: N802
+        if event is not None:
+            self.signal.emit(event)
+
+        return super().mousePressEvent(event)
+
+
 class VideoWidget(QWidget):
     """A single video stream widget."""
 
     update_big_video_signal = pyqtSignal(QWidget)
     handle_frame_signal = pyqtSignal(Image)
 
-    def __init__(self, camera_description: CameraDescription) -> None:
+    def __init__(
+        self,
+        camera_description: CameraDescription,
+        make_label: Callable[[], QLabel] = lambda: QLabel(),
+    ) -> None:
         super().__init__()
 
         self.camera_description = camera_description
@@ -101,8 +121,7 @@ class VideoWidget(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        self.video_frame_label = QLabel()
-        self.video_frame_label.setText(f'This topic had no frame: {camera_description.topic}')
+        self.video_frame_label = make_label()
         layout.addWidget(self.video_frame_label)
 
         self.label = QLabel(camera_description.label)
@@ -110,12 +129,15 @@ class VideoWidget(QWidget):
         self.label.setStyleSheet('QLabel { font-size: 35px; }')
         layout.addWidget(self.label, Qt.AlignmentFlag.AlignHCenter)
 
-        self.cv_bridge = CvBridge()
-
-        self.handle_frame_signal.connect(self.handle_frame)
-        self.camera_subscriber = GUINode().create_signal_subscription(
-            Image, camera_description.topic, self.handle_frame_signal
-        )
+        if camera_description.type == CameraType.QPIXMAP:
+            self.video_frame_label.setText('No Pixmap received')
+        else:
+            self.video_frame_label.setText(f'This topic had no frame: {camera_description.topic}')
+            self.cv_bridge = CvBridge()
+            self.handle_frame_signal.connect(self.handle_frame)
+            self.camera_subscriber = GUINode().create_signal_subscription(
+                Image, camera_description.topic, self.handle_frame_signal
+            )
 
     @pyqtSlot(Image)
     def handle_frame(self, frame: Image) -> None:
@@ -125,13 +147,26 @@ class VideoWidget(QWidget):
             cv_image, self.camera_description.width, self.camera_description.height
         )
 
-        self.video_frame_label.setPixmap(QPixmap.fromImage(qt_image))
+        self.set_pixmap(QPixmap.fromImage(qt_image))
+
+    def get_pixmap(self) -> QPixmap:
+        return self.video_frame_label.pixmap()
+
+    def set_pixmap(self, pixmap: QPixmap) -> None:
+        if pixmap.isNull():
+            return
+
+        self.video_frame_label.setPixmap(pixmap)
+        self.video_frame_label.setFixedSize(pixmap.size())
 
     def convert_cv_qt(self, cv_img: MatLike, width: int = 0, height: int = 0) -> QImage:
         """Convert from an opencv image to QPixmap."""
         if self.camera_description.type == CameraType.ETHERNET:
             # Switches ethernet's color profile from BayerBGR to BGR
             cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BAYER_BGGR2BGR)
+
+        if self.camera_description.type == CameraType.PHOTOSPHERE:
+            cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
 
         # Color image
         if len(cv_img.shape) == COLOR:
@@ -166,13 +201,14 @@ class SwitchableVideoWidget(VideoWidget):
         camera_descriptions: Sequence[CameraDescription],
         controller_button_topic: str,
         default_cam_num: int = 0,
+        make_label: Callable[[], QLabel] = lambda: QLabel(),
     ) -> None:
         self.camera_descriptions = camera_descriptions
         self.active_cam = default_cam_num
 
         self.num_of_cams = len(camera_descriptions)
 
-        super().__init__(camera_descriptions[self.active_cam])
+        super().__init__(camera_descriptions[self.active_cam], make_label=make_label)
 
         self.button: QPushButton = QPushButton(camera_descriptions[self.active_cam].label)
         self.button.setMaximumWidth(self.BUTTON_WIDTH)
@@ -222,10 +258,13 @@ class SwitchableVideoWidget(VideoWidget):
         self.button.setText(new_cam_description.label)
 
         # Updates text for info when no frame received.
+        last_pixmap = self.get_pixmap()
         self.video_frame_label.setText(f'This topic had no frame: {new_cam_description.topic}')
         self.label.setText(new_cam_description.label)
 
         self.camera_description = new_cam_description
+
+        self.set_pixmap(last_pixmap)
 
 
 class PauseableVideoWidget(VideoWidget):

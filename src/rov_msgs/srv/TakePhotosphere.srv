@@ -1,0 +1,8 @@
+uint8 CAM0 = 0
+uint8 CAM1 = 1
+uint8 BOTH = 2
+
+uint8 cam
+---
+bool success
+uint8 cam

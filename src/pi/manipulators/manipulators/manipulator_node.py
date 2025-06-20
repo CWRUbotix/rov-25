@@ -6,6 +6,7 @@ from smbus2 import SMBus, i2c_msg
 
 from rov_msgs.msg import Manip
 
+I2C_BUS = 6
 ADRRESS = 0x20
 CMD_BYTE = 0x06
 
@@ -23,7 +24,7 @@ class Manipulator(Node):
             parameters=[('left', Parameter.Type.INTEGER), ('right', Parameter.Type.INTEGER)],
         )
 
-        self.i2c = SMBus(1)
+        self.i2c = SMBus(I2C_BUS)
         self.state = 0
 
     def manip_callback(self, message: Manip) -> None:
