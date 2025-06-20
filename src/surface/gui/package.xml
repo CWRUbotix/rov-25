@@ -16,7 +16,6 @@
   <exec_depend>python3-pyqtgraph</exec_depend>
   <exec_depend>pyqt6-dev-tools</exec_depend>
   <exec_depend>python3-pyqt6.qtmultimedia</exec_depend>
-  <exec_depend>python3-pypdf</exec_depend>
 
   <exec_depend>rov_msgs</exec_depend>
 

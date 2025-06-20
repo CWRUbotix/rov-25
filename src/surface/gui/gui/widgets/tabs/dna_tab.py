@@ -10,6 +10,6 @@ class DNATab(QWidget):
 
         root_layout = QVBoxLayout()
         root_layout.addWidget(
-            DNA(), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+            DNA()
         )
         self.setLayout(root_layout)

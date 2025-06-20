@@ -1,13 +1,16 @@
 from pathlib import Path
 
 from pypdf import PdfReader
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QFileDialog,
-    QFormLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
+    QSizePolicy,
+    QSplitter,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
@@ -26,17 +29,17 @@ class DNA(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        self.root_layout = QHBoxLayout()
+        self.root_layout = QVBoxLayout()
+        self.base_layout = QHBoxLayout()
 
         self.input_layout = QVBoxLayout()
         self.output_layout = QVBoxLayout()
 
         file_picker_layout = QHBoxLayout()
 
-        self.sample = QLineEdit()
+        self.check_text = QTextEdit()
 
-        form = QFormLayout()
-        form.addRow('Sample', self.sample)
+        self.sample = QTextEdit()
 
         file_browse = QPushButton('Browse')
         file_browse.clicked.connect(self.open_file_dialog)
@@ -46,21 +49,26 @@ class DNA(QWidget):
 
         show_button.clicked.connect(self.display_result)
 
-        self.setLayout(self.root_layout)
-
-        self.input_layout.addLayout(form)
-
         file_picker_layout.addWidget(self.filename)
         file_picker_layout.addWidget(file_browse)
         self.input_layout.addLayout(file_picker_layout)
 
-        self.input_layout.addWidget(show_button)
-        self.input_layout.addStretch()
+        self.input_layout.addWidget(QLabel('Or enter sample directly: '))
+        self.input_layout.addWidget(self.sample)
 
-        self.root_layout.addLayout(self.input_layout)
-        self.root_layout.addLayout(self.output_layout)
+        self.input_layout.addWidget(show_button)
+
+        self.base_layout.addLayout(self.input_layout)
+
+        self.base_layout.addLayout(self.output_layout)
+        self.root_layout.addLayout(self.base_layout)
+        self.root_layout.addWidget(QLabel('Check DNA Samples:'))
+        self.root_layout.addWidget(self.check_text)
 
         self.results: list[QLabel] = []
+
+        self.setLayout(self.root_layout)
+
 
     def open_file_dialog(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(
@@ -72,20 +80,49 @@ class DNA(QWidget):
             self.text_file = str(path)
             self.filename.setText(self.text_file)
 
+
+    def find_samples(self, pdf_file: str) -> list[str]:
+        reader = PdfReader(pdf_file)
+        samples = []
+        self.check_text.setText('')
+        for page in reader.pages:
+            text = page.extract_text()
+            last_index = 0
+            while text.find('Unknown Sample', last_index) != -1:
+                current_index = text.find('Unknown Sample', last_index) # Roughly identify location of next sample
+                sample_index = text.find('\n', current_index) + 1 # Find start of sample
+                sample_index_end = text.find(' \n', sample_index) # Find end of sample
+                sample = text[sample_index:sample_index_end].replace('\n', '')
+                samples.append(sample)
+                self.check_sample(sample, len(samples))
+                last_index = sample_index_end
+        return samples
+
+
+    def check_sample(self, sample: str, sample_num: int) -> None:
+        # Check if sample has characters not corresponding to a DNA base
+        if sample.replace('A','').replace('C','').replace('G','').replace('T','') != '':
+            self.check_text.setText('Sample ' + str(sample_num) + ' has characters other than ACGT\n\n' + self.check_text.toPlainText())
+
+        # Display all samples for manual checking
+        self.check_text.setText(self.check_text.toPlainText() + ('Sample ' + str(sample_num) + ': ' + sample) + '\n\n')
+
+
     def display_result(self) -> None:
         for result in self.results:
             self.output_layout.removeWidget(result)
 
         if self.filename.text():
             self.results = []
-            samples = self.find_samples("/home/bunando/Downloads/EX PN RN Sample eDNA profile 1.pdf")
+            samples = self.find_samples(self.filename.text())
             for i, sample in enumerate(samples):
                 self.results.append(QLabel(str(i+1) + ': ' + self.search(sample)))
         else:
-            self.results = [QLabel(self.search(self.sample.text()))]
+            self.results = [QLabel(self.search(self.sample.toPlainText()))]
 
         for result in self.results:
             self.output_layout.addWidget(result)
+
 
     def search(self, sample: str) -> str:
         for (name, substr) in DNA_NEEDLES:
@@ -93,17 +130,3 @@ class DNA(QWidget):
                 return name
 
         return 'No match'
-
-    def find_samples(self, pdf_file: str) -> list[str]:
-        reader = PdfReader(pdf_file)
-        samples = []
-        for page in reader.pages:
-            text = page.extract_text()
-            last_index = 0
-            while text.find('Unknown Sample',last_index) != -1:
-                current_index = text.find('Unknown Sample', last_index) # Roughly identify location of next sample
-                sample_index = text.find('\n', current_index) + 1 # Find start of sample
-                sample_index_end = text.find(' \n', sample_index) # Find end of sample
-                samples.append(text[sample_index:sample_index_end].replace('\n', ''))
-                last_index = sample_index_end
-        return samples
