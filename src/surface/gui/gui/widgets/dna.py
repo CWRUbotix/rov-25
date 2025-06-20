@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from pypdf import PdfReader
@@ -11,9 +12,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
-START_YEAR = 2016
-END_YEAR = 2025
 
 DNA_NEEDLES = [
     [
@@ -43,11 +41,10 @@ class DNA(QWidget):
         self.base_layout = QHBoxLayout()
 
         self.input_layout = QVBoxLayout()
-        self.output_layout = QVBoxLayout()
+        self.auto_output_layout = QVBoxLayout()
+        self.manual_output_layout = QVBoxLayout()
 
         file_picker_layout = QHBoxLayout()
-
-        self.check_text = QTextEdit()
 
         self.sample = QTextEdit()
 
@@ -59,6 +56,9 @@ class DNA(QWidget):
 
         show_button.clicked.connect(self.display_result)
 
+        self.check_text = QTextEdit()
+
+        self.input_layout.addWidget(QLabel('Select PDF File: '))
         file_picker_layout.addWidget(self.filename)
         file_picker_layout.addWidget(file_browse)
         self.input_layout.addLayout(file_picker_layout)
@@ -70,12 +70,14 @@ class DNA(QWidget):
 
         self.base_layout.addLayout(self.input_layout)
 
-        self.base_layout.addLayout(self.output_layout)
+        self.base_layout.addLayout(self.auto_output_layout)
+        self.base_layout.addLayout(self.manual_output_layout)
         self.root_layout.addLayout(self.base_layout)
         self.root_layout.addWidget(QLabel('Check DNA Samples:'))
         self.root_layout.addWidget(self.check_text)
 
-        self.results: list[QLabel] = []
+        self.manual_result: QLabel | None = None
+        self.auto_results: list[QLabel] = []
 
         self.setLayout(self.root_layout)
 
@@ -123,19 +125,23 @@ class DNA(QWidget):
         )
 
     def display_result(self) -> None:
-        for result in self.results:
-            self.output_layout.removeWidget(result)
+        for result in self.auto_results:
+            self.auto_output_layout.removeWidget(result)
+        self.manual_output_layout.removeWidget(self.manual_result)
 
         if self.filename.text():
-            self.results = []
+            self.auto_results = []
             samples = self.find_samples(self.filename.text())
             for i, sample in enumerate(samples):
-                self.results.append(QLabel(str(i + 1) + ': ' + self.search(sample)))
-        else:
-            self.results = [QLabel(self.search(self.sample.toPlainText()))]
+                self.auto_results.append(QLabel(str(i + 1) + ': ' + self.search(sample)))
+        if self.sample.toPlainText():
+            sample = self.sample.toPlainText()
+            sample = re.sub('[^ACGT]', '', sample) # Remove every character except ACGT
+            self.manual_result = QLabel('Manual: ' + self.search(sample))
 
-        for result in self.results:
-            self.output_layout.addWidget(result)
+        for result in self.auto_results:
+            self.auto_output_layout.addWidget(result)
+        self.manual_output_layout.addWidget(self.manual_result)
 
     def search(self, sample: str) -> str:
         for name, substr in DNA_NEEDLES:
