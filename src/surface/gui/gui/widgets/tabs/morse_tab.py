@@ -101,6 +101,16 @@ class MorseTab(QWidget):
         ).start()
 
     def transmit_morse(self, morse: list[str]) -> None:
+        # Preamble
+        for _ in range(5):
+            self.set_light_signal.emit(True)
+            sleep(TIME_UNIT_S)
+            self.set_light_signal.emit(False)
+            sleep(TIME_UNIT_S)
+
+        sleep(TIME_UNIT_S * 5)
+
+        # Actual word
         for code in morse:
             for ditdah in code:
                 self.set_light_signal.emit(True)
