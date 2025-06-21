@@ -1,14 +1,18 @@
+from pathlib import Path
 from threading import Thread
 from time import sleep
 
+from ament_index_python.packages import get_package_share_directory
+from PyQt6.QtCore import Qt
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QPixmap
 from PyQt6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
+    QVBoxLayout,
     QWidget,
 )
 from rclpy.qos import qos_profile_system_default
@@ -66,7 +70,9 @@ class MorseTab(QWidget):
 
         root_layout = QHBoxLayout()
         left_layout = QGridLayout()
+        right_layout = QVBoxLayout()
         root_layout.addLayout(left_layout)
+        root_layout.addLayout(right_layout)
 
         self.line_edit = QLineEdit()
         self.line_edit.setPlaceholderText('Enter word')
@@ -85,6 +91,21 @@ class MorseTab(QWidget):
         left_layout.addWidget(self.morse_indicator, 1, 1)
 
         self.set_light_signal.connect(self.set_light)
+
+        map_path = str(
+            Path(get_package_share_directory('gui')) / 'images' / 'morse_code.png'
+        )
+        map_pixmap = QPixmap(map_path)
+        map_label = QLabel()
+        map_label.setPixmap(
+            map_pixmap.scaled(
+                600,
+                600,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+        )
+        right_layout.addWidget(map_label)
 
         self.setLayout(root_layout)
 
