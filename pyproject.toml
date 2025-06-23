@@ -21,7 +21,11 @@ line-length = 100
 flake8-quotes.inline-quotes='single'
 extend-select = ["ALL"]
 fixable = ["ALL"]
-ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "T201", "FIX002", "TD003", "TD002", "TRY003", "EM101", "EM102", "RET504", "D211", "COM812", "ISC001", "ERA001", "S602", "S603", "D205", "UP040"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "T201", "FIX002", "TD003", "TD002", "TRY003", "EM101",
+          "EM102", "RET504", "D211", "COM812", "ISC001", "ERA001", "S602", "S603", "D205", "UP040",
+          "UP046"  # Ruff pre-commit wants updated generics notation but ROS2's Mypy tests don't support it
+                   # Ignore Ruff for now, change this when we move to next Ubuntu LTS or pre-commit Mpypy
+          ]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
