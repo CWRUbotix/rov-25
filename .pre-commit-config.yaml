@@ -2,7 +2,7 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.11.13
+    rev: v0.12.0
     hooks:
       # Run the linter.
       - id: ruff
@@ -12,7 +12,7 @@ repos:
       - id: ruff-format
         exclude: src/surface/photosphere/photosphere/projection_matrix/.*
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v20.1.5
+    rev: v20.1.6
     hooks:
       - id: clang-format
         types_or: [c++, c]
@@ -22,6 +22,6 @@ repos:
     hooks:
       - id: trailing-whitespace
   - repo: https://github.com/google/yamlfmt
-    rev: v0.17.0
+    rev: v0.17.1
     hooks:
       - id: yamlfmt
