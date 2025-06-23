@@ -10,7 +10,7 @@ gpio_handle = lgpio.gpiochip_open(0)
 lgpio.gpio_claim_output(gpio_handle, SERVO_PIN)
 
 
-def test_gpio(width: int, freq: int = 50) -> None:
+def run_gpio(width: int, freq: int = 50) -> None:
     lgpio.tx_servo(gpio_handle, SERVO_PIN, width, freq)
 
 
@@ -19,15 +19,15 @@ def main() -> None:
         print('Starting loop')
         while True:
             print('one way')
-            test_gpio(1900, 50)
+            run_gpio(1900, 50)
             time.sleep(2)
 
             print('off')
-            test_gpio(1500, 200)
+            run_gpio(1500, 200)
             time.sleep(2)
 
             print('other way')
-            test_gpio(1100, 400)
+            run_gpio(1100, 400)
             time.sleep(2)
 
     except KeyboardInterrupt:
